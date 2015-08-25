@@ -1,13 +1,13 @@
 /*
 Project: TUC
-File: tuc.cpp
+File: lexer.cpp
 Author: Leonardo Banderali
-Created: August 7, 2015
-Last Modified: August 7, 2015
+Created: August 21, 2015
+Last Modified: August 24, 2015
 
 Description:
     TUC is a simple, experimental compiler intended for learning and experimenting.
-    It is not intended to have any useful purpose other than being a fun way to learn
+    It is not designed to have any useful purpose other than being a way to learn
     how compilers work.
 
 Copyright (C) 2015 Leonardo Banderali
@@ -34,5 +34,35 @@ THE SOFTWARE.
 
 */
 
-int main(int argc, char** argv) {
+#include "lexer.hpp"
+
+/*  returns the token that was last generated */
+template<typename BidirectionalIterator> typename
+tuc::Lexer<BidirectionalIterator>::Token tuc::Lexer<BidirectionalIterator>::current() {
+    return currentToken;
+}
+
+/*  generates and returns the next token */
+template<typename BidirectionalIterator> typename
+tuc::Lexer<BidirectionalIterator>::Token tuc::Lexer<BidirectionalIterator>::next() {
+    Rule rule;
+    std::smatch firstMatch;
+    std::smatch m;
+    for (auto r: rules[currentRules]) {
+        if (std::regex_search(currentPosition, end, m, r.regex()) && (firstMatch.empty() || m.position() < firstMatch.position() )) {
+            firstMatch = m;
+            rule = r;
+        }
+    }
+
+    if (firstMatch.empty()) {
+        currentToken = Token{};
+        currentRules = 0;   // 0 points to the default rules
+    } else {
+        currentPosition += firstMatch.position();
+        currentToken = Token{rule.name(), firstMatch};
+        currentRules = rule.nextState();
+    }
+
+    return currentToken;
 }

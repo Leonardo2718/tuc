@@ -3,8 +3,8 @@ CXX			= g++
 CXXFLAGS	= -Wall -std=c++14 -iquoteinclude
 
 # prerequisite files
-HEADERS		=
-SOURCES		= src/toc.cpp
+HEADERS		= include/lexer.hpp
+SOURCES		= src/tuc.cpp src/lexer.cpp
 OBJS		= $(subst src,bin,$(subst .cpp,.o,$(SOURCES)))
 
 
