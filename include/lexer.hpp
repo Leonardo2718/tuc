@@ -3,7 +3,7 @@ Project: TUC
 File: lexer.hpp
 Author: Leonardo Banderali
 Created: August 21, 2015
-Last Modified: August 24, 2015
+Last Modified: August 25, 2015
 
 Description:
     TUC is a simple, experimental compiler intended for learning and experimenting.
@@ -43,15 +43,15 @@ THE SOFTWARE.
 #include <regex>
 
 namespace tuc {
-    template<typename BidirectionalIterator> class Lexer;
+    template<typename RandomAccessIterator> class Lexer;
 }
 
-template<typename BidirectionalIterator>
+template<typename RandomAccessIterator>
 class tuc::Lexer {
-    template <typename NextStateType> class BasicRule;
-    using Rule = BasicRule<int>;
-    using RuleList = std::vector<Rule>;
     public:
+        template <typename NextStateType> class BasicRule;
+        using Rule = BasicRule<int>;
+        using RuleList = std::vector<Rule>;
         class Token {
             public:
                 Token() {}
@@ -74,25 +74,22 @@ class tuc::Lexer {
                 int offset = -1;    // holds the offset for the token position
         };
 
-        Lexer(const BidirectionalIterator& first, const BidirectionalIterator& last, const std::vector<RuleList>& _rules)
-            : rules{_rules}, beginning{first}, currentPosition{first}, end{last} {}
-
-        Token current();
-        /*  returns the token that was last generated */
-
-        Token next();
-        /*  generates and returns the next token */
-
-    private:
         template <typename NextStateType>
         class BasicRule {    // a class that defines the rules used to find tokens
             public:
-                BasicRule() {}
-                BasicRule(const std::string& _name, const std::string& _regex)
-                    : ruleName{_name}, rgx{_regex} {}
+                BasicRule(NextStateType n) : nState{n} {}
+                /*BasicRule(const std::string& _name, const std::string& _regex)
+                    : ruleName{_name}, rgx{_regex} {}*/
                 BasicRule(const std::string& _name, const std::string& _regex, NextStateType _nState)
                     : ruleName{_name}, rgx{_regex}, nState{_nState} {}
                 /*  constructs a rule with the name `_name` and uses `_regex` as regular expression for matching */
+
+                BasicRule operator=(const BasicRule& rhs) {
+                    ruleName = rhs.ruleName;
+                    rgx = rhs.rgx;
+                    nState = rhs.nState;
+                    return *this;
+                }
 
                 std::string name() const {
                     return ruleName;
@@ -108,9 +105,24 @@ class tuc::Lexer {
 
             private:
                 std::string ruleName;
-                std::regex rgx;                 // holds the regular expression (regex) used to indentify the token
-                const NextStateType& nState;    // points to (but does not own) the next rules to be used for tokenization
+                std::regex rgx;         // holds the regular expression (regex) used to indentify the token
+                NextStateType nState;   // points to (but does not own) the next rules to be used for tokenization
         };
+
+        Lexer(RandomAccessIterator first, RandomAccessIterator last, const std::vector<RuleList>& _rules)
+            : rules{_rules}, beginning{first}, end{last}, currentPosition{first} {}
+
+        Token current();
+        /*  returns the token that was last generated */
+
+        Token next();
+        /*  generates and returns the next token */
+
+        static Rule make_rule(const std::string& _name, const std::string& _regex, int _nState) {
+            return Rule{_name, _regex, _nState};
+        }
+
+    private:
 
         struct TokenRulePair {
             Token token;
@@ -119,12 +131,12 @@ class tuc::Lexer {
 
         std::vector<RuleList> rules;
 
-        const BidirectionalIterator beginning;
-        const BidirectionalIterator end;
-        BidirectionalIterator currentPosition;
+        RandomAccessIterator beginning;
+        RandomAccessIterator end;
+        RandomAccessIterator currentPosition;
 
         Token currentToken;
-        int currentRules;
+        int currentRules = 0;
 
         /*
         - returns the first token identified and its corresponding rule
@@ -134,7 +146,7 @@ class tuc::Lexer {
         - `offset` is the offset from the start of the string at which to begin looking for a token
         */
         //template<class BidirectionalIterator>
-        TokenRulePair firstToken(BidirectionalIterator first, BidirectionalIterator last, const RuleList& rules) {
+        TokenRulePair firstToken(RandomAccessIterator first, RandomAccessIterator last, const RuleList& rules) {
             Token token;
             Rule rule;
             int tokenPosition = -1;
@@ -152,5 +164,36 @@ class tuc::Lexer {
             return TokenRulePair{token, rule};
         }
 };
+
+/*  returns the token that was last generated */
+template<typename RandomAccessIterator> typename
+tuc::Lexer<RandomAccessIterator>::Token tuc::Lexer<RandomAccessIterator>::current() {
+    return currentToken;
+}
+
+/*  generates and returns the next token */
+template<typename RandomAccessIterator> typename
+tuc::Lexer<RandomAccessIterator>::Token tuc::Lexer<RandomAccessIterator>::next() {
+    Rule rule{0};
+    std::smatch firstMatch;
+    std::smatch m;
+    for (auto r: rules[currentRules]) {
+        if (std::regex_search(currentPosition, end, m, r.regex()) && (firstMatch.empty() || m.position() < firstMatch.position() )) {
+            firstMatch = m;
+            rule = r;
+        }
+    }
+
+    if (firstMatch.empty()) {
+        currentToken = Token{};
+        currentRules = 0;   // 0 points to the default rules
+    } else {
+        currentPosition += firstMatch.position() + firstMatch.length();
+        currentToken = Token{rule.name(), firstMatch};
+        currentRules = rule.nextState();
+    }
+
+    return currentToken;
+}
 
 #endif//TUC_LEXER_HPP
