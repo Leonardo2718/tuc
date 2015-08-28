@@ -3,7 +3,7 @@ Project: TUC
 File: lexer.hpp
 Author: Leonardo Banderali
 Created: August 21, 2015
-Last Modified: August 25, 2015
+Last Modified: August 27, 2015
 
 Description:
     TUC is a simple, experimental compiler intended for learning and experimenting.
@@ -41,55 +41,48 @@ THE SOFTWARE.
 #include <string>
 #include <vector>
 #include <regex>
+#include <utility>
 
 namespace tuc {
+    class Token;
     template<typename RandomAccessIterator> class Lexer;
 }
+
+class tuc::Token {
+    public:
+        Token() {}
+        Token(const std::string& _name, std::smatch m, int _offset = 0) : ruleName{_name}, match{m}, offset{_offset} {}
+
+        std::string name() const {
+            return ruleName;
+        }
+
+        std::string lexeme() const {
+            if (match.empty())
+                return std::string();
+            else
+                return match.str();
+        }
+
+    private:
+        std::string ruleName;
+        std::smatch match;  // holds the lexem matched associated with the token
+        int offset = -1;    // holds the offset for the token position
+};
 
 template<typename RandomAccessIterator>
 class tuc::Lexer {
     public:
-        template <typename NextStateType> class BasicRule;
-        using Rule = BasicRule<int>;
+        class Rule;
         using RuleList = std::vector<Rule>;
-        class Token {
+        using RulesIndex = int;
+
+        class Rule {    // a class that defines the rules used to find tokens
             public:
-                Token() {}
-                Token(const std::string& _name, std::smatch m, int _offset = 0) : ruleName{_name}, match{m}, offset{_offset} {}
-
-                std::string name() const {
-                    return ruleName;
-                }
-
-                std::string lexeme() const {
-                    if (match.empty())
-                        return std::string();
-                    else
-                        return match.str();
-                }
-
-            private:
-                std::string ruleName;
-                std::smatch match;  // holds the lexem matched associated with the token
-                int offset = -1;    // holds the offset for the token position
-        };
-
-        template <typename NextStateType>
-        class BasicRule {    // a class that defines the rules used to find tokens
-            public:
-                BasicRule(NextStateType n) : nState{n} {}
-                /*BasicRule(const std::string& _name, const std::string& _regex)
-                    : ruleName{_name}, rgx{_regex} {}*/
-                BasicRule(const std::string& _name, const std::string& _regex, NextStateType _nState)
-                    : ruleName{_name}, rgx{_regex}, nState{_nState} {}
+                Rule() = default;
+                Rule(const std::string& _name, const std::string& _regex, RulesIndex _nextRulesIndex)
+                    : ruleName{_name}, rgx{_regex}, nextRulesIndex{_nextRulesIndex} {}
                 /*  constructs a rule with the name `_name` and uses `_regex` as regular expression for matching */
-
-                BasicRule operator=(const BasicRule& rhs) {
-                    ruleName = rhs.ruleName;
-                    rgx = rhs.rgx;
-                    nState = rhs.nState;
-                    return *this;
-                }
 
                 std::string name() const {
                     return ruleName;
@@ -99,14 +92,14 @@ class tuc::Lexer {
                     return rgx;
                 }
 
-                NextStateType nextState() const {
-                    return nState;
+                RulesIndex nextRules() const {
+                    return nextRulesIndex;
                 }
 
             private:
                 std::string ruleName;
-                std::regex rgx;         // holds the regular expression (regex) used to indentify the token
-                NextStateType nState;   // points to (but does not own) the next rules to be used for tokenization
+                std::regex rgx;                 // holds the regular expression (regex) used to indentify the token
+                RulesIndex nextRulesIndex = 0;  // indexes the next rules to be used for tokenization
         };
 
         Lexer(RandomAccessIterator first, RandomAccessIterator last, const std::vector<RuleList>& _rules)
@@ -118,8 +111,8 @@ class tuc::Lexer {
         Token next();
         /*  generates and returns the next token */
 
-        static Rule make_rule(const std::string& _name, const std::string& _regex, int _nState) {
-            return Rule{_name, _regex, _nState};
+        static Rule make_rule(const std::string& _name, const std::string& _regex, int _nextRulesIndex) {
+            return Rule{_name, _regex, _nextRulesIndex};
         }
 
     private:
@@ -136,7 +129,7 @@ class tuc::Lexer {
         RandomAccessIterator currentPosition;
 
         Token currentToken;
-        int currentRules = 0;
+        RulesIndex currentRules = 0;    // 0 is the default rule list
 
         /*
         - returns the first token identified and its corresponding rule
@@ -146,7 +139,7 @@ class tuc::Lexer {
         - `offset` is the offset from the start of the string at which to begin looking for a token
         */
         //template<class BidirectionalIterator>
-        TokenRulePair firstToken(RandomAccessIterator first, RandomAccessIterator last, const RuleList& rules) {
+        /*TokenRulePair firstToken(RandomAccessIterator first, RandomAccessIterator last, const RuleList& rules) {
             Token token;
             Rule rule;
             int tokenPosition = -1;
@@ -162,24 +155,29 @@ class tuc::Lexer {
             }
 
             return TokenRulePair{token, rule};
-        }
+        }*/
 };
 
 /*  returns the token that was last generated */
-template<typename RandomAccessIterator> typename
-tuc::Lexer<RandomAccessIterator>::Token tuc::Lexer<RandomAccessIterator>::current() {
+//template<typename RandomAccessIterator> typename
+//tuc::Lexer<RandomAccessIterator>::Token tuc::Lexer<RandomAccessIterator>::current() {
+template<typename RandomAccessIterator>
+tuc::Token tuc::Lexer<RandomAccessIterator>::current() {
     return currentToken;
 }
 
 /*  generates and returns the next token */
-template<typename RandomAccessIterator> typename
-tuc::Lexer<RandomAccessIterator>::Token tuc::Lexer<RandomAccessIterator>::next() {
-    Rule rule{0};
+//template<typename RandomAccessIterator> typename
+//tuc::Lexer<RandomAccessIterator>::Token tuc::Lexer<RandomAccessIterator>::next() {
+template<typename RandomAccessIterator>
+tuc::Token tuc::Lexer<RandomAccessIterator>::next() {
+    Rule rule;
     std::smatch firstMatch;
     std::smatch m;
     for (auto r: rules[currentRules]) {
         if (std::regex_search(currentPosition, end, m, r.regex()) && (firstMatch.empty() || m.position() < firstMatch.position() )) {
-            firstMatch = m;
+            firstMatch = std::move(m);
+            //rule = std::move(r);
             rule = r;
         }
     }
@@ -190,7 +188,7 @@ tuc::Lexer<RandomAccessIterator>::Token tuc::Lexer<RandomAccessIterator>::next()
     } else {
         currentPosition += firstMatch.position() + firstMatch.length();
         currentToken = Token{rule.name(), firstMatch};
-        currentRules = rule.nextState();
+        currentRules = rule.nextRules();
     }
 
     return currentToken;
