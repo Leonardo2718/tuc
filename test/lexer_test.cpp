@@ -3,7 +3,7 @@ Project: OGLA
 File: lexer_test.cpp
 Author: Leonardo Banderali
 Created: August 27, 2015
-Last Modified: August 27, 2015
+Last Modified: August 29, 2015
 
 Description: A simple unit test for the lexer.
 
@@ -35,7 +35,6 @@ THE SOFTWARE.
 #include <vector>
 #include <tuple>
 
-//#include "../include/ogla/ogla.hpp"
 #include "lexer.hpp"
 
 #define BOOST_TEST_MODULE MyTest
@@ -43,8 +42,10 @@ THE SOFTWARE.
 
 //~test subjects~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-using MyLexer = tuc::Lexer<std::string::const_iterator>;
+using MyLexer = tuc::Lexer<std::string::const_iterator>;    // simplify access to string lexer
 
+
+// the test rules to be used by the lexer
 const auto rules = std::vector<MyLexer::RuleList>{
     {MyLexer::make_rule("foo_rule", "foo", 0),
      MyLexer::make_rule("bar_rule", "\\bbar\\b", 0),
@@ -57,12 +58,15 @@ const auto rules = std::vector<MyLexer::RuleList>{
      MyLexer::make_rule("end_str_rule", "\"", 0)}
 };
 
+
+//the string to be analyzed
 const std::string text{"The quick brown fox jumps over the lazy dog.\n"
                  "foo bar quux\n"
                  "gosofooeiowe secbarsde qux quuuuuuuuuux\n"
                  "This is \"an \\t attempt\" to parse a string\n"};
-//const ogla::Grammar grammar = ogla::Grammar::load();
-//const std::vector<std::tuple<std::string, int, std::string>> expected_tokens = {
+
+
+// a representation of the tokens expected from the lexer
 const std::vector<std::tuple<std::string, std::string, int>> expected_tokens = {
     std::make_tuple("quick_rule", "quick", 4),
     std::make_tuple("foo_rule", "foo", 45),
@@ -81,45 +85,15 @@ const std::vector<std::tuple<std::string, std::string, int>> expected_tokens = {
 
 //~helpers~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-/*
-Tests for equallity between two values; prints a friendly error message if test fails.
-*/
-/*template<typename T>
-void eq_test(const T& a, const T& b, const std::string& lable, int index) {
-    BOOST_CHECK_MESSAGE(a == b, "[" << index << "]" << lable << a << ", expected: " << b);
-}
-
-void test_lexeme(const ogla::Token& token, const std::tuple<std::string, int, std::string>& exp, int index) {
-    eq_test(token.lexeme(), std::get<0>(exp), " lexeme: ", index);
-}
-
-void test_position(const ogla::Token& token, const std::tuple<std::string, int, std::string>& exp, int index) {
-    eq_test(token.position(), std::get<1>(exp), " position: ", index);
-}
-
-void test_name(const ogla::Token& token, const std::tuple<std::string, int, std::string>& exp, int index) {
-    eq_test(token.name(), std::get<2>(exp), " name: ", index);
-}*/
-
-#define MAKE_MESSAGE(token, tuple) "expected:{" << (token.name()) << "," << (token.lexeme()) \
-                                                << "} got:{" << std::get<0>(tuple) << "," << std::get<1>(tuple) << "}"
+// a macro that generates the message to be printed by a BOOST_CHECK_MESSAGE
+#define MAKE_MESSAGE(token, tuple) "expected:{" << std::get<0>(tuple) << "," << std::get<1>(tuple) \
+                                                << "} got:{" << (token.name()) << "," << (token.lexeme()) << "}"
 
 
 
 //~tests~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 BOOST_AUTO_TEST_CASE( test_lexer_class ) {
-    // pre-test code
-    /*ogla::TokenList tokens = ogla::analyze(text, grammar);
-
-    // run test
-    BOOST_CHECK_MESSAGE(tokens.size() == expected_tokens.size(),
-                        "token count: " << tokens.size() << ", expected: " << expected_tokens.size());
-    for (int i = 0, s = tokens.size(); i < s; i++) {
-        test_lexeme(tokens.at(i), expected_tokens.at(i), i);
-        test_position(tokens.at(i), expected_tokens.at(i), i);
-        test_name(tokens.at(i), expected_tokens.at(i), i);
-    }*/
     // test setup code
     auto lexer = MyLexer(text.cbegin(), text.cend(), rules);
     auto token = tuc::Token{};
