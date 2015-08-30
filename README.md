@@ -1,7 +1,7 @@
 # TUC
 
-TUC is a small, experimental compiler intended for learning and experimenting. It is not intended to have any useful
-purpose other than being a fun way to learn how compilers work.
+TUC is a small, experimental compiler designed for learning and experimenting. It is not intended to have any useful
+purpose other than being a way to learn how compilers work.
 
 ## License
 The source code for TUC is licensed under the MIT license and all accompanying documentation is licensed under a

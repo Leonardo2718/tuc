@@ -3,11 +3,11 @@ Project: TUC
 File: lexer.hpp
 Author: Leonardo Banderali
 Created: August 21, 2015
-Last Modified: August 27, 2015
+Last Modified: August 29, 2015
 
 Description:
-    TUC is a simple, experimental compiler intended for learning and experimenting.
-    It is not designed to have any useful purpose other than being a way to learn
+    TUC is a simple, experimental compiler designed for learning and experimenting.
+    It is not intended to have any useful purpose other than being a way to learn
     how compilers work.
 
 Copyright (C) 2015 Leonardo Banderali
