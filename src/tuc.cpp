@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
         inputFile.get(sb, static_cast<char>(-1)); // read the entire file
         const auto fileText = sb.str();
 
-        using MyLexer = tuc::Lexer<decltype(fileText.begin())>;
+        /*using MyLexer = tuc::Lexer<decltype(fileText.begin())>;
         auto rules = std::vector<MyLexer::RuleList>{{MyLexer::make_rule("name", "TUC", 0)}};
         auto lexer = MyLexer(fileText.cbegin(), fileText.cend(), rules);
         auto t = tuc::Token{};
@@ -60,7 +60,7 @@ int main(int argc, char** argv) {
         do {
             t = lexer.next();
             std::cout << t.name() << " " << t.lexeme() << std::endl;
-        } while (!t.name().empty());
+        } while (!t.name().empty());*/
 
         //std::cout << fileText << std::endl;
     }

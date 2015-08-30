@@ -44,13 +44,55 @@ THE SOFTWARE.
 #include <utility>
 
 namespace tuc {
+    class Rule;
     class Token;
     template<typename RandomAccessIterator> class Lexer;
+
+    using RuleList = std::vector<Rule>;
+    using RulesIndex = int;
+
+    /*################################################################################################################
+    ### Here, a grammar is defined as a list of rule lists (a matrix of rules).  Each list in the grammer containes ##
+    ### the rules to be used to find the next token; in other words, the next possible set of rules that generate a ##
+    ### valid token, given a current state.  Rules contain a `GrammarIndex` that points to the next list of rules   ##
+    ### to be used if the given rule geneates a token.  A rule may point to the current list (the list for which    ##
+    ### the rule is a member), or it may point to a different list in the grammar.  This way, the grammar defines   ##
+    ### the finite-state-machine (FSM) behavior of the lexer.                                                       ##
+    ################################################################################################################*/
+
+    using Grammar = std::vector<std::vector<Rule>>;
+    using GrammarIndex = int;
 }
+
+class tuc::Rule {    // a class that defines the rules used to find tokens
+    public:
+        Rule() = default;
+        Rule(const std::string& _name, const std::string& _regex, GrammarIndex _nextRulesIndex)
+            : ruleName{_name}, rgx{_regex}, nextRulesIndex{_nextRulesIndex} {}
+        /*  constructs a rule with the name `_name` and uses `_regex` as regular expression for searching;
+            `_nextRulesIndex` points to the next list of rules to be used */
+
+        std::string name() const {
+            return ruleName;
+        }
+
+        std::regex regex() const {
+            return rgx;
+        }
+
+        GrammarIndex nextRules() const {
+            return nextRulesIndex;
+        }
+
+    private:
+        std::string ruleName;
+        std::regex rgx;                 // holds the regular expression (regex) used to indentify the token
+        GrammarIndex nextRulesIndex = 0;// indexes the next rules to be used for tokenization
+};
 
 class tuc::Token {
     public:
-        Token() {}
+        Token() = default;
         Token(const std::string& _name, std::smatch m, int _offset = 0) : ruleName{_name}, match{m}, offset{_offset} {}
 
         std::string name() const {
@@ -73,37 +115,9 @@ class tuc::Token {
 template<typename RandomAccessIterator>
 class tuc::Lexer {
     public:
-        class Rule;
-        using RuleList = std::vector<Rule>;
-        using RulesIndex = int;
 
-        class Rule {    // a class that defines the rules used to find tokens
-            public:
-                Rule() = default;
-                Rule(const std::string& _name, const std::string& _regex, RulesIndex _nextRulesIndex)
-                    : ruleName{_name}, rgx{_regex}, nextRulesIndex{_nextRulesIndex} {}
-                /*  constructs a rule with the name `_name` and uses `_regex` as regular expression for matching */
-
-                std::string name() const {
-                    return ruleName;
-                }
-
-                std::regex regex() const {
-                    return rgx;
-                }
-
-                RulesIndex nextRules() const {
-                    return nextRulesIndex;
-                }
-
-            private:
-                std::string ruleName;
-                std::regex rgx;                 // holds the regular expression (regex) used to indentify the token
-                RulesIndex nextRulesIndex = 0;  // indexes the next rules to be used for tokenization
-        };
-
-        Lexer(RandomAccessIterator first, RandomAccessIterator last, const std::vector<RuleList>& _rules)
-            : rules{_rules}, beginning{first}, end{last}, currentPosition{first} {}
+        Lexer(RandomAccessIterator first, RandomAccessIterator last, const Grammar& _grammar)
+            : grammar{_grammar}, beginning{first}, end{last}, currentPosition{first} {}
 
         Token current();
         /*  returns the token that was last generated */
@@ -117,19 +131,19 @@ class tuc::Lexer {
 
     private:
 
-        struct TokenRulePair {
+        /*struct TokenRulePair {
             Token token;
             Rule rule;
-        };
+        };*/
 
-        std::vector<RuleList> rules;
+        Grammar grammar;
 
         RandomAccessIterator beginning;
         RandomAccessIterator end;
         RandomAccessIterator currentPosition;
 
         Token currentToken;
-        RulesIndex currentRules = 0;    // 0 is the default rule list
+        GrammarIndex currentRules = 0;    // 0 is the default rule list
 
         /*
         - returns the first token identified and its corresponding rule
@@ -174,7 +188,7 @@ tuc::Token tuc::Lexer<RandomAccessIterator>::next() {
     Rule rule;
     std::smatch firstMatch;
     std::smatch m;
-    for (auto r: rules[currentRules]) {
+    for (auto r: grammar[currentRules]) {
         if (std::regex_search(currentPosition, end, m, r.regex()) && (firstMatch.empty() || m.position() < firstMatch.position() )) {
             firstMatch = std::move(m);
             //rule = std::move(r);
@@ -184,7 +198,7 @@ tuc::Token tuc::Lexer<RandomAccessIterator>::next() {
 
     if (firstMatch.empty()) {
         currentToken = Token{};
-        currentRules = 0;   // 0 points to the default rules
+        //currentRules = 0;   // 0 points to the default rules
     } else {
         currentPosition += firstMatch.position() + firstMatch.length();
         currentToken = Token{rule.name(), firstMatch};
