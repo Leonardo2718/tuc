@@ -160,8 +160,8 @@ tuc::Token tuc::Lexer<RandomAccessIterator>::next() {
     for (auto r: grammar[currentRules]) {
         if (std::regex_search(currentPosition, end, m, r.regex()) && (firstMatch.empty() || m.position() < firstMatch.position() )) {
             firstMatch = std::move(m);
-            //rule = std::move(r);
-            rule = r;
+            rule = std::move(r);
+            //rule = r;
         }
     }
 
