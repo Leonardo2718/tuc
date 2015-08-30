@@ -46,7 +46,7 @@ using MyLexer = tuc::Lexer<std::string::const_iterator>;    // simplify access t
 
 
 // the test rules to be used by the lexer
-const auto rules = std::vector<MyLexer::RuleList>{
+const auto rules = tuc::Grammar{
     {MyLexer::make_rule("foo_rule", "foo", 0),
      MyLexer::make_rule("bar_rule", "\\bbar\\b", 0),
      MyLexer::make_rule("quux_rule", "\\bqu+x\\b", 0),

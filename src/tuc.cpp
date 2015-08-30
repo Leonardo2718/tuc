@@ -49,6 +49,7 @@ int main(int argc, char** argv) {
         //std::stringstream ss;
         std::stringbuf sb;
         inputFile.get(sb, static_cast<char>(-1)); // read the entire file
+        inputFile.close();
         const auto fileText = sb.str();
 
         /*using MyLexer = tuc::Lexer<decltype(fileText.begin())>;
@@ -62,6 +63,6 @@ int main(int argc, char** argv) {
             std::cout << t.name() << " " << t.lexeme() << std::endl;
         } while (!t.name().empty());*/
 
-        //std::cout << fileText << std::endl;
+        std::cout << fileText << std::endl;
     }
 }
