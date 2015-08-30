@@ -36,7 +36,6 @@ THE SOFTWARE.
 
 // c++ standard libraries
 #include <fstream>
-#include <sstream>
 #include <iostream>
 #include <string>
 
@@ -46,22 +45,10 @@ THE SOFTWARE.
 int main(int argc, char** argv) {
     if (argc == 2) {
         auto inputFile = std::ifstream{argv[1]};
-        //std::stringstream ss;
         std::stringbuf sb;
         inputFile.get(sb, static_cast<char>(-1)); // read the entire file
         inputFile.close();
         const auto fileText = sb.str();
-
-        /*using MyLexer = tuc::Lexer<decltype(fileText.begin())>;
-        auto rules = std::vector<MyLexer::RuleList>{{MyLexer::make_rule("name", "TUC", 0)}};
-        auto lexer = MyLexer(fileText.cbegin(), fileText.cend(), rules);
-        auto t = tuc::Token{};
-
-        // test code (should print "name TUC" as many times as it appears in the file)
-        do {
-            t = lexer.next();
-            std::cout << t.name() << " " << t.lexeme() << std::endl;
-        } while (!t.name().empty());*/
 
         std::cout << fileText << std::endl;
     }

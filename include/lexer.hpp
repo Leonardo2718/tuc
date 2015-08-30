@@ -43,6 +43,8 @@ THE SOFTWARE.
 #include <regex>
 #include <utility>
 
+//~declare namespace members~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 namespace tuc {
     class Rule;
     class Token;
@@ -64,6 +66,10 @@ namespace tuc {
     using GrammarIndex = int;
 }
 
+
+
+//~declare classes~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 class tuc::Rule {    // a class that defines the rules used to find tokens
     public:
         Rule() = default;
@@ -72,17 +78,14 @@ class tuc::Rule {    // a class that defines the rules used to find tokens
         /*  constructs a rule with the name `_name` and uses `_regex` as regular expression for searching;
             `_nextRulesIndex` points to the next list of rules to be used */
 
-        std::string name() const {
-            return ruleName;
-        }
+        std::string name() const;
+        /*  returns the name of the rule (which should also be the name of the token it searches for) */
 
-        std::regex regex() const {
-            return rgx;
-        }
+        std::regex regex() const;
+        /*  returns the regular expression used to search for the token */
 
-        GrammarIndex nextRules() const {
-            return nextRulesIndex;
-        }
+        GrammarIndex nextRules() const;
+        /*  returns the index pointing to the rules to be used after this rule finds a token */
 
     private:
         std::string ruleName;
@@ -95,16 +98,11 @@ class tuc::Token {
         Token() = default;
         Token(const std::string& _name, std::smatch m, int _offset = 0) : ruleName{_name}, match{m}, offset{_offset} {}
 
-        std::string name() const {
-            return ruleName;
-        }
+        std::string name() const;
+        /*  returns the name of the token (which should match the name of the rule used to find it) */
 
-        std::string lexeme() const {
-            if (match.empty())
-                return std::string();
-            else
-                return match.str();
-        }
+        std::string lexeme() const;
+        /*  returns the lexeme for the token */
 
     private:
         std::string ruleName;
@@ -112,10 +110,13 @@ class tuc::Token {
         int offset = -1;    // holds the offset for the token position
 };
 
+
+
+//~declare and implement template classes~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 template<typename RandomAccessIterator>
 class tuc::Lexer {
     public:
-
         Lexer(RandomAccessIterator first, RandomAccessIterator last, const Grammar& _grammar)
             : grammar{_grammar}, beginning{first}, end{last}, currentPosition{first} {}
 
@@ -130,12 +131,6 @@ class tuc::Lexer {
         }
 
     private:
-
-        /*struct TokenRulePair {
-            Token token;
-            Rule rule;
-        };*/
-
         Grammar grammar;
 
         RandomAccessIterator beginning;
@@ -144,45 +139,19 @@ class tuc::Lexer {
 
         Token currentToken;
         GrammarIndex currentRules = 0;    // 0 is the default rule list
-
-        /*
-        - returns the first token identified and its corresponding rule
-        - `first` is an iterator (prefer const_iterator) pointing to the first character of the text to be analyzed
-        - `last` is an iterator (prefer const_iterator) pointing to one character past the end of the text to be analyzed
-        - `rules` is the list of rules checked when looking for the first token
-        - `offset` is the offset from the start of the string at which to begin looking for a token
-        */
-        //template<class BidirectionalIterator>
-        /*TokenRulePair firstToken(RandomAccessIterator first, RandomAccessIterator last, const RuleList& rules) {
-            Token token;
-            Rule rule;
-            int tokenPosition = -1;
-            if (first < last) {
-                std::smatch m;
-                for (auto r: rules) {
-                    if (std::regex_search(first, last, m, r.regex()) && (m.position() < tokenPosition || tokenPosition < 0)) {
-                        token = Token(r, m);
-                        rule = r;
-                        tokenPosition = m.position();
-                    }
-                }
-            }
-
-            return TokenRulePair{token, rule};
-        }*/
 };
 
-/*  returns the token that was last generated */
-//template<typename RandomAccessIterator> typename
-//tuc::Lexer<RandomAccessIterator>::Token tuc::Lexer<RandomAccessIterator>::current() {
+/*
+returns the token that was last generated
+*/
 template<typename RandomAccessIterator>
 tuc::Token tuc::Lexer<RandomAccessIterator>::current() {
     return currentToken;
 }
 
-/*  generates and returns the next token */
-//template<typename RandomAccessIterator> typename
-//tuc::Lexer<RandomAccessIterator>::Token tuc::Lexer<RandomAccessIterator>::next() {
+/*
+generates and returns the next token
+*/
 template<typename RandomAccessIterator>
 tuc::Token tuc::Lexer<RandomAccessIterator>::next() {
     Rule rule;

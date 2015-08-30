@@ -35,3 +35,41 @@ THE SOFTWARE.
 */
 
 #include "lexer.hpp"
+
+/*
+returns the name of the rule (which should also be the name of the token it searches for)
+*/
+std::string tuc::Rule::name() const {
+    return ruleName;
+}
+
+/*
+returns the regular expression used to search for the token
+*/
+std::regex tuc::Rule::regex() const {
+    return rgx;
+}
+
+/*
+returns the index pointing to the rules to be used after this rule finds a token
+*/
+tuc::GrammarIndex tuc::Rule::nextRules() const {
+    return nextRulesIndex;
+}
+
+/*
+returns the name of the token (which should match the name of the rule used to find it)
+*/
+std::string tuc::Token::name() const {
+    return ruleName;
+}
+
+/*
+returns the lexeme for the token
+*/
+std::string tuc::Token::lexeme() const {
+    if (match.empty())
+        return std::string();
+    else
+        return match.str();
+}
