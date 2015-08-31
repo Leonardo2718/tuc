@@ -3,7 +3,7 @@ Project: OGLA
 File: lexer_test.cpp
 Author: Leonardo Banderali
 Created: August 27, 2015
-Last Modified: August 29, 2015
+Last Modified: August 31, 2015
 
 Description: A simple unit test for the lexer.
 
@@ -47,15 +47,15 @@ using MyLexer = tuc::Lexer<std::string::const_iterator>;    // simplify access t
 
 // the test rules to be used by the lexer
 const auto rules = tuc::Grammar{
-    {MyLexer::make_rule("foo_rule", "foo", 0),
-     MyLexer::make_rule("bar_rule", "\\bbar\\b", 0),
-     MyLexer::make_rule("quux_rule", "\\bqu+x\\b", 0),
-     MyLexer::make_rule("quick_rule", "\\bquick\\b", 0),
-     MyLexer::make_rule("c_rule", "\\b[A-Za-z]+c[A-Za-z]+\\b", 0),
-     MyLexer::make_rule("str_rule", "\"", 1)},
+    {tuc::Rule("foo_rule", "foo", 0),
+     tuc::Rule("bar_rule", "\\bbar\\b", 0),
+     tuc::Rule("quux_rule", "\\bqu+x\\b", 0),
+     tuc::Rule("quick_rule", "\\bquick\\b", 0),
+     tuc::Rule("c_rule", "\\b[A-Za-z]+c[A-Za-z]+\\b", 0),
+     tuc::Rule("str_rule", "\"", 1)},
 
-    {MyLexer::make_rule("escape_rule", "\\\\.", 1),
-     MyLexer::make_rule("end_str_rule", "\"", 0)}
+    {tuc::Rule("escape_rule", "\\\\.", 1),
+     tuc::Rule("end_str_rule", "\"", 0)}
 };
 
 

@@ -2,8 +2,8 @@
 Project: TUC
 File: lexer.cpp
 Author: Leonardo Banderali
-Created: August 21, 2015
-Last Modified: August 29, 2015
+Created: August 31, 2015
+Last Modified: August 31, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -34,7 +34,7 @@ THE SOFTWARE.
 
 */
 
-#include "lexer.hpp"
+#include "grammar.hpp"
 
 /*
 returns the name of the rule (which should also be the name of the token it searches for)
