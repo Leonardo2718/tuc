@@ -3,7 +3,7 @@ Project: TUC
 File: lexer.hpp
 Author: Leonardo Banderali
 Created: August 21, 2015
-Last Modified: August 31, 2015
+Last Modified: September 2, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -57,8 +57,8 @@ namespace tuc {
 template<typename RandomAccessIterator>
 class tuc::Lexer {
     public:
-        Lexer(RandomAccessIterator first, RandomAccessIterator last, const Grammar& _grammar)
-            : grammar{_grammar}, beginning{first}, end{last}, currentPosition{first} {}
+        Lexer(RandomAccessIterator first, RandomAccessIterator last, const Grammar& _grammar);
+        /*  cunstructs a lexer object where `current()` returns the first token found */
 
         Token current();
         /*  returns the token that was last generated */
@@ -76,6 +76,16 @@ class tuc::Lexer {
         Token currentToken;
         GrammarIndex currentRules = 0;    // 0 is the default rule list
 };
+
+
+/*
+cunstructs a lexer object where `current()` returns the first token found
+*/
+template<typename RandomAccessIterator>
+tuc::Lexer<RandomAccessIterator>::Lexer(RandomAccessIterator first, RandomAccessIterator last, const Grammar& _grammar)
+: grammar{_grammar}, beginning{first}, end{last}, currentPosition{first} {
+    next();
+}
 
 /*
 returns the token that was last generated
