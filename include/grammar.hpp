@@ -3,7 +3,7 @@ Project: TUC
 File: grammar.hpp
 Author: Leonardo Banderali
 Created: August 31, 2015
-Last Modified: August 31, 2015
+Last Modified: September 2, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -93,11 +93,14 @@ class tuc::Token {
         Token() = default;
         Token(const std::string& _name, std::smatch m, int _offset = 0) : ruleName{_name}, match{m}, offset{_offset} {}
 
+        bool empty() const;
+        /*  returns true if token was generated from an empty match */
+
         std::string name() const;
         /*  returns the name of the token (which should match the name of the rule used to find it) */
 
         std::string lexeme() const;
-        /*  returns the lexeme for the token */
+        /*  returns the lexeme for the token; behavior is undefined if token is empty */
 
     private:
         std::string ruleName;
