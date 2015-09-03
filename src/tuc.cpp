@@ -3,7 +3,7 @@ Project: TUC
 File: tuc.cpp
 Author: Leonardo Banderali
 Created: August 7, 2015
-Last Modified: August 29, 2015
+Last Modified: September 2, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -50,6 +50,20 @@ int main(int argc, char** argv) {
         inputFile.close();
         const auto fileText = sb.str();
 
-        std::cout << fileText << std::endl;
+        auto uGrammar = tuc::Grammar{
+            {
+                tuc::Rule{"ADD", "\\+", 0},
+                tuc::Rule{"INTEGER", "\\d+", 0},
+                tuc::Rule{"SEMICOL", ";", 0}
+            }
+        };
+
+        auto uLexer = tuc::Lexer<std::string::const_iterator>{fileText.cbegin(), fileText.cend(), uGrammar};
+
+        while(!uLexer.current().empty()) {
+            auto token = uLexer.current();
+            std::cout << "Token: " << token.name() << "\tLexeme:" << token.lexeme() << "\tPosition:" << token.position() << std::endl;
+            uLexer.next();
+        }
     }
 }
