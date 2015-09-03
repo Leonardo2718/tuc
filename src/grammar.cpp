@@ -72,6 +72,13 @@ std::string tuc::Token::name() const {
 }
 
 /*
+returns the position of the token within the alayzed text
+*/
+int tuc::Token::position() const {
+    return pos;
+}
+
+/*
 returns the lexeme for the token; behavior is undefined if token is empty
 */
 std::string tuc::Token::lexeme() const {

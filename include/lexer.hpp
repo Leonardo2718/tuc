@@ -113,9 +113,9 @@ tuc::Token tuc::Lexer<RandomAccessIterator>::next() {
     if (firstMatch.empty()) {
         currentToken = Token{};
     } else {
-        currentPosition += firstMatch.position() + firstMatch.length();
-        currentToken = Token{rule.name(), firstMatch};
+        currentToken = Token{rule.name(), firstMatch, currentPosition - beginning + firstMatch.position() };
         currentRules = rule.nextRules();
+        currentPosition += firstMatch.position() + firstMatch.length();
     }
 
     return currentToken;

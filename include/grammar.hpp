@@ -91,7 +91,7 @@ class tuc::Rule {    // a class that defines the rules used to find tokens
 class tuc::Token {
     public:
         Token() = default;
-        Token(const std::string& _name, std::smatch m, int _offset = 0) : ruleName{_name}, match{m}, offset{_offset} {}
+        Token(const std::string& _name, std::smatch m, int _pos = -1) : ruleName{_name}, match{m}, pos{_pos} {}
 
         bool empty() const;
         /*  returns true if token was generated from an empty match */
@@ -99,13 +99,16 @@ class tuc::Token {
         std::string name() const;
         /*  returns the name of the token (which should match the name of the rule used to find it) */
 
+        int position() const;
+        /*  returns the position of the token within the alayzed text */
+
         std::string lexeme() const;
         /*  returns the lexeme for the token; behavior is undefined if token is empty */
 
     private:
         std::string ruleName;
         std::smatch match;  // holds the lexem matched associated with the token
-        int offset = -1;    // holds the offset for the token position
+        int pos;            // holds the position of the token in the text (-1 is "unkown position")
 };
 
 #endif//TUC_GRAMMAR_HPP

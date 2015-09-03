@@ -86,8 +86,8 @@ const std::vector<std::tuple<std::string, std::string, int>> expected_tokens = {
 //~helpers~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // a macro that generates the message to be printed by a BOOST_CHECK_MESSAGE
-#define MAKE_MESSAGE(token, tuple) "expected:{" << std::get<0>(tuple) << "," << std::get<1>(tuple) \
-                                                << "} got:{" << (token.name()) << "," << (token.lexeme()) << "}"
+#define MAKE_MESSAGE(token, tuple) "expected:{" << std::get<0>(tuple) << "," << std::get<1>(tuple) << std::get<2>(tuple) \
+                                << "} got:{" << (token.name()) << "," << (token.lexeme()) << "," << (token.position()) << "}"
 
 
 
@@ -100,7 +100,7 @@ BOOST_AUTO_TEST_CASE( test_lexer_class ) {
 
     // test code
     for (int i = 0, s = expected_tokens.size(); i < s; i++) {
-        token = lexer.next();
+        token = lexer.current();
         //BOOST_TEST_REQUIRE((!token.empty()));
         //BOOST_CHECK_REQUIRE((!token.empty()));
         //BOOST_TEST(token.name() == std::get<0>(expected_tokens[i]));
@@ -109,5 +109,9 @@ BOOST_AUTO_TEST_CASE( test_lexer_class ) {
         //BOOST_TEST(token.lexeme() == std::get<1>(expected_tokens[i]));
         //BOOST_CHECK(token.lexeme() == std::get<1>(expected_tokens[i]));
         BOOST_CHECK_MESSAGE(token.lexeme() == std::get<1>(expected_tokens[i]), MAKE_MESSAGE(token,(expected_tokens[i])));
+        //BOOST_TEST(token.position() == std::get<2>(expected_tokens[i]));
+        //BOOST_CHECK(token.position() == std::get<2>(expected_tokens[i]));
+        BOOST_CHECK_MESSAGE(token.position() == std::get<2>(expected_tokens[i]), MAKE_MESSAGE(token,(expected_tokens[i])));
+        lexer.next();
     }
 }
