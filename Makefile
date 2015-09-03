@@ -5,7 +5,7 @@ CXXFLAGS	= -Wall -std=c++14 -iquoteinclude
 # prerequisite files
 HEADERS		= include/grammar.hpp include/lexer.hpp
 SOURCES		= src/tuc.cpp src/grammar.cpp
-OBJS		= $(subst src,bin,$(subst .cpp,.o,$(SOURCES)))
+OBJS		= $(subst src,obj,$(subst .cpp,.o,$(SOURCES)))
 
 
 
@@ -14,7 +14,7 @@ OBJS		= $(subst src,bin,$(subst .cpp,.o,$(SOURCES)))
 tuc: $(OBJS)
 	$(CXX) $(OBJS) -o "$@"
 
-bin/%.o: src/%.cpp $(HEADERS) Makefile
+obj/%.o: src/%.cpp $(HEADERS) Makefile
 	$(CXX) $(CXXFLAGS) -c "$<" -o "$@"
 
 clean:
