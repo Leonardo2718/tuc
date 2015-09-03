@@ -38,6 +38,7 @@ THE SOFTWARE.
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <vector>
 
 // project headers
 #include "lexer.hpp"
@@ -58,12 +59,25 @@ int main(int argc, char** argv) {
             }
         };
 
+        auto tree = std::vector<std::vector<tuc::Token>>{}; // a very basic Abstract Syntax Tree (AST)
         auto uLexer = tuc::Lexer<std::string::const_iterator>{fileText.cbegin(), fileText.cend(), uGrammar};
+        auto tokenBuffer = std::vector<tuc::Token>{};       // a buffer to store un processed tokens
+        auto token = uLexer.current();
 
-        while(!uLexer.current().empty()) {
-            auto token = uLexer.current();
-            std::cout << "Token: " << token.name() << "\tLexeme:" << token.lexeme() << "\tPosition:" << token.position() << std::endl;
-            uLexer.next();
+        while(!token.empty()) {
+            if (token.name() == "ADD") {
+                auto prevToken = tokenBuffer.back();
+                tokenBuffer.pop_back();
+                auto nextToken = uLexer.next();
+                tree.push_back({token, prevToken, nextToken});
+            } else {
+                tokenBuffer.push_back(token);
+            }
+            token = uLexer.next();
+        }
+
+        for (auto v : tree) {
+            std::cout << v[0].name() << " " << v[1].lexeme() << " " << v[2].lexeme() << std::endl;
         }
     }
 }
