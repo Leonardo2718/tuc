@@ -3,7 +3,7 @@ Project: TUC
 File: lexer.hpp
 Author: Leonardo Banderali
 Created: August 21, 2015
-Last Modified: September 2, 2015
+Last Modified: September 3, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -113,7 +113,7 @@ tuc::Token tuc::Lexer<RandomAccessIterator>::next() {
     if (firstMatch.empty()) {
         currentToken = Token{};
     } else {
-        currentToken = Token{rule.name(), firstMatch, currentPosition - beginning + firstMatch.position() };
+        currentToken = Token{rule.type(), firstMatch, currentPosition - beginning + firstMatch.position() };
         currentRules = rule.nextRules();
         currentPosition += firstMatch.position() + firstMatch.length();
     }

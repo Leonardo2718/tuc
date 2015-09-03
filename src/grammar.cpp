@@ -3,7 +3,7 @@ Project: TUC
 File: lexer.cpp
 Author: Leonardo Banderali
 Created: August 31, 2015
-Last Modified: September 2, 2015
+Last Modified: September 3, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -37,10 +37,10 @@ THE SOFTWARE.
 #include "grammar.hpp"
 
 /*
-returns the name of the rule (which should also be the name of the token it searches for)
+returns the type of the rule (which should also be the type of the token it searches for)
 */
-std::string tuc::Rule::name() const {
-    return ruleName;
+std::string tuc::Rule::type() const {
+    return ruleType;
 }
 
 /*
@@ -65,10 +65,10 @@ bool tuc::Token::empty() const {
 }
 
 /*
-returns the name of the token (which should match the name of the rule used to find it)
+returns the type of the token (which should match the name of the rule used to find it)
 */
-std::string tuc::Token::name() const {
-    return ruleName;
+std::string tuc::Token::type() const {
+    return tokenType;
 }
 
 /*

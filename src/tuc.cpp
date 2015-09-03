@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
         auto token = uLexer.current();
 
         while(!token.empty()) {
-            if (token.name() == "ADD") {
+            if (token.type() == "ADD") {
                 auto prevToken = tokenBuffer.back();
                 tokenBuffer.pop_back();
                 auto nextToken = uLexer.next();
@@ -85,12 +85,10 @@ int main(int argc, char** argv) {
         outputASM << "section .text\nglobal _start\n\n_start:\n";
 
         for (auto v : tree) {
-            //std::cout << v[0].name() << " " << v[1].lexeme() << " " << v[2].lexeme() << " " << v[3].lexeme() << std::endl;
-
-            if (v[0].name() == "ADD") {
-                if (v[1].name() == "INTEGER")
+            if (v[0].type() == "ADD") {
+                if (v[1].type() == "INTEGER")
                     outputASM << "mov eax, " << std::stoi(v[1].lexeme()) << "\n";
-                if (v[2].name() == "INTEGER")
+                if (v[2].type() == "INTEGER")
                     outputASM << "add eax, " << std::stoi(v[2].lexeme()) << "\n";
             }
         }

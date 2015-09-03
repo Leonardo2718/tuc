@@ -3,7 +3,7 @@ Project: TUC
 File: grammar.hpp
 Author: Leonardo Banderali
 Created: August 31, 2015
-Last Modified: September 2, 2015
+Last Modified: September 3, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -68,13 +68,13 @@ namespace tuc {
 class tuc::Rule {    // a class that defines the rules used to find tokens
     public:
         Rule() = default;
-        Rule(const std::string& _name, const std::string& _regex, GrammarIndex _nextRulesIndex)
-            : ruleName{_name}, rgx{_regex}, nextRulesIndex{_nextRulesIndex} {}
+        Rule(const std::string& _type, const std::string& _regex, GrammarIndex _nextRulesIndex)
+            : ruleType{_type}, rgx{_regex}, nextRulesIndex{_nextRulesIndex} {}
         /*  constructs a rule with the name `_name` and uses `_regex` as regular expression for searching;
             `_nextRulesIndex` points to the next list of rules to be used */
 
-        std::string name() const;
-        /*  returns the name of the rule (which should also be the name of the token it searches for) */
+        std::string type() const;
+        /*  returns the type of the rule (which should also be the type of the token it searches for) */
 
         std::regex regex() const;
         /*  returns the regular expression used to search for the token */
@@ -83,7 +83,7 @@ class tuc::Rule {    // a class that defines the rules used to find tokens
         /*  returns the index pointing to the rules to be used after this rule finds a token */
 
     private:
-        std::string ruleName;
+        std::string ruleType;
         std::regex rgx;                 // holds the regular expression (regex) used to indentify the token
         GrammarIndex nextRulesIndex = 0;// indexes the next rules to be used for tokenization
 };
@@ -91,13 +91,13 @@ class tuc::Rule {    // a class that defines the rules used to find tokens
 class tuc::Token {
     public:
         Token() = default;
-        Token(const std::string& _name, std::smatch m, int _pos = -1) : ruleName{_name}, match{m}, pos{_pos} {}
+        Token(const std::string& _type, std::smatch m, int _pos = -1) : tokenType{_type}, match{m}, pos{_pos} {}
 
         bool empty() const;
         /*  returns true if token was generated from an empty match */
 
-        std::string name() const;
-        /*  returns the name of the token (which should match the name of the rule used to find it) */
+        std::string type() const;
+        /*  returns the type of the token (which should match the type of the rule used to find it) */
 
         int position() const;
         /*  returns the position of the token within the alayzed text */
@@ -106,7 +106,7 @@ class tuc::Token {
         /*  returns the lexeme for the token; behavior is undefined if token is empty */
 
     private:
-        std::string ruleName;
+        std::string tokenType;
         std::smatch match;  // holds the lexem matched associated with the token
         int pos;            // holds the position of the token in the text (-1 is "unkown position")
 };
