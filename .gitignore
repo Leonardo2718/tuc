@@ -1,3 +1,6 @@
 obj/*
 tuc
-test/*_test
+test/unit_tests/*_test
+test/compiler_tests/*/*_test
+test/compiler_tests/*/*.asm
+test/compiler_tests/*/*.o
