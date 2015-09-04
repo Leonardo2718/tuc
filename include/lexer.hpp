@@ -48,6 +48,8 @@ THE SOFTWARE.
 
 namespace tuc {
     template<typename RandomAccessIterator> class Lexer;
+    template<typename RandomAccessIterator>
+    Lexer<RandomAccessIterator> make_lexer(RandomAccessIterator first, RandomAccessIterator last);
 }
 
 
@@ -128,6 +130,12 @@ tuc::Token tuc::Lexer<RandomAccessIterator>::next() {
     }
 
     return currentToken;
+}
+
+
+template<typename RandomAccessIterator>
+tuc::Lexer<RandomAccessIterator> tuc::make_lexer(RandomAccessIterator first, RandomAccessIterator last) {
+    return Lexer<RandomAccessIterator>{first, last};
 }
 
 #endif//TUC_LEXER_HPP

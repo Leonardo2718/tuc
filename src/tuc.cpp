@@ -54,21 +54,21 @@ int main(int argc, char** argv) {
 
         // analyze the text
         auto tree = std::vector<std::vector<tuc::Token>>{}; // a very basic Abstract Syntax Tree (AST)
-        auto uLexer = tuc::Lexer<std::string::const_iterator>{fileText.cbegin(), fileText.cend()};
+        auto lexer = tuc::make_lexer(fileText.cbegin(), fileText.cend());
         auto tokenBuffer = std::vector<tuc::Token>{};       // a buffer to store un processed tokens
-        auto token = uLexer.current();
+        auto token = lexer.current();
 
         while(!token.empty()) {
             if (token.type() == "ADD") {
                 auto prevToken = tokenBuffer.back();
                 tokenBuffer.pop_back();
-                auto nextToken = uLexer.next();
-                auto lastToken = uLexer.next();
+                auto nextToken = lexer.next();
+                auto lastToken = lexer.next();
                 tree.push_back({token, prevToken, nextToken, lastToken});
             } else {
                 tokenBuffer.push_back(token);
             }
-            token = uLexer.next();
+            token = lexer.next();
         }
 
         // generate the asembly code
