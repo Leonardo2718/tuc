@@ -52,18 +52,8 @@ int main(int argc, char** argv) {
         inputFile.close();
         const auto fileText = sb.str();
 
-        // define a basic language grammar
-        /*auto uGrammar = tuc::Grammar{
-            {
-                tuc::Rule{"ADD", "\\+", 0},
-                tuc::Rule{"INTEGER", "\\d+", 0},
-                tuc::Rule{"SEMICOL", ";", 0}
-            }
-        };*/
-
         // analyze the text
         auto tree = std::vector<std::vector<tuc::Token>>{}; // a very basic Abstract Syntax Tree (AST)
-        //auto uLexer = tuc::Lexer<std::string::const_iterator>{fileText.cbegin(), fileText.cend(), uGrammar};
         auto uLexer = tuc::Lexer<std::string::const_iterator>{fileText.cbegin(), fileText.cend()};
         auto tokenBuffer = std::vector<tuc::Token>{};       // a buffer to store un processed tokens
         auto token = uLexer.current();
