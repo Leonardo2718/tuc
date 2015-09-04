@@ -57,7 +57,8 @@ namespace tuc {
 template<typename RandomAccessIterator>
 class tuc::Lexer {
     public:
-        Lexer(RandomAccessIterator first, RandomAccessIterator last, const Grammar& _grammar);
+        //Lexer(RandomAccessIterator first, RandomAccessIterator last, const Grammar& _grammar);
+        Lexer(RandomAccessIterator first, RandomAccessIterator last);
         /*  cunstructs a lexer object where `current()` returns the first token found */
 
         Token current();
@@ -67,7 +68,7 @@ class tuc::Lexer {
         /*  generates and returns the next token */
 
     private:
-        Grammar grammar;
+        static Grammar grammar;
 
         RandomAccessIterator beginning;
         RandomAccessIterator end;
@@ -78,12 +79,23 @@ class tuc::Lexer {
 };
 
 
+template<typename RandomAccessIterator>
+tuc::Grammar tuc::Lexer<RandomAccessIterator>::grammar = tuc::Grammar{
+    {
+        Rule{"ADD", "\\+", 0},
+        Rule{"INTEGER", "\\d+", 0},
+        Rule{"SEMICOL", ";", 0}
+    }
+};
+
 /*
 cunstructs a lexer object where `current()` returns the first token found
 */
 template<typename RandomAccessIterator>
-tuc::Lexer<RandomAccessIterator>::Lexer(RandomAccessIterator first, RandomAccessIterator last, const Grammar& _grammar)
-: grammar{_grammar}, beginning{first}, end{last}, currentPosition{first} {
+//tuc::Lexer<RandomAccessIterator>::Lexer(RandomAccessIterator first, RandomAccessIterator last, const Grammar& _grammar)
+tuc::Lexer<RandomAccessIterator>::Lexer(RandomAccessIterator first, RandomAccessIterator last)
+//: grammar{_grammar}, beginning{first}, end{last}, currentPosition{first} {
+: beginning{first}, end{last}, currentPosition{first} {
     next();
 }
 
