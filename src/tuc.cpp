@@ -42,6 +42,7 @@ THE SOFTWARE.
 
 // project headers
 #include "lexer.hpp"
+#include "syntax_tree.hpp"
 
 int main(int argc, char** argv) {
     if (argc == 3) {
@@ -53,26 +54,28 @@ int main(int argc, char** argv) {
         const auto fileText = sb.str();
 
         // create lexer instance for the text
-        auto tree = std::vector<std::vector<tuc::Token>>{}; // a very basic Abstract Syntax Tree (AST)
         auto lexer = tuc::make_lexer(fileText.cbegin(), fileText.cend());
         auto tokenBuffer = std::vector<tuc::Token>{};       // a buffer to store un processed tokens
         auto bufferFlag = true;
+        auto tree = tuc::SyntaxTree{};
+        auto syntaxNode = tree.root();
         auto token = lexer.current();
 
         // parse the program into a styntax tree using the output from the lexer
         while(!token.empty()) {
             if (token.type() == tuc::TokenType::ADD || token.type() == tuc::TokenType::SUBTRACT ||
               token.type() == tuc::TokenType::MULTIPLY || token.type() == tuc::TokenType::DIVIDE) {
-                auto prevToken = tokenBuffer.back();
+                syntaxNode = tree.appendChild(syntaxNode, token);
+                tree.appendChild(syntaxNode, tokenBuffer.back());
                 tokenBuffer.pop_back();
-                tree.push_back({token, prevToken});
                 bufferFlag = false;
             } else if (token.type() == tuc::TokenType::SEMICOL) {
+                syntaxNode = tree.parent(syntaxNode);
                 bufferFlag = true;
             } else if (bufferFlag) {
                 tokenBuffer.push_back(token);
             } else {
-                tree.back().push_back(token);
+                tree.appendChild(syntaxNode, token);
             }
             token = lexer.next();
         }
@@ -81,29 +84,34 @@ int main(int argc, char** argv) {
         auto outputASM = std::ostringstream{};
         outputASM << "section .text\nglobal _start\n\n_start:\n";
 
-        for (auto v : tree) {
-            if (v[0].type() == tuc::TokenType::ADD) {
-                if (v[1].type() == tuc::TokenType::INTEGER)
-                    outputASM << "mov eax, " << std::stoi(v[1].lexeme()) << "\nadd eax, ";
+        for (auto n : tree.children(tree.root())) {
+            token = n.token();
+            auto operands = tree.children(n);
+            if (token.type() == tuc::TokenType::ADD) {
+                if (operands[0].token().type() == tuc::TokenType::INTEGER)
+                    outputASM << "mov eax, " << std::stoi(operands[0].token().lexeme()) << "\nadd eax, ";
+                if (operands[1].token().type() == tuc::TokenType::INTEGER)
+                    outputASM << std::stoi(operands[1].token().lexeme()) << "\n";
             }
-            else if (v[0].type() == tuc::TokenType::SUBTRACT) {
-                if (v[1].type() == tuc::TokenType::INTEGER)
-                    outputASM << "mov eax, " << std::stoi(v[1].lexeme()) << "\nsub eax, ";
+            else if (token.type() == tuc::TokenType::SUBTRACT) {
+                if (operands[0].token().type()  == tuc::TokenType::INTEGER)
+                    outputASM << "mov eax, " << std::stoi(operands[0].token().lexeme()) << "\nsub eax, ";
+                if (operands[1].token().type() == tuc::TokenType::INTEGER)
+                    outputASM << std::stoi(operands[1].token().lexeme()) << "\n";
             }
-            else if (v[0].type() == tuc::TokenType::MULTIPLY) {
-                if (v[1].type() == tuc::TokenType::INTEGER)
-                    outputASM << "mov eax, " << std::stoi(v[1].lexeme()) << "\nimul eax, ";
+            else if (token.type() == tuc::TokenType::MULTIPLY) {
+                if (operands[0].token().type()  == tuc::TokenType::INTEGER)
+                    outputASM << "mov eax, " << std::stoi(operands[0].token().lexeme()) << "\nimul eax, ";
+                if (operands[1].token().type() == tuc::TokenType::INTEGER)
+                    outputASM << std::stoi(operands[1].token().lexeme()) << "\n";
             }
-            else if (v[0].type() == tuc::TokenType::DIVIDE) {
-                if (v[1].type() == tuc::TokenType::INTEGER)
-                    outputASM << "mov eax, " << std::stoi(v[1].lexeme()) << "\n";
-                if (v[2].type() == tuc::TokenType::INTEGER)
-                    outputASM << "mov ebx, " << std::stoi(v[2].lexeme()) << "\nidiv ebx\n";
+            else if (token.type() == tuc::TokenType::DIVIDE) {
+                if (operands[0].token().type()  == tuc::TokenType::INTEGER)
+                    outputASM << "mov eax, " << std::stoi(operands[0].token().lexeme()) << "\n";
+                if (operands[1].token().type() == tuc::TokenType::INTEGER)
+                    outputASM << "mov ebx, " << std::stoi(operands[1].token().lexeme()) << "\nidiv ebx\n";
                 continue;
             }
-
-            if (v[2].type() == tuc::TokenType::INTEGER)
-                outputASM << std::stoi(v[2].lexeme()) << "\n";
         }
 
         outputASM << "\nmov ebx, eax\nmov eax, 1\nint 80h\n";
