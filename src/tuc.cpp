@@ -3,7 +3,7 @@ Project: TUC
 File: tuc.cpp
 Author: Leonardo Banderali
 Created: August 7, 2015
-Last Modified: September 3, 2015
+Last Modified: September 5, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -52,14 +52,16 @@ int main(int argc, char** argv) {
         inputFile.close();
         const auto fileText = sb.str();
 
-        // analyze the text
+        // create lexer instance for the text
         auto tree = std::vector<std::vector<tuc::Token>>{}; // a very basic Abstract Syntax Tree (AST)
         auto lexer = tuc::make_lexer(fileText.cbegin(), fileText.cend());
         auto tokenBuffer = std::vector<tuc::Token>{};       // a buffer to store un processed tokens
+        auto bufferFlag = true;
         auto token = lexer.current();
 
+        // parse the program into a styntax tree using the output from the lexer
         while(!token.empty()) {
-            if (token.type() == "ADD") {
+            /*if (token.type() == "ADD") {
                 auto prevToken = tokenBuffer.back();
                 tokenBuffer.pop_back();
                 auto nextToken = lexer.next();
@@ -67,6 +69,19 @@ int main(int argc, char** argv) {
                 tree.push_back({token, prevToken, nextToken, lastToken});
             } else {
                 tokenBuffer.push_back(token);
+            }
+            token = lexer.next();*/
+            if (token.type() == "ADD") {
+                auto prevToken = tokenBuffer.back();
+                tokenBuffer.pop_back();
+                tree.push_back({token, prevToken});
+                bufferFlag = false;
+            } else if (token.type() == "SEMICOL") {
+                bufferFlag = true;
+            } else if (bufferFlag) {
+                tokenBuffer.push_back(token);
+            } else {
+                tree.back().push_back(token);
             }
             token = lexer.next();
         }
