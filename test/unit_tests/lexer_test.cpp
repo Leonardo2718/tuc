@@ -3,7 +3,7 @@ Project: OGLA
 File: lexer_test.cpp
 Author: Leonardo Banderali
 Created: August 27, 2015
-Last Modified: August 31, 2015
+Last Modified: September 6, 2015
 
 Description: A simple unit test for the lexer.
 
@@ -38,47 +38,33 @@ THE SOFTWARE.
 #include "lexer.hpp"
 
 #define BOOST_TEST_MODULE MyTest
-#include <boost/test/included/unit_test.hpp>
+#include <boost/test/unit_test.hpp>
 
 //~test subjects~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 using MyLexer = tuc::Lexer<std::string::const_iterator>;    // simplify access to string lexer
 
-
-// the test rules to be used by the lexer
-const auto rules = tuc::Grammar{
-    {tuc::Rule("foo_rule", "foo", 0),
-     tuc::Rule("bar_rule", "\\bbar\\b", 0),
-     tuc::Rule("quux_rule", "\\bqu+x\\b", 0),
-     tuc::Rule("quick_rule", "\\bquick\\b", 0),
-     tuc::Rule("c_rule", "\\b[A-Za-z]+c[A-Za-z]+\\b", 0),
-     tuc::Rule("str_rule", "\"", 1)},
-
-    {tuc::Rule("escape_rule", "\\\\.", 1),
-     tuc::Rule("end_str_rule", "\"", 0)}
-};
-
-
 //the string to be analyzed
-const std::string text{"The quick brown fox jumps over the lazy dog.\n"
-                 "foo bar quux\n"
-                 "gosofooeiowe secbarsde qux quuuuuuuuuux\n"
-                 "This is \"an \\t attempt\" to parse a string\n"};
-
+const std::string text{"1+2;\n2-1;\n2*3;\n8/2;\n"};
 
 // a representation of the tokens expected from the lexer
-const std::vector<std::tuple<std::string, std::string, int>> expected_tokens = {
-    std::make_tuple("quick_rule", "quick", 4),
-    std::make_tuple("foo_rule", "foo", 45),
-    std::make_tuple("bar_rule", "bar", 49),
-    std::make_tuple("quux_rule", "quux", 53),
-    std::make_tuple("foo_rule", "foo", 62),
-    std::make_tuple("c_rule", "secbarsde", 71),
-    std::make_tuple("quux_rule", "qux", 81),
-    std::make_tuple("quux_rule", "quuuuuuuuuux", 85),
-    std::make_tuple("str_rule", "\"", 106),
-    std::make_tuple("escape_rule", "\\t", 110),
-    std::make_tuple("end_str_rule", "\"", 120)
+const std::vector<std::tuple<tuc::TokenType, std::string, int>> expected_tokens = {
+    std::make_tuple(tuc::TokenType::INTEGER, "1", 0),
+    std::make_tuple(tuc::TokenType::ADD, "+", 1),
+    std::make_tuple(tuc::TokenType::INTEGER, "2", 2),
+    std::make_tuple(tuc::TokenType::SEMICOL, ";", 3),
+    std::make_tuple(tuc::TokenType::INTEGER, "2", 5),
+    std::make_tuple(tuc::TokenType::SUBTRACT, "-", 6),
+    std::make_tuple(tuc::TokenType::INTEGER, "1", 7),
+    std::make_tuple(tuc::TokenType::SEMICOL, ";", 8),
+    std::make_tuple(tuc::TokenType::INTEGER, "2", 10),
+    std::make_tuple(tuc::TokenType::MULTIPLY, "*", 11),
+    std::make_tuple(tuc::TokenType::INTEGER, "3", 12),
+    std::make_tuple(tuc::TokenType::SEMICOL, ";", 13),
+    std::make_tuple(tuc::TokenType::INTEGER, "8", 15),
+    std::make_tuple(tuc::TokenType::DIVIDE, "/", 16),
+    std::make_tuple(tuc::TokenType::INTEGER, "2", 17),
+    std::make_tuple(tuc::TokenType::SEMICOL, ";", 18)
 };
 
 
@@ -86,8 +72,8 @@ const std::vector<std::tuple<std::string, std::string, int>> expected_tokens = {
 //~helpers~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // a macro that generates the message to be printed by a BOOST_CHECK_MESSAGE
-#define MAKE_MESSAGE(token, tuple) "expected:{" << std::get<0>(tuple) << "," << std::get<1>(tuple) << std::get<2>(tuple) \
-                                << "} got:{" << (token.name()) << "," << (token.lexeme()) << "," << (token.position()) << "}"
+#define MAKE_MESSAGE(token, tuple) "expected:{" << static_cast<int>(std::get<0>(tuple)) << "," << std::get<1>(tuple) << std::get<2>(tuple) \
+                                << "} got:{" << static_cast<int>(token.type()) << "," << (token.lexeme()) << "," << (token.position()) << "}"
 
 
 
@@ -95,7 +81,7 @@ const std::vector<std::tuple<std::string, std::string, int>> expected_tokens = {
 
 BOOST_AUTO_TEST_CASE( test_lexer_class ) {
     // test setup code
-    auto lexer = MyLexer(text.cbegin(), text.cend(), rules);
+    auto lexer = MyLexer(text.cbegin(), text.cend());
     auto token = tuc::Token{};
 
     // test code
@@ -103,9 +89,9 @@ BOOST_AUTO_TEST_CASE( test_lexer_class ) {
         token = lexer.current();
         //BOOST_TEST_REQUIRE((!token.empty()));
         //BOOST_CHECK_REQUIRE((!token.empty()));
-        //BOOST_TEST(token.name() == std::get<0>(expected_tokens[i]));
-        //BOOST_CHECK(token.name() == std::get<0>(expected_tokens[i]));
-        BOOST_CHECK_MESSAGE(token.name() == std::get<0>(expected_tokens[i]), MAKE_MESSAGE(token,(expected_tokens[i])));
+        //BOOST_TEST(token.type() == std::get<0>(expected_tokens[i]));
+        //BOOST_CHECK(token.type() == std::get<0>(expected_tokens[i]));
+        BOOST_CHECK_MESSAGE(token.type() == std::get<0>(expected_tokens[i]), MAKE_MESSAGE(token,(expected_tokens[i])));
         //BOOST_TEST(token.lexeme() == std::get<1>(expected_tokens[i]));
         //BOOST_CHECK(token.lexeme() == std::get<1>(expected_tokens[i]));
         BOOST_CHECK_MESSAGE(token.lexeme() == std::get<1>(expected_tokens[i]), MAKE_MESSAGE(token,(expected_tokens[i])));
