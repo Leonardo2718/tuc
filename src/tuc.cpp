@@ -3,7 +3,7 @@ Project: TUC
 File: tuc.cpp
 Author: Leonardo Banderali
 Created: August 7, 2015
-Last Modified: September 5, 2015
+Last Modified: September 6, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -61,12 +61,13 @@ int main(int argc, char** argv) {
 
         // parse the program into a styntax tree using the output from the lexer
         while(!token.empty()) {
-            if (token.type() == "ADD" || token.type() == "SUBTRACT" || token.type() == "MULTIPLY" || token.type() == "DIVIDE") {
+            if (token.type() == tuc::TokenType::ADD || token.type() == tuc::TokenType::SUBTRACT ||
+              token.type() == tuc::TokenType::MULTIPLY || token.type() == tuc::TokenType::DIVIDE) {
                 auto prevToken = tokenBuffer.back();
                 tokenBuffer.pop_back();
                 tree.push_back({token, prevToken});
                 bufferFlag = false;
-            } else if (token.type() == "SEMICOL") {
+            } else if (token.type() == tuc::TokenType::SEMICOL) {
                 bufferFlag = true;
             } else if (bufferFlag) {
                 tokenBuffer.push_back(token);
@@ -81,27 +82,27 @@ int main(int argc, char** argv) {
         outputASM << "section .text\nglobal _start\n\n_start:\n";
 
         for (auto v : tree) {
-            if (v[0].type() == "ADD") {
-                if (v[1].type() == "INTEGER")
+            if (v[0].type() == tuc::TokenType::ADD) {
+                if (v[1].type() == tuc::TokenType::INTEGER)
                     outputASM << "mov eax, " << std::stoi(v[1].lexeme()) << "\nadd eax, ";
             }
-            else if (v[0].type() == "SUBTRACT") {
-                if (v[1].type() == "INTEGER")
+            else if (v[0].type() == tuc::TokenType::SUBTRACT) {
+                if (v[1].type() == tuc::TokenType::INTEGER)
                     outputASM << "mov eax, " << std::stoi(v[1].lexeme()) << "\nsub eax, ";
             }
-            else if (v[0].type() == "MULTIPLY") {
-                if (v[1].type() == "INTEGER")
+            else if (v[0].type() == tuc::TokenType::MULTIPLY) {
+                if (v[1].type() == tuc::TokenType::INTEGER)
                     outputASM << "mov eax, " << std::stoi(v[1].lexeme()) << "\nimul eax, ";
             }
-            else if (v[0].type() == "DIVIDE") {
-                if (v[1].type() == "INTEGER")
+            else if (v[0].type() == tuc::TokenType::DIVIDE) {
+                if (v[1].type() == tuc::TokenType::INTEGER)
                     outputASM << "mov eax, " << std::stoi(v[1].lexeme()) << "\n";
-                if (v[2].type() == "INTEGER")
+                if (v[2].type() == tuc::TokenType::INTEGER)
                     outputASM << "mov ebx, " << std::stoi(v[2].lexeme()) << "\nidiv ebx\n";
                 continue;
             }
 
-            if (v[2].type() == "INTEGER")
+            if (v[2].type() == tuc::TokenType::INTEGER)
                 outputASM << std::stoi(v[2].lexeme()) << "\n";
         }
 
