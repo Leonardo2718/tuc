@@ -61,17 +61,7 @@ int main(int argc, char** argv) {
 
         // parse the program into a styntax tree using the output from the lexer
         while(!token.empty()) {
-            /*if (token.type() == "ADD") {
-                auto prevToken = tokenBuffer.back();
-                tokenBuffer.pop_back();
-                auto nextToken = lexer.next();
-                auto lastToken = lexer.next();
-                tree.push_back({token, prevToken, nextToken, lastToken});
-            } else {
-                tokenBuffer.push_back(token);
-            }
-            token = lexer.next();*/
-            if (token.type() == "ADD") {
+            if (token.type() == "ADD" || token.type() == "SUBTRACT" || token.type() == "MULTIPLY" || token.type() == "DIVIDE") {
                 auto prevToken = tokenBuffer.back();
                 tokenBuffer.pop_back();
                 tree.push_back({token, prevToken});
@@ -93,10 +83,26 @@ int main(int argc, char** argv) {
         for (auto v : tree) {
             if (v[0].type() == "ADD") {
                 if (v[1].type() == "INTEGER")
+                    outputASM << "mov eax, " << std::stoi(v[1].lexeme()) << "\nadd eax, ";
+            }
+            else if (v[0].type() == "SUBTRACT") {
+                if (v[1].type() == "INTEGER")
+                    outputASM << "mov eax, " << std::stoi(v[1].lexeme()) << "\nsub eax, ";
+            }
+            else if (v[0].type() == "MULTIPLY") {
+                if (v[1].type() == "INTEGER")
+                    outputASM << "mov eax, " << std::stoi(v[1].lexeme()) << "\nimul eax, ";
+            }
+            else if (v[0].type() == "DIVIDE") {
+                if (v[1].type() == "INTEGER")
                     outputASM << "mov eax, " << std::stoi(v[1].lexeme()) << "\n";
                 if (v[2].type() == "INTEGER")
-                    outputASM << "add eax, " << std::stoi(v[2].lexeme()) << "\n";
+                    outputASM << "mov ebx, " << std::stoi(v[2].lexeme()) << "\nidiv ebx\n";
+                continue;
             }
+
+            if (v[2].type() == "INTEGER")
+                outputASM << std::stoi(v[2].lexeme()) << "\n";
         }
 
         outputASM << "\nmov ebx, eax\nmov eax, 1\nint 80h\n";
