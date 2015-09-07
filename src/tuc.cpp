@@ -3,7 +3,7 @@ Project: TUC
 File: tuc.cpp
 Author: Leonardo Banderali
 Created: August 7, 2015
-Last Modified: September 6, 2015
+Last Modified: September 7, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -55,27 +55,65 @@ int main(int argc, char** argv) {
 
         // create lexer instance for the text
         auto lexer = tuc::make_lexer(fileText.cbegin(), fileText.cend());
-        auto tokenBuffer = std::vector<tuc::Token>{};       // a buffer to store un processed tokens
-        auto bufferFlag = true;
         auto tree = tuc::SyntaxTree{};
         auto syntaxNode = tree.root();
-        auto token = lexer.current();
+        auto rpnExpr = std::vector<tuc::Token>{};
+        auto opStack = std::vector<tuc::Token>{};
 
-        // parse the program into a styntax tree using the output from the lexer
+        /*##########################################################################################################
+        ### To parse mathematical expressions, first use a variation of Dijkstra's shunting yard algorithm to     ##
+        ### transform the expression into Reverse Polish Notation (RPN).  Once transformed, the expression can be ##
+        ### read *right-to-left* (*backwards*) into the syntax tree.  This is because the last operations to be   ##
+        ### executed are the ones that must appear at the top of the syntax tree for the expression.  This also   ##
+        ### means that the branches (linking to the operator's operands) must also be added right-to-left.        ##
+        ###                                                                                                       ##
+        ### This top-down approach is neither efficient nor elegant.  So, it will likely be replaced by a         ##
+        ### bottom-up parser in the future.                                                                       ##
+        ##########################################################################################################*/
+        auto token = lexer.current();
         while(!token.empty()) {
-            if (token.type() == tuc::TokenType::ADD || token.type() == tuc::TokenType::SUBTRACT ||
-              token.type() == tuc::TokenType::MULTIPLY || token.type() == tuc::TokenType::DIVIDE) {
-                syntaxNode = tree.appendChild(syntaxNode, token);
-                tree.appendChild(syntaxNode, tokenBuffer.back());
-                tokenBuffer.pop_back();
-                bufferFlag = false;
-            } else if (token.type() == tuc::TokenType::SEMICOL) {
-                syntaxNode = tree.parent(syntaxNode);
-                bufferFlag = true;
-            } else if (bufferFlag) {
-                tokenBuffer.push_back(token);
-            } else {
-                tree.appendChild(syntaxNode, token);
+            if (token.type() == tuc::TokenType::ADD || token.type() == tuc::TokenType::SUBTRACT) {
+                while (!opStack.empty() && (opStack.back().type() == tuc::TokenType::ADD ||
+                                            opStack.back().type() == tuc::TokenType::SUBTRACT) ) {
+                    rpnExpr.push_back(opStack.back());
+                    opStack.pop_back();
+                }
+                opStack.push_back(token);
+            }
+            if (token.type() == tuc::TokenType::MULTIPLY || token.type() == tuc::TokenType::DIVIDE) {
+                while (!opStack.empty() && (opStack.back().type() == tuc::TokenType::ADD ||
+                                            opStack.back().type() == tuc::TokenType::SUBTRACT ||
+                                            opStack.back().type() == tuc::TokenType::MULTIPLY ||
+                                            opStack.back().type() == tuc::TokenType::DIVIDE) ) {
+                    rpnExpr.push_back(opStack.back());
+                    opStack.pop_back();
+                }
+                opStack.push_back(token);
+            }
+            if (token.type() == tuc::TokenType::INTEGER) {
+                rpnExpr.push_back(token);
+            }
+            if (token.type() == tuc::TokenType::SEMICOL) {
+                while (!opStack.empty()) {
+                    rpnExpr.push_back(opStack.back());
+                    opStack.pop_back();
+                }
+                syntaxNode = tree.appendChild(syntaxNode, rpnExpr.back());
+                rpnExpr.pop_back();
+                int intCount = 0;
+                for (auto t = rpnExpr.crbegin(); t != rpnExpr.crend(); ++t) {
+                    if (t->type() == tuc::TokenType::ADD || t->type() == tuc::TokenType::SUBTRACT ||
+                      t->type() == tuc::TokenType::MULTIPLY || t->type() == tuc::TokenType::DIVIDE) {
+                        syntaxNode = tree.appendChild(syntaxNode, *t);
+                        intCount = 0;
+                    } else if (t->type() == tuc::TokenType::INTEGER) {
+                        tree.preppendChild(syntaxNode, *t);
+                        intCount++;
+                        if (intCount > 1)
+                            syntaxNode = tree.parent(syntaxNode);
+                    }
+                }
+                rpnExpr.clear();
             }
             token = lexer.next();
         }

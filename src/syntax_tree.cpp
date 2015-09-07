@@ -3,7 +3,7 @@ Project: TUC
 File: syntax_tree.cpp
 Author: Leonardo Banderali
 Created: September 6, 2015
-Last Modified: September 6, 2015
+Last Modified: September 7, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -47,6 +47,15 @@ appends a new child to the current node
 tuc::SyntaxTree::SyntaxNode tuc::SyntaxTree::appendChild(SyntaxNode node, const Token& token) {
     auto n = node.internalNode;
     n->children.push_back(std::make_unique<InternalSyntaxNode>(token, n));
+    return SyntaxNode{node.internalNode->children.back().get()};
+}
+
+/*
+preppends a new child to the current node
+*/
+tuc::SyntaxTree::SyntaxNode tuc::SyntaxTree::preppendChild(SyntaxNode node, const Token& token) {
+    auto n = node.internalNode;
+    n->children.insert(n->children.cbegin(), std::make_unique<InternalSyntaxNode>(token, n));
     return SyntaxNode{node.internalNode->children.back().get()};
 }
 
