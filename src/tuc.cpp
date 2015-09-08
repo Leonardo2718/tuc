@@ -3,7 +3,7 @@ Project: TUC
 File: tuc.cpp
 Author: Leonardo Banderali
 Created: August 7, 2015
-Last Modified: September 7, 2015
+Last Modified: September 8, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -46,7 +46,7 @@ THE SOFTWARE.
 
 
 
-auto isOperator = [&](tuc::SyntaxTree::SyntaxNode n) -> bool {
+auto isOperator(tuc::SyntaxTree::SyntaxNode n) -> bool {
     return  n.token().type() == tuc::TokenType::ADD || n.token().type() == tuc::TokenType::SUBTRACT ||
             n.token().type() == tuc::TokenType::MULTIPLY || n.token().type() == tuc::TokenType::DIVIDE;
 };
@@ -54,7 +54,6 @@ auto isOperator = [&](tuc::SyntaxTree::SyntaxNode n) -> bool {
 auto generateMathASM(std::ostream& outputASM, tuc::SyntaxTree& tree, tuc::SyntaxTree::SyntaxNode n) -> void {
     auto t = n.token();
     auto operands = tree.children(n);
-    std::cout << "point 1:" << t.lexeme() << ":" << operands[0].token().lexeme() << ":" << operands[1].token().lexeme() << "\n";
     auto firstIsOperator = isOperator(operands[0]);
     auto secondIsOperator = isOperator(operands[1]);
     auto firstIsLiteral = (operands[0].token().type() == tuc::TokenType::INTEGER);
@@ -173,25 +172,23 @@ int main(int argc, char** argv) {
                     rpnExpr.push_back(opStack.back());
                     opStack.pop_back();
                 }
-                syntaxNode = tree.appendChild(syntaxNode, rpnExpr.back());
-                rpnExpr.pop_back();
-                int intCount = 0;
-                std::cout << syntaxNode.token().lexeme() << "\n";
-                for (auto t = rpnExpr.crbegin(); t != rpnExpr.crend(); ++t) {
-                    std::cout << t->lexeme() << "\n";
-                    if (t->type() == tuc::TokenType::ADD || t->type() == tuc::TokenType::SUBTRACT ||
-                      t->type() == tuc::TokenType::MULTIPLY || t->type() == tuc::TokenType::DIVIDE) {
-                        syntaxNode = tree.prependChild(syntaxNode, *t);
-                        intCount = 0;
-                    } else if (t->type() == tuc::TokenType::INTEGER) {
-                        tree.prependChild(syntaxNode, *t);
-                        intCount++;
-                        if (intCount > 1)
-                            syntaxNode = tree.parent(syntaxNode);
+                auto nodeStack = std::vector<tuc::SyntaxTree::SyntaxNode>{};
+                for (auto t : rpnExpr) {
+                    auto sn = tree.newNode(t);
+                    if (isOperator(sn)) {
+                        auto c1 = nodeStack.back();
+                        nodeStack.pop_back();
+                        auto c2 = nodeStack.back();
+                        nodeStack.pop_back();
+                        tree.appendNode(sn, c2);
+                        tree.appendNode(sn, c1);
+                        nodeStack.push_back(sn);
+                    } else if (t.type() == tuc::TokenType::INTEGER) {
+                        nodeStack.push_back(sn);
                     }
                 }
+                tree.appendNode(syntaxNode, nodeStack.back());
                 rpnExpr.clear();
-                std::cout << ";\n";
             }
             token = lexer.next();
         }
@@ -202,32 +199,6 @@ int main(int argc, char** argv) {
 
         for (auto n : tree.children(tree.root())) {
             generateMathASM(outputASM, tree, n);
-            /*token = n.token();
-            auto operands = tree.children(n);
-            if (token.type() == tuc::TokenType::ADD) {
-                if (operands[0].token().type() == tuc::TokenType::INTEGER)
-                    outputASM << "mov eax, " << std::stoi(operands[0].token().lexeme()) << "\nadd eax, ";
-                if (operands[1].token().type() == tuc::TokenType::INTEGER)
-                    outputASM << std::stoi(operands[1].token().lexeme()) << "\n";
-            }
-            else if (token.type() == tuc::TokenType::SUBTRACT) {
-                if (operands[0].token().type()  == tuc::TokenType::INTEGER)
-                    outputASM << "mov eax, " << std::stoi(operands[0].token().lexeme()) << "\nsub eax, ";
-                if (operands[1].token().type() == tuc::TokenType::INTEGER)
-                    outputASM << std::stoi(operands[1].token().lexeme()) << "\n";
-            }
-            else if (token.type() == tuc::TokenType::MULTIPLY) {
-                if (operands[0].token().type()  == tuc::TokenType::INTEGER)
-                    outputASM << "mov eax, " << std::stoi(operands[0].token().lexeme()) << "\nimul eax, ";
-                if (operands[1].token().type() == tuc::TokenType::INTEGER)
-                    outputASM << std::stoi(operands[1].token().lexeme()) << "\n";
-            }
-            else if (token.type() == tuc::TokenType::DIVIDE) {
-                if (operands[0].token().type()  == tuc::TokenType::INTEGER)
-                    outputASM << "mov eax, " << std::stoi(operands[0].token().lexeme()) << "\n";
-                if (operands[1].token().type() == tuc::TokenType::INTEGER)
-                    outputASM << "mov ebx, " << std::stoi(operands[1].token().lexeme()) << "\nidiv ebx\n";
-            }*/
         }
 
         outputASM << "\nmov ebx, eax\nmov eax, 1\nint 80h\n";
