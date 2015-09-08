@@ -77,8 +77,8 @@ class tuc::SyntaxTree {
         SyntaxNode appendChild(SyntaxNode node, const Token& token);
         /*  appends a new child to the current node */
 
-        SyntaxNode preppendChild(SyntaxNode node, const Token& token);
-        /*  preppends a new child to the current node */
+        SyntaxNode prependChild(SyntaxNode node, const Token& token);
+        /*  prepends a new child to the current node */
 
         int childCount(SyntaxNode node) const;
         /*  returns the number of child nodes */

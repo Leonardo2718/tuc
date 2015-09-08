@@ -44,6 +44,81 @@ THE SOFTWARE.
 #include "lexer.hpp"
 #include "syntax_tree.hpp"
 
+
+
+auto isOperator = [&](tuc::SyntaxTree::SyntaxNode n) -> bool {
+    return  n.token().type() == tuc::TokenType::ADD || n.token().type() == tuc::TokenType::SUBTRACT ||
+            n.token().type() == tuc::TokenType::MULTIPLY || n.token().type() == tuc::TokenType::DIVIDE;
+};
+
+auto generateMathASM(std::ostream& outputASM, tuc::SyntaxTree& tree, tuc::SyntaxTree::SyntaxNode n) -> void {
+    auto t = n.token();
+    auto operands = tree.children(n);
+    std::cout << "point 1:" << t.lexeme() << ":" << operands[0].token().lexeme() << ":" << operands[1].token().lexeme() << "\n";
+    auto firstIsOperator = isOperator(operands[0]);
+    auto secondIsOperator = isOperator(operands[1]);
+    auto firstIsLiteral = (operands[0].token().type() == tuc::TokenType::INTEGER);
+    auto secondIsLiteral = (operands[1].token().type() == tuc::TokenType::INTEGER);
+    if (firstIsOperator && secondIsOperator) {
+        generateMathASM(outputASM, tree, operands[1]);  // evaluate the right hand side first so that the result from the left
+        outputASM << "push eax\n";                      //  hand side ends up in eax. This makes it easy to ensures that the
+        generateMathASM(outputASM, tree, operands[0]);  //  result of the current operation also ends up in eax.
+        outputASM << "pop ebx\n";
+
+        if (n.token().type() == tuc::TokenType::ADD)
+            outputASM << "add eax, ebx\n";
+        else if (n.token().type() == tuc::TokenType::SUBTRACT)
+            outputASM << "sub eax, ebx\n";
+        else if (n.token().type() == tuc::TokenType::MULTIPLY)
+            outputASM << "imul eax, ebx\n";
+        else if (n.token().type() == tuc::TokenType::DIVIDE)
+            outputASM << "idiv ebx\n";
+
+    } else if (firstIsLiteral && secondIsOperator) {
+        generateMathASM(outputASM, tree, operands[1]);   // result is put in eax so must be moved to ebx for some instructions
+
+        if (n.token().type() == tuc::TokenType::ADD) {
+            outputASM << "add eax, " << std::stoi(operands[0].token().lexeme()) << "\n";
+        } else if (n.token().type() == tuc::TokenType::SUBTRACT) {
+            outputASM << "mov ebx, eax\nmov eax, " << std::stoi(operands[0].token().lexeme()) << "\nsub eax, ebx\n";
+        } else if (n.token().type() == tuc::TokenType::MULTIPLY) {
+            outputASM << "imul eax, " << std::stoi(operands[0].token().lexeme()) << "\n";
+        } else if (n.token().type() == tuc::TokenType::DIVIDE) {
+            outputASM << "mov ebx, eax\nmov eax, " << std::stoi(operands[0].token().lexeme()) << "\nidiv ebx\n";
+        }
+
+    } else if (firstIsOperator && secondIsLiteral) {
+        generateMathASM(outputASM, tree, operands[0]);
+
+        if (n.token().type() == tuc::TokenType::ADD) {
+            outputASM << "add eax, " << std::stoi(operands[1].token().lexeme()) << "\n";
+        } else if (n.token().type() == tuc::TokenType::SUBTRACT) {
+            outputASM << "sub eax, " << std::stoi(operands[1].token().lexeme()) << "\n";
+        } else if (n.token().type() == tuc::TokenType::MULTIPLY) {
+            outputASM << "imul eax, " << std::stoi(operands[1].token().lexeme()) << "\n";
+        } else if (n.token().type() == tuc::TokenType::DIVIDE) {
+            outputASM << "mov ebx, " << std::stoi(operands[1].token().lexeme()) << "\nidiv ebx\n";
+        }
+
+    } else if (firstIsLiteral && secondIsLiteral) {
+        if (n.token().type() == tuc::TokenType::ADD) {
+            outputASM   << "mov eax, " << std::stoi(operands[0].token().lexeme())
+                        << "\nadd eax, " << std::stoi(operands[1].token().lexeme()) << "\n";
+        } else if (n.token().type() == tuc::TokenType::SUBTRACT) {
+            outputASM   << "mov eax, " << std::stoi(operands[0].token().lexeme())
+                        << "\nsub eax, " << std::stoi(operands[1].token().lexeme()) << "\n";
+        } else if (n.token().type() == tuc::TokenType::MULTIPLY) {
+            outputASM   << "mov eax, " << std::stoi(operands[0].token().lexeme())
+                        << "\nimul eax, " << std::stoi(operands[1].token().lexeme()) << "\n";
+        } else if (n.token().type() == tuc::TokenType::DIVIDE) {
+            outputASM   << "mov eax, " << std::stoi(operands[0].token().lexeme())
+                        << "\nmov ebx, " << std::stoi(operands[1].token().lexeme()) << "\nidiv ebx\n";
+        }
+    }
+}
+
+
+
 int main(int argc, char** argv) {
     if (argc == 3) {
         // read input file
@@ -74,16 +149,16 @@ int main(int argc, char** argv) {
         while(!token.empty()) {
             if (token.type() == tuc::TokenType::ADD || token.type() == tuc::TokenType::SUBTRACT) {
                 while (!opStack.empty() && (opStack.back().type() == tuc::TokenType::ADD ||
-                                            opStack.back().type() == tuc::TokenType::SUBTRACT) ) {
+                                            opStack.back().type() == tuc::TokenType::SUBTRACT ||
+                                            opStack.back().type() == tuc::TokenType::MULTIPLY ||
+                                            opStack.back().type() == tuc::TokenType::DIVIDE) ) {
                     rpnExpr.push_back(opStack.back());
                     opStack.pop_back();
                 }
                 opStack.push_back(token);
             }
             if (token.type() == tuc::TokenType::MULTIPLY || token.type() == tuc::TokenType::DIVIDE) {
-                while (!opStack.empty() && (opStack.back().type() == tuc::TokenType::ADD ||
-                                            opStack.back().type() == tuc::TokenType::SUBTRACT ||
-                                            opStack.back().type() == tuc::TokenType::MULTIPLY ||
+                while (!opStack.empty() && (opStack.back().type() == tuc::TokenType::MULTIPLY ||
                                             opStack.back().type() == tuc::TokenType::DIVIDE) ) {
                     rpnExpr.push_back(opStack.back());
                     opStack.pop_back();
@@ -101,19 +176,22 @@ int main(int argc, char** argv) {
                 syntaxNode = tree.appendChild(syntaxNode, rpnExpr.back());
                 rpnExpr.pop_back();
                 int intCount = 0;
+                std::cout << syntaxNode.token().lexeme() << "\n";
                 for (auto t = rpnExpr.crbegin(); t != rpnExpr.crend(); ++t) {
+                    std::cout << t->lexeme() << "\n";
                     if (t->type() == tuc::TokenType::ADD || t->type() == tuc::TokenType::SUBTRACT ||
                       t->type() == tuc::TokenType::MULTIPLY || t->type() == tuc::TokenType::DIVIDE) {
-                        syntaxNode = tree.appendChild(syntaxNode, *t);
+                        syntaxNode = tree.prependChild(syntaxNode, *t);
                         intCount = 0;
                     } else if (t->type() == tuc::TokenType::INTEGER) {
-                        tree.preppendChild(syntaxNode, *t);
+                        tree.prependChild(syntaxNode, *t);
                         intCount++;
                         if (intCount > 1)
                             syntaxNode = tree.parent(syntaxNode);
                     }
                 }
                 rpnExpr.clear();
+                std::cout << ";\n";
             }
             token = lexer.next();
         }
@@ -123,7 +201,8 @@ int main(int argc, char** argv) {
         outputASM << "section .text\nglobal _start\n\n_start:\n";
 
         for (auto n : tree.children(tree.root())) {
-            token = n.token();
+            generateMathASM(outputASM, tree, n);
+            /*token = n.token();
             auto operands = tree.children(n);
             if (token.type() == tuc::TokenType::ADD) {
                 if (operands[0].token().type() == tuc::TokenType::INTEGER)
@@ -148,8 +227,7 @@ int main(int argc, char** argv) {
                     outputASM << "mov eax, " << std::stoi(operands[0].token().lexeme()) << "\n";
                 if (operands[1].token().type() == tuc::TokenType::INTEGER)
                     outputASM << "mov ebx, " << std::stoi(operands[1].token().lexeme()) << "\nidiv ebx\n";
-                continue;
-            }
+            }*/
         }
 
         outputASM << "\nmov ebx, eax\nmov eax, 1\nint 80h\n";

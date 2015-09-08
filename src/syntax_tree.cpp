@@ -51,12 +51,12 @@ tuc::SyntaxTree::SyntaxNode tuc::SyntaxTree::appendChild(SyntaxNode node, const 
 }
 
 /*
-preppends a new child to the current node
+prepends a new child to the current node
 */
-tuc::SyntaxTree::SyntaxNode tuc::SyntaxTree::preppendChild(SyntaxNode node, const Token& token) {
+tuc::SyntaxTree::SyntaxNode tuc::SyntaxTree::prependChild(SyntaxNode node, const Token& token) {
     auto n = node.internalNode;
     n->children.insert(n->children.cbegin(), std::make_unique<InternalSyntaxNode>(token, n));
-    return SyntaxNode{node.internalNode->children.back().get()};
+    return SyntaxNode{node.internalNode->children.front().get()};
 }
 
 /*
