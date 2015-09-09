@@ -3,7 +3,7 @@ Project: TUC
 File: tuc.cpp
 Author: Leonardo Banderali
 Created: August 7, 2015
-Last Modified: September 8, 2015
+Last Modified: September 9, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -166,6 +166,17 @@ int main(int argc, char** argv) {
             }
             if (token.type() == tuc::TokenType::INTEGER) {
                 rpnExpr.push_back(token);
+            }
+            if (token.type() == tuc::TokenType::LPAREN) {
+                opStack.push_back(token);
+            }
+            if (token.type() == tuc::TokenType::RPAREN) {
+                auto t = opStack.back();
+                while(t.type() != tuc::TokenType::LPAREN) {
+                    rpnExpr.push_back(t);
+                    opStack.pop_back();
+                    t = opStack.back();
+                }
             }
             if (token.type() == tuc::TokenType::SEMICOL) {
                 while (!opStack.empty()) {
