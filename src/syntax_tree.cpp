@@ -3,7 +3,7 @@ Project: TUC
 File: syntax_tree.cpp
 Author: Leonardo Banderali
 Created: September 6, 2015
-Last Modified: September 25, 2015
+Last Modified: October 5, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -40,6 +40,67 @@ THE SOFTWARE.
 
 
 //~class implementations~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+tuc::SyntaxNode::SyntaxNode(NodeType _type) : syntaxNodeType{_type} {}
+
+tuc::SyntaxNode::SyntaxNode(NodeType _type, const std::string& _value, unsigned int _pos) :
+    syntaxNodeType{_type}, textValue{_value}, pos{_pos} {}
+
+/*
+constructs a node from a syntax token
+*/
+tuc::SyntaxNode::SyntaxNode(const Token& _token) :
+    syntaxNodeType{NodeType::UNKNOWN}, textValue{_token.lexeme()}, pos{_token.position()} {}
+
+tuc::SyntaxNode* tuc::SyntaxNode::parent() noexcept {
+    return parentNode;
+}
+
+/*
+returns child with index `i`
+*/
+tuc::SyntaxNode* tuc::SyntaxNode::child(int i) noexcept {
+    return children[i].get();
+}
+
+int tuc::SyntaxNode::child_count() const noexcept {
+    return children.size();
+}
+
+void tuc::SyntaxNode::append_child(NodeType _type, const std::string& _value, unsigned int _pos) {
+    children.push_back(std::make_unique<SyntaxNode>(_type, _value, _pos));
+}
+
+void tuc::SyntaxNode::appedn_child(const Token& _token) {
+    children.push_back(std::make_unique<SyntaxNode>(_token));
+}
+
+/*  appends an already existing (allocated) child; since this node must "own" the child, move semantics *must*
+    be used to transfer ownership.
+*/
+void tuc::SyntaxNode::append_child(std::unique_ptr<SyntaxNode>&& c) noexcept {
+    children.push_back(std::move(c));
+}
+
+tuc::SyntaxNode::NodeType tuc::SyntaxNode::type() const noexcept {
+    return syntaxNodeType;
+}
+
+bool tuc::SyntaxNode::is_operator() const noexcept {
+    return syntaxNodeType == NodeType::ADD || syntaxNodeType == NodeType::SUBTRACT ||
+            syntaxNodeType == NodeType::MULTIPLY || syntaxNodeType == NodeType::DIVIDE;
+}
+
+std::string tuc::SyntaxNode::value() const noexcept {
+    return textValue;
+}
+
+unsigned int tuc::SyntaxNode::position() const noexcept {
+    return pos;
+}
+
+
+
 
 /*
 returns a new node without putting it in the tree

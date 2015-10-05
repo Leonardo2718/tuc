@@ -3,7 +3,7 @@ Project: TUC
 File: syntax_tree.hpp
 Author: Leonardo Banderali
 Created: September 6, 2015
-Last Modified: September 25, 2015
+Last Modified: October 5, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -43,18 +43,63 @@ THE SOFTWARE.
 // standard libraries
 #include <memory>
 #include <vector>
+#include <string>
 
 
 
 //~declare namespace members~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 namespace tuc {
+    class SyntaxNode;   // represents a node of a syntax tree
     class SyntaxTree;   // a basic syntax tree to represent analyzed source code
 }
 
 
 
 //~class declarations~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+class tuc::SyntaxNode {
+    public:
+        enum class NodeType {PROGRAM, ADD, SUBTRACT, MULTIPLY, DIVIDE, INTEGER, LEFTPAREN, RIGHTPAREN, SEMICOL, IDENTIFIER, UNKNOWN};
+
+        SyntaxNode(NodeType _type);
+
+        SyntaxNode(NodeType _type, const std::string& _value, unsigned int _pos);
+
+        SyntaxNode(const Token& _token);
+        /*  constructs a node from a syntax token */
+
+        SyntaxNode* parent() noexcept;
+
+        SyntaxNode* child(int i) noexcept;
+        /*  returns child with index `i` */
+
+        int child_count() const noexcept;
+
+        void append_child(NodeType _type, const std::string& _value, unsigned int _pos = -1);
+
+        void appedn_child(const Token& _token);
+
+        void append_child(std::unique_ptr<SyntaxNode>&& c) noexcept;
+        /*  appends an already existing (allocated) child; since this node must "own" the child, move semantics *must*
+            be used to transfer ownership.
+        */
+
+        NodeType type() const noexcept;
+
+        bool is_operator() const noexcept;
+
+        std::string value() const noexcept;
+
+        unsigned int position() const noexcept;
+
+    private:
+        std::vector<std::unique_ptr<SyntaxNode>> children;
+        SyntaxNode* parentNode = nullptr;
+        NodeType syntaxNodeType;
+        std::string textValue = "";
+        unsigned int pos = -1;
+};
 
 /*
 A class that encapsulates the nodes of a tree structure to represent a syntax tree.  The nodes of the tree are
