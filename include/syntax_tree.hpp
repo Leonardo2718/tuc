@@ -39,7 +39,6 @@ THE SOFTWARE.
 
 // project headers
 #include "grammar.hpp"
-#include "lexer.hpp"
 
 // standard libraries
 #include <memory>
@@ -52,10 +51,8 @@ THE SOFTWARE.
 
 namespace tuc {
     class SyntaxNode;   // represents a node of a syntax tree
-    class SyntaxTree;   // a basic syntax tree to represent analyzed source code
 
     // generate a syntax tree from a list of tokens
-    std::unique_ptr<SyntaxNode> gen_syntax_tree(Lexer<std::string::const_iterator>& lexer);
     std::unique_ptr<SyntaxNode> gen_syntax_tree(const std::vector<Token>& tokenList);
 }
 

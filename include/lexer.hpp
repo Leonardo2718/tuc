@@ -47,10 +47,6 @@ THE SOFTWARE.
 //~declare namespace members~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 namespace tuc {
-    template<typename RandomAccessIterator> class Lexer;
-    template<typename RandomAccessIterator>
-    Lexer<RandomAccessIterator> make_lexer(RandomAccessIterator first, RandomAccessIterator last);
-
     template <typename RandomAccessIterator>
     std::vector<tuc::Token> lex_analyze(RandomAccessIterator first, RandomAccessIterator last);
     /*  analyze the input text and returns it as a list of tokens */
@@ -59,96 +55,6 @@ namespace tuc {
 
 
 //~declare and implement template classes~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-template<typename RandomAccessIterator>
-class tuc::Lexer {
-    public:
-        Lexer(RandomAccessIterator first, RandomAccessIterator last);
-        /*  cunstructs a lexer object where `current()` returns the first token found */
-
-        Token current();
-        /*  returns the token that was last generated */
-
-        Token next();
-        /*  generates and returns the next token */
-
-    private:
-        static Grammar grammar;
-
-        RandomAccessIterator beginning;
-        RandomAccessIterator end;
-        RandomAccessIterator currentPosition;
-
-        Token currentToken;
-        GrammarIndex currentRules = 0;    // 0 is the default rule list
-};
-
-
-template<typename RandomAccessIterator>
-tuc::Grammar tuc::Lexer<RandomAccessIterator>::grammar = tuc::Grammar{
-    {
-        Rule{TokenType::LCOMMENT, "//(.*)(\\n|$)", 0},
-        Rule{TokenType::ADD, "\\+", 0},
-        Rule{TokenType::SUBTRACT, "\\-", 0},
-        Rule{TokenType::MULTIPLY, "\\*", 0},
-        Rule{TokenType::DIVIDE, "\\/", 0},
-        Rule{TokenType::INTEGER, "\\d+", 0},
-        Rule{TokenType::LPAREN, "\\(", 0},
-        Rule{TokenType::RPAREN, "\\)", 0},
-        Rule{TokenType::SEMICOL, ";", 0}
-    }
-};
-
-/*
-cunstructs a lexer object where `current()` returns the first token found
-*/
-template<typename RandomAccessIterator>
-tuc::Lexer<RandomAccessIterator>::Lexer(RandomAccessIterator first, RandomAccessIterator last)
-: beginning{first}, end{last}, currentPosition{first} {
-    next();
-}
-
-/*
-returns the token that was last generated
-*/
-template<typename RandomAccessIterator>
-tuc::Token tuc::Lexer<RandomAccessIterator>::current() {
-    return currentToken;
-}
-
-/*
-generates and returns the next token
-*/
-template<typename RandomAccessIterator>
-tuc::Token tuc::Lexer<RandomAccessIterator>::next() {
-    Rule rule;
-    std::smatch firstMatch;
-    std::smatch m;
-    for (auto r: grammar[currentRules]) {
-        if (std::regex_search(currentPosition, end, m, r.regex()) && (firstMatch.empty() || m.position() < firstMatch.position() )) {
-            firstMatch = std::move(m);
-            rule = std::move(r);
-        }
-    }
-
-    if (firstMatch.empty()) {
-        currentToken = Token{};
-    } else {
-        currentToken = Token{rule.type(), firstMatch, currentPosition - beginning + firstMatch.position() };
-        currentRules = rule.nextRules();
-        currentPosition += firstMatch.position() + firstMatch.length();
-    }
-
-    return currentToken;
-}
-
-
-template<typename RandomAccessIterator>
-tuc::Lexer<RandomAccessIterator> tuc::make_lexer(RandomAccessIterator first, RandomAccessIterator last) {
-    return Lexer<RandomAccessIterator>{first, last};
-}
-
-
 
 /*
 analyze the input text and returns it as a list of tokens
