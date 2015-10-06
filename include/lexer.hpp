@@ -50,6 +50,8 @@ namespace tuc {
     template<typename RandomAccessIterator> class Lexer;
     template<typename RandomAccessIterator>
     Lexer<RandomAccessIterator> make_lexer(RandomAccessIterator first, RandomAccessIterator last);
+    template <typename RandomAccessIterator>
+    std::vector<tuc::Token> lex_analyze(RandomAccessIterator first, RandomAccessIterator last);
 }
 
 
@@ -142,6 +144,52 @@ tuc::Token tuc::Lexer<RandomAccessIterator>::next() {
 template<typename RandomAccessIterator>
 tuc::Lexer<RandomAccessIterator> tuc::make_lexer(RandomAccessIterator first, RandomAccessIterator last) {
     return Lexer<RandomAccessIterator>{first, last};
+}
+
+
+
+template <typename RandomAccessIterator>
+std::vector<tuc::Token> tuc::lex_analyze(RandomAccessIterator first, RandomAccessIterator last) {
+    tuc::Grammar grammar = tuc::Grammar{
+        {
+            Rule{TokenType::LCOMMENT, "//(.*)(\\n|$)", 0},
+            Rule{TokenType::ADD, "\\+", 0},
+            Rule{TokenType::SUBTRACT, "\\-", 0},
+            Rule{TokenType::MULTIPLY, "\\*", 0},
+            Rule{TokenType::DIVIDE, "\\/", 0},
+            Rule{TokenType::INTEGER, "\\d+", 0},
+            Rule{TokenType::LPAREN, "\\(", 0},
+            Rule{TokenType::RPAREN, "\\)", 0},
+            Rule{TokenType::SEMICOL, ";", 0}
+        }
+    };
+
+    std::vector<tuc::Token> tokenList;
+    RandomAccessIterator currentPosition = first;
+    auto ruleListIndex = 0;
+
+    while (currentPosition < last) {
+        Rule rule;
+        std::smatch firstMatch;
+        std::smatch m;
+        for (auto r: grammar[ruleListIndex]) {
+            if (std::regex_search(currentPosition, last, m, r.regex()) && (firstMatch.empty() || m.position() < firstMatch.position() )) {
+                firstMatch = std::move(m);
+                rule = std::move(r);
+            }
+        }
+
+        if (firstMatch.empty()) {
+            //tokenList.push_back(Token{});
+            break;
+        } else {
+            tokenList.push_back(Token{rule.type(), firstMatch, currentPosition - first + firstMatch.position()});
+            ruleListIndex = rule.nextRules();
+            currentPosition += firstMatch.position() + firstMatch.length();
+        }
+    }
+
+    return tokenList;
 }
 
 #endif//TUC_LEXER_HPP
