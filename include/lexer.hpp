@@ -50,8 +50,10 @@ namespace tuc {
     template<typename RandomAccessIterator> class Lexer;
     template<typename RandomAccessIterator>
     Lexer<RandomAccessIterator> make_lexer(RandomAccessIterator first, RandomAccessIterator last);
+
     template <typename RandomAccessIterator>
     std::vector<tuc::Token> lex_analyze(RandomAccessIterator first, RandomAccessIterator last);
+    /*  analyze the input text and returns it as a list of tokens */
 }
 
 
@@ -148,6 +150,9 @@ tuc::Lexer<RandomAccessIterator> tuc::make_lexer(RandomAccessIterator first, Ran
 
 
 
+/*
+analyze the input text and returns it as a list of tokens
+*/
 template <typename RandomAccessIterator>
 std::vector<tuc::Token> tuc::lex_analyze(RandomAccessIterator first, RandomAccessIterator last) {
     tuc::Grammar grammar = tuc::Grammar{
