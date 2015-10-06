@@ -3,7 +3,7 @@ Project: TUC
 File: syntax_tree.cpp
 Author: Leonardo Banderali
 Created: September 6, 2015
-Last Modified: October 5, 2015
+Last Modified: October 6, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
