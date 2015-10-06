@@ -49,8 +49,18 @@ tuc::SyntaxNode::SyntaxNode(NodeType _type, const std::string& _value, unsigned 
 /*
 constructs a node from a syntax token
 */
-tuc::SyntaxNode::SyntaxNode(const Token& _token) :
-    syntaxNodeType{NodeType::UNKNOWN}, textValue{_token.lexeme()}, pos{_token.position()} {}
+tuc::SyntaxNode::SyntaxNode(const Token& _token)
+: textValue{_token.lexeme()}, pos{_token.position()} {
+    switch (_token.type()) {
+    case TokenType::ADD:        syntaxNodeType = NodeType::ADD;break;
+    case TokenType::SUBTRACT:   syntaxNodeType = NodeType::SUBTRACT;break;
+    case TokenType::MULTIPLY:   syntaxNodeType = NodeType::MULTIPLY;break;
+    case TokenType::DIVIDE:     syntaxNodeType = NodeType::DIVIDE;break;
+    case TokenType::INTEGER:    syntaxNodeType = NodeType::INTEGER;break;
+    case TokenType::SEMICOL:    syntaxNodeType = NodeType::SEMICOL;break;
+    default:                    syntaxNodeType = NodeType::UNKNOWN;
+    }
+}
 
 tuc::SyntaxNode* tuc::SyntaxNode::parent() noexcept {
     return parentNode;
