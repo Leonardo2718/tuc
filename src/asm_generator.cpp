@@ -1,6 +1,6 @@
 /*
 Project: TUC
-File: asm_translator.cpp
+File: asm_generator.cpp
 Author: Leonardo Banderali
 Created: October 6, 2015
 Last Modified: October 6, 2015
@@ -35,7 +35,7 @@ THE SOFTWARE.
 */
 
 // project headers
-#include "asm_translator.hpp"
+#include "asm_generator.hpp"
 
 
 

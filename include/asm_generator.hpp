@@ -1,6 +1,6 @@
 /*
 Project: TUC
-File: asm_translator.hpp
+File: asm_generator.hpp
 Author: Leonardo Banderali
 Created: October 6, 2015
 Last Modified: October 6, 2015
@@ -34,8 +34,8 @@ THE SOFTWARE.
 
 */
 
-#ifndef ASM_TRANSLATOR_HPP
-#define ASM_TRANSLATOR_HPP
+#ifndef ASM_GENERATOR_HPP
+#define ASM_GENERATOR_HPP
 
 // project headers
 #include "syntax_tree.hpp"
@@ -49,4 +49,4 @@ namespace tuc {
     /*  generates assembly code from a syntax tree */
 };
 
-#endif//ASM_TRANSLATOR_HPP
+#endif//ASM_GENERATOR_HPP

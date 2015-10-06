@@ -45,7 +45,7 @@ THE SOFTWARE.
 // project headers
 #include "lexer.hpp"
 #include "syntax_tree.hpp"
-#include "asm_translator.hpp"
+#include "asm_generator.hpp"
 
 
 
