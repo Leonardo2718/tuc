@@ -40,12 +40,15 @@ THE SOFTWARE.
 // project headers
 #include "syntax_tree.hpp"
 
+// standard libraries
+#include <string>
+
 
 
 //~declare namespace members~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 namespace tuc {
-    void gen_asm_expr(std::ostream& outputASM, SyntaxNode* node);
+    std::string gen_expr_asm(SyntaxNode* node);
     /*  generates assembly code from a syntax tree */
 };
 

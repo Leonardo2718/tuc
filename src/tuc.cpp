@@ -90,8 +90,8 @@ int main(int argc, char** argv) {
 
         for (int i = 0, count = syntaxTreeRoot->child_count(); i < count; i++) {
             auto n = syntaxTreeRoot->child(i);
-            print_syntax_tree(std::cout, n);
-            gen_asm_expr(outputASM, n);
+            //print_syntax_tree(std::cout, n);  // useful for debugging
+            outputASM << gen_expr_asm(n);
         }
 
         outputASM << "\nmov ebx, eax\nmov eax, 1\nint 80h\n";
