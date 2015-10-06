@@ -108,3 +108,166 @@ std::string tuc::SyntaxNode::value() const noexcept {
 int tuc::SyntaxNode::position() const noexcept {
     return pos;
 }
+
+
+
+//~function implementations~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+std::unique_ptr<tuc::SyntaxNode> tuc::gen_syntax_tree(tuc::Lexer<std::string::const_iterator>& lexer) {
+    auto treeRoot = std::make_unique<tuc::SyntaxNode>(tuc::SyntaxNode::NodeType::PROGRAM);
+    auto rpnExpr = std::vector<tuc::Token>{};
+    auto opStack = std::vector<tuc::Token>{};
+
+    /*##########################################################################################################
+    ### To parse mathematical expressions, first use a variation of Dijkstra's shunting yard algorithm to     ##
+    ### transform the expression into Reverse Polish Notation (RPN).  Once transformed, the expression can be ##
+    ### read *right-to-left* (*backwards*) into the syntax tree.  This is because the last operations to be   ##
+    ### executed are the ones that must appear at the top of the syntax tree for the expression.  This also   ##
+    ### means that the branches (linking to the operator's operands) must also be added right-to-left.        ##
+    ###                                                                                                       ##
+    ### This top-down approach is neither efficient nor elegant.  So, it will likely be replaced by a         ##
+    ### bottom-up parser in the future.                                                                       ##
+    ##########################################################################################################*/
+
+    auto token = lexer.current();
+    while(!token.empty()) {
+        if (token.type() == tuc::TokenType::ADD || token.type() == tuc::TokenType::SUBTRACT) {
+            while (!opStack.empty() && (opStack.back().type() == tuc::TokenType::ADD ||
+                                        opStack.back().type() == tuc::TokenType::SUBTRACT ||
+                                        opStack.back().type() == tuc::TokenType::MULTIPLY ||
+                                        opStack.back().type() == tuc::TokenType::DIVIDE) ) {
+                rpnExpr.push_back(opStack.back());
+                opStack.pop_back();
+            }
+            opStack.push_back(token);
+        }
+        else if (token.type() == tuc::TokenType::MULTIPLY || token.type() == tuc::TokenType::DIVIDE) {
+            while (!opStack.empty() && (opStack.back().type() == tuc::TokenType::MULTIPLY ||
+                                        opStack.back().type() == tuc::TokenType::DIVIDE) ) {
+                rpnExpr.push_back(opStack.back());
+                opStack.pop_back();
+            }
+            opStack.push_back(token);
+        }
+        else if (token.type() == tuc::TokenType::INTEGER) {
+            rpnExpr.push_back(token);
+        }
+        else if (token.type() == tuc::TokenType::LPAREN) {
+            opStack.push_back(token);
+        }
+        else if (token.type() == tuc::TokenType::RPAREN) {
+            auto t = opStack.back();
+            while(t.type() != tuc::TokenType::LPAREN) {
+                rpnExpr.push_back(t);
+                opStack.pop_back();
+                t = opStack.back();
+            }
+        }
+        else if (token.type() == tuc::TokenType::SEMICOL) {
+            while (!opStack.empty()) {
+                rpnExpr.push_back(opStack.back());
+                opStack.pop_back();
+            }
+            auto nodeStack = std::vector<std::unique_ptr<tuc::SyntaxNode>>{};
+            for (auto t : rpnExpr) {
+                auto node = std::make_unique<tuc::SyntaxNode>(t);
+                if (node->is_operator()) {
+                    auto secondVal = std::move(nodeStack.back());   // using `std::move()` causes `.back()` to exist
+                    nodeStack.pop_back();                           // also note that node come out in reverse order
+                    auto firstVal = std::move(nodeStack.back());
+                    nodeStack.pop_back();
+                    node->append_child(std::move(firstVal));
+                    node->append_child(std::move(secondVal));
+                    nodeStack.push_back(std::move(node));
+                } else if (t.type() == tuc::TokenType::INTEGER) {
+                    nodeStack.push_back(std::move(node));
+                }
+            }
+            treeRoot->append_child(std::move(nodeStack.back()));
+            rpnExpr.clear();
+        }
+        token = lexer.next();
+    }
+
+    return treeRoot;
+}
+
+/*
+generate a syntax tree from a list of tokens
+*/
+std::unique_ptr<tuc::SyntaxNode> tuc::gen_syntax_tree(const std::vector<tuc::Token>& tokenList) {
+    auto treeRoot = std::make_unique<tuc::SyntaxNode>(tuc::SyntaxNode::NodeType::PROGRAM);
+    auto rpnExpr = std::vector<tuc::Token>{};
+    auto opStack = std::vector<tuc::Token>{};
+
+    /*##########################################################################################################
+    ### To parse mathematical expressions, first use a variation of Dijkstra's shunting yard algorithm to     ##
+    ### transform the expression into Reverse Polish Notation (RPN).  Once transformed, the expression can be ##
+    ### read *right-to-left* (*backwards*) into the syntax tree.  This is because the last operations to be   ##
+    ### executed are the ones that must appear at the top of the syntax tree for the expression.  This also   ##
+    ### means that the branches (linking to the operator's operands) must also be added right-to-left.        ##
+    ###                                                                                                       ##
+    ### This top-down approach is neither efficient nor elegant.  So, it will likely be replaced by a         ##
+    ### bottom-up parser in the future.                                                                       ##
+    ##########################################################################################################*/
+
+    for (const auto token: tokenList) {
+        if (token.type() == tuc::TokenType::ADD || token.type() == tuc::TokenType::SUBTRACT) {
+            while (!opStack.empty() && (opStack.back().type() == tuc::TokenType::ADD ||
+                                        opStack.back().type() == tuc::TokenType::SUBTRACT ||
+                                        opStack.back().type() == tuc::TokenType::MULTIPLY ||
+                                        opStack.back().type() == tuc::TokenType::DIVIDE) ) {
+                rpnExpr.push_back(opStack.back());
+                opStack.pop_back();
+            }
+            opStack.push_back(token);
+        }
+        else if (token.type() == tuc::TokenType::MULTIPLY || token.type() == tuc::TokenType::DIVIDE) {
+            while (!opStack.empty() && (opStack.back().type() == tuc::TokenType::MULTIPLY ||
+                                        opStack.back().type() == tuc::TokenType::DIVIDE) ) {
+                rpnExpr.push_back(opStack.back());
+                opStack.pop_back();
+            }
+            opStack.push_back(token);
+        }
+        else if (token.type() == tuc::TokenType::INTEGER) {
+            rpnExpr.push_back(token);
+        }
+        else if (token.type() == tuc::TokenType::LPAREN) {
+            opStack.push_back(token);
+        }
+        else if (token.type() == tuc::TokenType::RPAREN) {
+            auto t = opStack.back();
+            while(t.type() != tuc::TokenType::LPAREN) {
+                rpnExpr.push_back(t);
+                opStack.pop_back();
+                t = opStack.back();
+            }
+        }
+        else if (token.type() == tuc::TokenType::SEMICOL) {
+            while (!opStack.empty()) {
+                rpnExpr.push_back(opStack.back());
+                opStack.pop_back();
+            }
+            auto nodeStack = std::vector<std::unique_ptr<tuc::SyntaxNode>>{};
+            for (auto t : rpnExpr) {
+                auto node = std::make_unique<tuc::SyntaxNode>(t);
+                if (node->is_operator()) {
+                    auto secondVal = std::move(nodeStack.back());   // using `std::move()` causes `.back()` to exist
+                    nodeStack.pop_back();                           // also note that node come out in reverse order
+                    auto firstVal = std::move(nodeStack.back());
+                    nodeStack.pop_back();
+                    node->append_child(std::move(firstVal));
+                    node->append_child(std::move(secondVal));
+                    nodeStack.push_back(std::move(node));
+                } else if (t.type() == tuc::TokenType::INTEGER) {
+                    nodeStack.push_back(std::move(node));
+                }
+            }
+            treeRoot->append_child(std::move(nodeStack.back()));
+            rpnExpr.clear();
+        }
+    }
+
+    return treeRoot;
+}
