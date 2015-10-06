@@ -83,6 +83,7 @@ class tuc::Lexer {
 template<typename RandomAccessIterator>
 tuc::Grammar tuc::Lexer<RandomAccessIterator>::grammar = tuc::Grammar{
     {
+        Rule{TokenType::LCOMMENT, "//(.*)(\\n|$)", 0},
         Rule{TokenType::ADD, "\\+", 0},
         Rule{TokenType::SUBTRACT, "\\-", 0},
         Rule{TokenType::MULTIPLY, "\\*", 0},

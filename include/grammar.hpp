@@ -48,7 +48,7 @@ namespace tuc {
     class Rule;
     class Token;
 
-    enum class TokenType {ADD, SUBTRACT, MULTIPLY, DIVIDE, INTEGER, LPAREN, RPAREN, SEMICOL};
+    enum class TokenType {ADD, SUBTRACT, MULTIPLY, DIVIDE, INTEGER, LPAREN, RPAREN, SEMICOL, LCOMMENT};
 
     /*################################################################################################################
     ### Here, a grammar is defined as a list of rule lists (a matrix of rules).  Each list in the grammer containes ##
