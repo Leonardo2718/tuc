@@ -43,7 +43,7 @@ THE SOFTWARE.
 
 tuc::SyntaxNode::SyntaxNode(NodeType _type) : syntaxNodeType{_type} {}
 
-tuc::SyntaxNode::SyntaxNode(NodeType _type, const std::string& _value, unsigned int _pos) :
+tuc::SyntaxNode::SyntaxNode(NodeType _type, const std::string& _value, int _pos) :
     syntaxNodeType{_type}, textValue{_value}, pos{_pos} {}
 
 /*
@@ -77,7 +77,7 @@ int tuc::SyntaxNode::child_count() const noexcept {
     return children.size();
 }
 
-void tuc::SyntaxNode::append_child(NodeType _type, const std::string& _value, unsigned int _pos) {
+void tuc::SyntaxNode::append_child(NodeType _type, const std::string& _value, int _pos) {
     children.push_back(std::make_unique<SyntaxNode>(_type, _value, _pos));
 }
 
@@ -105,6 +105,6 @@ std::string tuc::SyntaxNode::value() const noexcept {
     return textValue;
 }
 
-unsigned int tuc::SyntaxNode::position() const noexcept {
+int tuc::SyntaxNode::position() const noexcept {
     return pos;
 }

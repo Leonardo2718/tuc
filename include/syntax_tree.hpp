@@ -64,7 +64,7 @@ class tuc::SyntaxNode {
 
         SyntaxNode(NodeType _type);
 
-        SyntaxNode(NodeType _type, const std::string& _value, unsigned int _pos);
+        SyntaxNode(NodeType _type, const std::string& _value, int _pos);
 
         SyntaxNode(const Token& _token);
         /*  constructs a node from a syntax token */
@@ -76,7 +76,7 @@ class tuc::SyntaxNode {
 
         int child_count() const noexcept;
 
-        void append_child(NodeType _type, const std::string& _value, unsigned int _pos = -1);
+        void append_child(NodeType _type, const std::string& _value, int _pos = -1);
 
         void appedn_child(const Token& _token);
 
@@ -91,14 +91,14 @@ class tuc::SyntaxNode {
 
         std::string value() const noexcept;
 
-        unsigned int position() const noexcept;
+        int position() const noexcept;
 
     private:
         std::vector<std::unique_ptr<SyntaxNode>> children;
         SyntaxNode* parentNode = nullptr;
         NodeType syntaxNodeType;
         std::string textValue = "";
-        unsigned int pos = -1;
+        int pos = -1;
 };
 
 #endif//TUC_SYNTAX_TREE_HPP
