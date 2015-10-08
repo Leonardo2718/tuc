@@ -3,7 +3,7 @@ Project: TUC
 File: syntax_tree.cpp
 Author: Leonardo Banderali
 Created: September 6, 2015
-Last Modified: October 6, 2015
+Last Modified: October 8, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -52,12 +52,13 @@ constructs a node from a syntax token
 tuc::SyntaxNode::SyntaxNode(const Token& _token)
 : textValue{_token.lexeme()}, pos{_token.position()} {
     switch (_token.type()) {
-    case TokenType::ADD:        syntaxNodeType = NodeType::ADD;break;
-    case TokenType::SUBTRACT:   syntaxNodeType = NodeType::SUBTRACT;break;
-    case TokenType::MULTIPLY:   syntaxNodeType = NodeType::MULTIPLY;break;
-    case TokenType::DIVIDE:     syntaxNodeType = NodeType::DIVIDE;break;
-    case TokenType::INTEGER:    syntaxNodeType = NodeType::INTEGER;break;
-    case TokenType::SEMICOL:    syntaxNodeType = NodeType::SEMICOL;break;
+    case TokenType::ADD:        syntaxNodeType = NodeType::ADD; break;
+    case TokenType::SUBTRACT:   syntaxNodeType = NodeType::SUBTRACT; break;
+    case TokenType::MULTIPLY:   syntaxNodeType = NodeType::MULTIPLY; break;
+    case TokenType::DIVIDE:     syntaxNodeType = NodeType::DIVIDE; break;
+    case TokenType::INTEGER:    syntaxNodeType = NodeType::INTEGER; break;
+    case TokenType::SEMICOL:    syntaxNodeType = NodeType::SEMICOL; break;
+    case TokenType::IDENTIFIER: syntaxNodeType = NodeType::IDENTIFIER; break;
     default:                    syntaxNodeType = NodeType::UNKNOWN;
     }
 }

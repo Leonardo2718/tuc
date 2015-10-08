@@ -3,7 +3,7 @@ Project: TUC
 File: grammar.hpp
 Author: Leonardo Banderali
 Created: August 31, 2015
-Last Modified: October 6, 2015
+Last Modified: October 8, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -48,7 +48,7 @@ namespace tuc {
     class Rule;
     class Token;
 
-    enum class TokenType {ADD, SUBTRACT, MULTIPLY, DIVIDE, INTEGER, LPAREN, RPAREN, SEMICOL, LCOMMENT};
+    enum class TokenType {ADD, SUBTRACT, MULTIPLY, DIVIDE, INTEGER, LPAREN, RPAREN, SEMICOL, LCOMMENT, IDENTIFIER};
 
     /*################################################################################################################
     ### Here, a grammar is defined as a list of rule lists (a matrix of rules).  Each list in the grammer containes ##
