@@ -152,6 +152,9 @@ std::unique_ptr<tuc::SyntaxNode> tuc::gen_syntax_tree(const std::vector<tuc::Tok
             }
             opStack.push_back(token);
         }
+        else if (token.type() == tuc::TokenType::IDENTIFIER) {
+            //rpnExpr.push_back(token);
+        }
         else if (token.type() == tuc::TokenType::INTEGER) {
             rpnExpr.push_back(token);
         }
