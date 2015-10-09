@@ -35,3 +35,25 @@ THE SOFTWARE.
 */
 
 #include "symbol_table.hpp"
+
+
+
+//~class implementations~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+tuc::Symbol::Symbol(SymbolType _type, std::string _value, int _argCount)
+    : symbolType{_type}, symbolValue{_value}, argumentCount{_argCount} {}
+
+tuc::Symbol::SymbolType tuc::Symbol::type() const noexcept {
+    return symbolType;
+}
+
+std::string tuc::Symbol::value() const noexcept {
+    return symbolValue;
+}
+
+/*
+returns the number of arguments the entity can take
+*/
+int tuc::Symbol::arg_count() const noexcept {
+    return argumentCount;
+}
