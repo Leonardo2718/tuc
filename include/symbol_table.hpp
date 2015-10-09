@@ -46,20 +46,36 @@ THE SOFTWARE.
 //~declare namespace members~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 namespace tuc {
-    class Symbol;
-    using SymbolTable = unordered_map<std::string, Symbol>;
+    class Symbol;   // a class for representing symbols in the source code
+    using SymbolTable = std::unordered_map<std::string, Symbol>;
 }
 
 
 
 //~class declarations~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+/*
+A class for representing symbols in the source code. Currently, there are two kinds of symbols: FUNCTIONs and
+PROCEDUREs. A FUNCTION is for declarative funtions like those used in Haskell. These cannot have side effects. So, a
+FUNCTION with no parameters is just a plain variable. A PROCEDURE is just an emperative function, like C style functions.
+*/
 class tuc::Symbol {
     public:
+        enum class SymbolType {FUNCTION, PROCEDURE};
+
+        Symbol(SymbolType _type, std::string _value, int _argCount);
+
+        SymbolType type() const noexcept;
+
         std::string value() const noexcept;
 
+        int arg_count() const noexcept;
+        /*  returns the number of arguments the entity can take */
+
     private:
+        SymbolType symbolType;
         std::string symbolValue;
+        int argumentCount;
 };
 
 #endif//SYMBOL_TABLE_HPP
