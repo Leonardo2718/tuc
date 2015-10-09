@@ -3,7 +3,7 @@ Project: TUC
 File: tuc.cpp
 Author: Leonardo Banderali
 Created: August 7, 2015
-Last Modified: October 6, 2015
+Last Modified: October 8, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -39,7 +39,7 @@ THE SOFTWARE.
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <vector>
+#include <tuple>
 #include <list>
 
 // project headers
@@ -82,7 +82,9 @@ int main(int argc, char** argv) {
         auto tokens = tuc::lex_analyze(fileText.cbegin(), fileText.cend());
 
         // generate a syntax tree
-        auto syntaxTreeRoot = gen_syntax_tree(tokens);
+        auto syntaxTreeRoot = std::make_unique<tuc::SyntaxNode>(tuc::SyntaxNode::NodeType::UNKNOWN);
+        auto symbolTable = tuc::SymbolTable{};
+        std::tie(syntaxTreeRoot, symbolTable) = gen_syntax_tree(tokens);
 
         // generate the asembly code
         auto outputASM = std::ostringstream{};
@@ -91,7 +93,7 @@ int main(int argc, char** argv) {
         for (int i = 0, count = syntaxTreeRoot->child_count(); i < count; i++) {
             auto n = syntaxTreeRoot->child(i);
             //print_syntax_tree(std::cout, n);  // useful for debugging
-            outputASM << gen_expr_asm(n);
+            outputASM << gen_expr_asm(n, symbolTable);
         }
 
         outputASM << "\nmov ebx, eax\nmov eax, 1\nint 80h\n";

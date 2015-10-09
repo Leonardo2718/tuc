@@ -39,6 +39,7 @@ THE SOFTWARE.
 
 // project headers
 #include "syntax_tree.hpp"
+#include "symbol_table.hpp"
 
 // standard libraries
 #include <string>
@@ -48,8 +49,8 @@ THE SOFTWARE.
 //~declare namespace members~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 namespace tuc {
-    std::string gen_expr_asm(SyntaxNode* node);
-    /*  generates assembly code from a syntax tree */
+    std::string gen_expr_asm(SyntaxNode* node, const SymbolTable& symTable);
+    /*  generates assembly code from a syntax tree and symbol table */
 };
 
 #endif//ASM_GENERATOR_HPP

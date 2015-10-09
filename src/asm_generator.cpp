@@ -43,9 +43,9 @@ THE SOFTWARE.
 
 
 /*
-generates assembly code from a syntax tree
+generates assembly code from a syntax tree and symbol table
 */
-std::string tuc::gen_expr_asm(SyntaxNode* node) {
+std::string tuc::gen_expr_asm(SyntaxNode* node, const SymbolTable& symTable) {
     using NodeType = tuc::SyntaxNode::NodeType;
     auto outputASM = std::stringstream{};
     auto firstOperand = node->child(0);
@@ -56,10 +56,10 @@ std::string tuc::gen_expr_asm(SyntaxNode* node) {
     auto secondIsLiteral = (secondOperand->type() == NodeType::INTEGER);
 
     if (firstIsOperator && secondIsOperator) {
-        outputASM << gen_expr_asm(secondOperand);   // evaluate the right hand side first so that the result from the left
-        outputASM << "push eax\n";                  //  hand side ends up in eax. This makes it easy to ensures that the
-        outputASM << gen_expr_asm(firstOperand);    //  result of the current operation also ends up in eax.
-        outputASM << "pop ebx\n";
+        outputASM << gen_expr_asm(secondOperand, symTable); // evaluate the right hand side first so that the result
+        outputASM << "push eax\n";                          //   from the left hand side ends up in eax. This makes it
+        outputASM << gen_expr_asm(firstOperand, symTable);  //   easy to ensures that the result of the current
+        outputASM << "pop ebx\n";                           //   operation also ends up in eax.
 
         if (node->type() == NodeType::ADD)
             outputASM << "add eax, ebx\n";
@@ -71,7 +71,8 @@ std::string tuc::gen_expr_asm(SyntaxNode* node) {
             outputASM << "idiv ebx\n";
 
     } else if (firstIsLiteral && secondIsOperator) {
-        outputASM << gen_expr_asm(secondOperand);   // result is put in eax so must be moved to ebx for some instructions
+        outputASM << gen_expr_asm(secondOperand, symTable); // result is put in eax so must be moved to ebx for
+                                                            //   some instructions
 
         if (node->type() == NodeType::ADD) {
             outputASM << "add eax, " << std::stoi(firstOperand->value()) << "\n";
@@ -84,7 +85,7 @@ std::string tuc::gen_expr_asm(SyntaxNode* node) {
         }
 
     } else if (firstIsOperator && secondIsLiteral) {
-        outputASM << gen_expr_asm(firstOperand);
+        outputASM << gen_expr_asm(firstOperand, symTable);
 
         if (node->type() == NodeType::ADD) {
             outputASM << "add eax, " << std::stoi(secondOperand->value()) << "\n";

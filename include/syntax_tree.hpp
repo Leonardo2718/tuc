@@ -3,7 +3,7 @@ Project: TUC
 File: syntax_tree.hpp
 Author: Leonardo Banderali
 Created: September 6, 2015
-Last Modified: October 6, 2015
+Last Modified: October 8, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -39,8 +39,10 @@ THE SOFTWARE.
 
 // project headers
 #include "grammar.hpp"
+#include "symbol_table.hpp"
 
 // standard libraries
+#include <tuple>
 #include <memory>
 #include <vector>
 #include <string>
@@ -52,8 +54,8 @@ THE SOFTWARE.
 namespace tuc {
     class SyntaxNode;   // represents a node of a syntax tree
 
-    // generate a syntax tree from a list of tokens
-    std::unique_ptr<SyntaxNode> gen_syntax_tree(const std::vector<Token>& tokenList);
+    // generate a syntax tree and symbol table from a list of tokens
+    std::tuple<std::unique_ptr<SyntaxNode>, SymbolTable> gen_syntax_tree(const std::vector<Token>& tokenList);
 }
 
 

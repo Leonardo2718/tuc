@@ -117,8 +117,9 @@ int tuc::SyntaxNode::position() const noexcept {
 /*
 generate a syntax tree from a list of tokens
 */
-std::unique_ptr<tuc::SyntaxNode> tuc::gen_syntax_tree(const std::vector<tuc::Token>& tokenList) {
+std::tuple<std::unique_ptr<tuc::SyntaxNode>, tuc::SymbolTable> tuc::gen_syntax_tree(const std::vector<tuc::Token>& tokenList) {
     auto treeRoot = std::make_unique<tuc::SyntaxNode>(tuc::SyntaxNode::NodeType::PROGRAM);
+    auto symTable = SymbolTable{};
     auto rpnExpr = std::vector<tuc::Token>{};
     auto opStack = std::vector<tuc::Token>{};
 
@@ -194,5 +195,5 @@ std::unique_ptr<tuc::SyntaxNode> tuc::gen_syntax_tree(const std::vector<tuc::Tok
         }
     }
 
-    return treeRoot;
+    return std::make_tuple(std::move(treeRoot), symTable);
 }
