@@ -3,7 +3,7 @@ Project: TUC
 File: lexer.hpp
 Author: Leonardo Banderali
 Created: August 21, 2015
-Last Modified: October 8, 2015
+Last Modified: October 9, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -64,6 +64,7 @@ std::vector<tuc::Token> tuc::lex_analyze(RandomAccessIterator first, RandomAcces
     tuc::Grammar grammar = tuc::Grammar{
         {
             Rule{TokenType::LCOMMENT, "//(.*)(\\n|$)", 0},
+            Rule{TokenType::ASSIGN, "\\=", 0},
             Rule{TokenType::ADD, "\\+", 0},
             Rule{TokenType::SUBTRACT, "\\-", 0},
             Rule{TokenType::MULTIPLY, "\\*", 0},

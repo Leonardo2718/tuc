@@ -3,7 +3,7 @@ Project: TUC
 File: lexer.cpp
 Author: Leonardo Banderali
 Created: August 31, 2015
-Last Modified: September 6, 2015
+Last Modified: October 9, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -39,48 +39,58 @@ THE SOFTWARE.
 /*
 returns the type of the rule (which should also be the type of the token it searches for)
 */
-tuc::TokenType tuc::Rule::type() const {
+tuc::TokenType tuc::Rule::type() const noexcept {
     return ruleType;
 }
 
 /*
 returns the regular expression used to search for the token
 */
-std::regex tuc::Rule::regex() const {
+std::regex tuc::Rule::regex() const noexcept {
     return rgx;
 }
 
 /*
 returns the index pointing to the rules to be used after this rule finds a token
 */
-tuc::GrammarIndex tuc::Rule::nextRules() const {
+tuc::GrammarIndex tuc::Rule::nextRules() const noexcept {
     return nextRulesIndex;
 }
 
 /*
 returns true if token was generated from an empty match
 */
-bool tuc::Token::empty() const {
+bool tuc::Token::empty() const noexcept {
     return match.empty();
 }
 
 /*
 returns the type of the token (which should match the name of the rule used to find it)
 */
-tuc::TokenType tuc::Token::type() const {
+tuc::TokenType tuc::Token::type() const noexcept {
     return tokenType;
 }
 
 /*
 returns the position of the token within the alayzed text
 */
-int tuc::Token::position() const {
+int tuc::Token::position() const noexcept {
     return pos;
 }
 
 /*
 returns the lexeme for the token; behavior is undefined if token is empty
 */
-std::string tuc::Token::lexeme() const {
+std::string tuc::Token::lexeme() const noexcept {
     return match.str();
+}
+
+/*  if the token is some sort of operator, returns its precedence (-1 if not an operator) */
+tuc::Precedence tuc::Token::precedence() const noexcept {
+    return opPred;
+}
+
+/*  if the token is some sort of operator, returns its associativity (NONE if not an operator) */
+tuc::Associativity tuc::Token::fixity() const noexcept {
+    return opFixity;
 }

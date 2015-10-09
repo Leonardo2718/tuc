@@ -3,7 +3,7 @@ Project: TUC
 File: grammar.hpp
 Author: Leonardo Banderali
 Created: August 31, 2015
-Last Modified: October 8, 2015
+Last Modified: October 9, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -48,7 +48,9 @@ namespace tuc {
     class Rule;
     class Token;
 
-    enum class TokenType {ADD, SUBTRACT, MULTIPLY, DIVIDE, INTEGER, LPAREN, RPAREN, SEMICOL, LCOMMENT, IDENTIFIER};
+    using Precedence = int;
+    enum class Associativity {LEFT, RIGHT, NONE};
+    enum class TokenType {ASSIGN, ADD, SUBTRACT, MULTIPLY, DIVIDE, INTEGER, LPAREN, RPAREN, SEMICOL, LCOMMENT, IDENTIFIER};
 
     /*################################################################################################################
     ### Here, a grammar is defined as a list of rule lists (a matrix of rules).  Each list in the grammer containes ##
@@ -75,42 +77,53 @@ class tuc::Rule {    // a class that defines the rules used to find tokens
         /*  constructs a rule with the name `_name` and uses `_regex` as regular expression for searching;
             `_nextRulesIndex` points to the next list of rules to be used */
 
-        TokenType type() const;
+        TokenType type() const noexcept;
         /*  returns the type of the rule (which should also be the type of the token it searches for) */
 
-        std::regex regex() const;
+        std::regex regex() const noexcept;
         /*  returns the regular expression used to search for the token */
 
-        GrammarIndex nextRules() const;
+        GrammarIndex nextRules() const noexcept;
         /*  returns the index pointing to the rules to be used after this rule finds a token */
 
     private:
         TokenType ruleType;
         std::regex rgx;                 // holds the regular expression (regex) used to indentify the token
         GrammarIndex nextRulesIndex = 0;// indexes the next rules to be used for tokenization
+
 };
 
 class tuc::Token {
     public:
         Token() = default;
-        Token(const TokenType& _type, std::smatch m, int _pos = -1) : tokenType{_type}, match{m}, pos{_pos} {}
+        Token(const TokenType& _type, std::smatch m, int _pos = -1,
+            Precedence _precedence = -1, Associativity _fixity = Associativity::NONE)
+            : tokenType{_type}, match{m}, pos{_pos}, opPred{_precedence}, opFixity{_fixity} {}
 
-        bool empty() const;
+        bool empty() const noexcept;
         /*  returns true if token was generated from an empty match */
 
-        TokenType type() const;
+        TokenType type() const noexcept;
         /*  returns the type of the token (which should match the type of the rule used to find it) */
 
-        int position() const;
+        int position() const noexcept;
         /*  returns the position of the token within the alayzed text */
 
-        std::string lexeme() const;
+        std::string lexeme() const noexcept;
         /*  returns the lexeme for the token; behavior is undefined if token is empty */
+
+        Precedence precedence() const noexcept;
+        /*  if the token is some sort of operator, returns its precedence (-1 if not an operator) */
+
+        Associativity fixity() const noexcept;
+        /*  if the token is some sort of operator, returns its associativity (NONE if not an operator) */
 
     private:
         TokenType tokenType;
         std::smatch match;  // holds the lexem matched associated with the token
         int pos;            // holds the position of the token in the text (-1 is "unkown position")
+        Precedence opPred;        // precedence if operator
+        Associativity opFixity;   // associativity if operator
 };
 
 #endif//TUC_GRAMMAR_HPP
