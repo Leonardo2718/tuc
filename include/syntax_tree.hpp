@@ -3,7 +3,7 @@ Project: TUC
 File: syntax_tree.hpp
 Author: Leonardo Banderali
 Created: September 6, 2015
-Last Modified: October 8, 2015
+Last Modified: October 9, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -70,7 +70,7 @@ class tuc::SyntaxNode {
 
         SyntaxNode(NodeType _type, const std::string& _value, int _pos);
 
-        SyntaxNode(const Token& _token);
+        explicit SyntaxNode(const Token& _token);
         /*  constructs a node from a syntax token */
 
         SyntaxNode* parent() noexcept;
