@@ -36,6 +36,8 @@ THE SOFTWARE.
 
 #include "grammar.hpp"
 
+
+
 /*
 returns the type of the rule (which should also be the type of the token it searches for)
 */
@@ -55,6 +57,27 @@ returns the index pointing to the rules to be used after this rule finds a token
 */
 tuc::GrammarIndex tuc::Rule::nextRules() const noexcept {
     return nextRulesIndex;
+}
+
+/*
+if the token is some sort of operator, returns its precedence (-1 if not an operator)
+*/
+tuc::Precedence tuc::Rule::precedence() const noexcept {
+    return opPred;
+}
+
+/*
+if the token is some sort of operator, returns its associativity (NONE if not an operator)
+*/
+tuc::Associativity tuc::Rule::fixity() const noexcept {
+    return opFixity;
+}
+
+
+
+/*  constructs a token from a grammar rule and a rule match */
+tuc::Token::Token(const tuc::Rule& _rule, const std::smatch _rmatch, int _pos) {
+    Token{_rule.type(), _rmatch, _pos, _rule.precedence(), _rule.fixity()};
 }
 
 /*
@@ -85,12 +108,16 @@ std::string tuc::Token::lexeme() const noexcept {
     return match.str();
 }
 
-/*  if the token is some sort of operator, returns its precedence (-1 if not an operator) */
+/*
+if the token is some sort of operator, returns its precedence (-1 if not an operator)
+*/
 tuc::Precedence tuc::Token::precedence() const noexcept {
     return opPred;
 }
 
-/*  if the token is some sort of operator, returns its associativity (NONE if not an operator) */
+/*
+if the token is some sort of operator, returns its associativity (NONE if not an operator)
+*/
 tuc::Associativity tuc::Token::fixity() const noexcept {
     return opFixity;
 }

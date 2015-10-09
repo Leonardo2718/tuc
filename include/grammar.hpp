@@ -72,7 +72,8 @@ namespace tuc {
 class tuc::Rule {    // a class that defines the rules used to find tokens
     public:
         Rule() = default;
-        Rule(const TokenType& _type, const std::string& _regex, GrammarIndex _nextRulesIndex)
+        Rule(const TokenType& _type, const std::string& _regex, GrammarIndex _nextRulesIndex,
+            Precedence _precedence = -1, Associativity _fixity = Associativity::NONE)
             : ruleType{_type}, rgx{_regex}, nextRulesIndex{_nextRulesIndex} {}
         /*  constructs a rule with the name `_name` and uses `_regex` as regular expression for searching;
             `_nextRulesIndex` points to the next list of rules to be used */
@@ -86,11 +87,18 @@ class tuc::Rule {    // a class that defines the rules used to find tokens
         GrammarIndex nextRules() const noexcept;
         /*  returns the index pointing to the rules to be used after this rule finds a token */
 
+        Precedence precedence() const noexcept;
+        /*  if the token is some sort of operator, returns its precedence (-1 if not an operator) */
+
+        Associativity fixity() const noexcept;
+        /*  if the token is some sort of operator, returns its associativity (NONE if not an operator) */
+
     private:
         TokenType ruleType;
         std::regex rgx;                 // holds the regular expression (regex) used to indentify the token
         GrammarIndex nextRulesIndex = 0;// indexes the next rules to be used for tokenization
-
+        Precedence opPred;        // precedence if operator
+        Associativity opFixity;   // associativity if operator
 };
 
 class tuc::Token {
@@ -99,6 +107,9 @@ class tuc::Token {
         Token(const TokenType& _type, std::smatch m, int _pos = -1,
             Precedence _precedence = -1, Associativity _fixity = Associativity::NONE)
             : tokenType{_type}, match{m}, pos{_pos}, opPred{_precedence}, opFixity{_fixity} {}
+
+        Token(const Rule& _rule, const std::smatch _rmatch, int _pos);
+        /*  constructs a token from a grammar rule and a rule match */
 
         bool empty() const noexcept;
         /*  returns true if token was generated from an empty match */
