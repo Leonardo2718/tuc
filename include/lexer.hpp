@@ -64,16 +64,16 @@ std::vector<tuc::Token> tuc::lex_analyze(RandomAccessIterator first, RandomAcces
     tuc::Grammar grammar = tuc::Grammar{
         {
             Rule{TokenType::LCOMMENT, "//(.*)(\\n|$)", 0},
-            Rule{TokenType::ASSIGN, "\\=", 0},
-            Rule{TokenType::ADD, "\\+", 0},
-            Rule{TokenType::SUBTRACT, "\\-", 0},
-            Rule{TokenType::MULTIPLY, "\\*", 0},
-            Rule{TokenType::DIVIDE, "\\/", 0},
+            Rule{TokenType::ASSIGN, "\\=", 0, 14},
+            Rule{TokenType::ADD, "\\+", 0, 3, Associativity::LEFT},
+            Rule{TokenType::SUBTRACT, "\\-", 0, 3, Associativity::LEFT},
+            Rule{TokenType::MULTIPLY, "\\*", 0, 4, Associativity::LEFT},
+            Rule{TokenType::DIVIDE, "\\/", 0, 4, Associativity::LEFT},
             Rule{TokenType::INTEGER, "\\d+", 0},
             Rule{TokenType::LPAREN, "\\(", 0},
             Rule{TokenType::RPAREN, "\\)", 0},
             Rule{TokenType::SEMICOL, ";", 0},
-            Rule{TokenType::IDENTIFIER, "\\b[A-Za-z_]+\\b", 0}
+            Rule{TokenType::IDENTIFIER, "\\b[A-Za-z_]+\\b", 0, 0, Associativity::RIGHT}
         }
     };
 
@@ -96,7 +96,8 @@ std::vector<tuc::Token> tuc::lex_analyze(RandomAccessIterator first, RandomAcces
             //tokenList.push_back(Token{});
             break;
         } else {
-            tokenList.push_back(Token{rule.type(), firstMatch, currentPosition - first + firstMatch.position()});
+            //tokenList.push_back(Token{rule.type(), firstMatch, currentPosition - first + firstMatch.position()});
+            tokenList.push_back(Token{rule, firstMatch, currentPosition - first + firstMatch.position()});
             ruleListIndex = rule.nextRules();
             currentPosition += firstMatch.position() + firstMatch.length();
         }

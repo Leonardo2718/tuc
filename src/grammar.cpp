@@ -76,8 +76,9 @@ tuc::Associativity tuc::Rule::fixity() const noexcept {
 
 
 /*  constructs a token from a grammar rule and a rule match */
-tuc::Token::Token(const tuc::Rule& _rule, const std::smatch _rmatch, int _pos) {
-    Token{_rule.type(), _rmatch, _pos, _rule.precedence(), _rule.fixity()};
+tuc::Token::Token(const tuc::Rule& _rule, const std::smatch _rmatch, int _pos) :
+    tokenType{_rule.type()}, match{_rmatch}, pos{_pos}, opPred{_rule.precedence()}, opFixity{_rule.fixity()} {
+    //Token{_rule.type(), _rmatch, _pos, _rule.precedence(), _rule.fixity()};
 }
 
 /*
@@ -106,6 +107,11 @@ returns the lexeme for the token; behavior is undefined if token is empty
 */
 std::string tuc::Token::lexeme() const noexcept {
     return match.str();
+}
+
+bool tuc::Token::is_operator() const noexcept {
+    return tokenType == TokenType::ADD || tokenType == TokenType::SUBTRACT ||
+            tokenType == TokenType::MULTIPLY || tokenType == TokenType::DIVIDE;
 }
 
 /*

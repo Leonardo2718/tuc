@@ -74,7 +74,7 @@ class tuc::Rule {    // a class that defines the rules used to find tokens
         Rule() = default;
         Rule(const TokenType& _type, const std::string& _regex, GrammarIndex _nextRulesIndex,
             Precedence _precedence = -1, Associativity _fixity = Associativity::NONE)
-            : ruleType{_type}, rgx{_regex}, nextRulesIndex{_nextRulesIndex} {}
+            : ruleType{_type}, rgx{_regex}, nextRulesIndex{_nextRulesIndex}, opPred{_precedence}, opFixity{_fixity} {}
         /*  constructs a rule with the name `_name` and uses `_regex` as regular expression for searching;
             `_nextRulesIndex` points to the next list of rules to be used */
 
@@ -122,6 +122,8 @@ class tuc::Token {
 
         std::string lexeme() const noexcept;
         /*  returns the lexeme for the token; behavior is undefined if token is empty */
+
+        bool is_operator() const noexcept;
 
         Precedence precedence() const noexcept;
         /*  if the token is some sort of operator, returns its precedence (-1 if not an operator) */

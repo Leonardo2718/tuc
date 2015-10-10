@@ -3,7 +3,7 @@ Project: TUC
 File: syntax_tree.cpp
 Author: Leonardo Banderali
 Created: September 6, 2015
-Last Modified: October 8, 2015
+Last Modified: October 9, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -40,6 +40,7 @@ THE SOFTWARE.
 // standard libraries
 #include <stdexcept>
 #include <sstream>
+#include <iostream>
 
 
 
@@ -56,6 +57,7 @@ constructs a node from a syntax token
 tuc::SyntaxNode::SyntaxNode(const Token& _token)
 : textValue{_token.lexeme()}, pos{_token.position()} {
     switch (_token.type()) {
+    case TokenType::ASSIGN:     syntaxNodeType = NodeType::ASSIGN; break;
     case TokenType::ADD:        syntaxNodeType = NodeType::ADD; break;
     case TokenType::SUBTRACT:   syntaxNodeType = NodeType::SUBTRACT; break;
     case TokenType::MULTIPLY:   syntaxNodeType = NodeType::MULTIPLY; break;
@@ -139,7 +141,7 @@ std::tuple<std::unique_ptr<tuc::SyntaxNode>, tuc::SymbolTable> tuc::gen_syntax_t
     ##########################################################################################################*/
 
     for (const auto token: tokenList) {
-        if (token.type() == tuc::TokenType::ADD || token.type() == tuc::TokenType::SUBTRACT) {
+        /*if (token.type() == tuc::TokenType::ADD || token.type() == tuc::TokenType::SUBTRACT) {
             while (!opStack.empty() && (opStack.back().type() == tuc::TokenType::ADD ||
                                         opStack.back().type() == tuc::TokenType::SUBTRACT ||
                                         opStack.back().type() == tuc::TokenType::MULTIPLY ||
@@ -152,6 +154,15 @@ std::tuple<std::unique_ptr<tuc::SyntaxNode>, tuc::SymbolTable> tuc::gen_syntax_t
         else if (token.type() == tuc::TokenType::MULTIPLY || token.type() == tuc::TokenType::DIVIDE) {
             while (!opStack.empty() && (opStack.back().type() == tuc::TokenType::MULTIPLY ||
                                         opStack.back().type() == tuc::TokenType::DIVIDE) ) {
+                rpnExpr.push_back(opStack.back());
+                opStack.pop_back();
+            }
+            opStack.push_back(token);
+        }*/
+        if (token.is_operator() /*|| token.type() == tuc::TokenType::IDENTIFIER*/) {
+            while(!opStack.empty() && opStack.back().is_operator() && (
+                        (token.fixity() == Associativity::LEFT && token.precedence() <= opStack.back().precedence()) ||
+                        (token.fixity() == Associativity::RIGHT && token.precedence() < opStack.back().precedence()) )) {
                 rpnExpr.push_back(opStack.back());
                 opStack.pop_back();
             }
