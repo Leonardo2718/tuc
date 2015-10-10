@@ -141,24 +141,6 @@ std::tuple<std::unique_ptr<tuc::SyntaxNode>, tuc::SymbolTable> tuc::gen_syntax_t
     ##########################################################################################################*/
 
     for (const auto token: tokenList) {
-        /*if (token.type() == tuc::TokenType::ADD || token.type() == tuc::TokenType::SUBTRACT) {
-            while (!opStack.empty() && (opStack.back().type() == tuc::TokenType::ADD ||
-                                        opStack.back().type() == tuc::TokenType::SUBTRACT ||
-                                        opStack.back().type() == tuc::TokenType::MULTIPLY ||
-                                        opStack.back().type() == tuc::TokenType::DIVIDE) ) {
-                rpnExpr.push_back(opStack.back());
-                opStack.pop_back();
-            }
-            opStack.push_back(token);
-        }
-        else if (token.type() == tuc::TokenType::MULTIPLY || token.type() == tuc::TokenType::DIVIDE) {
-            while (!opStack.empty() && (opStack.back().type() == tuc::TokenType::MULTIPLY ||
-                                        opStack.back().type() == tuc::TokenType::DIVIDE) ) {
-                rpnExpr.push_back(opStack.back());
-                opStack.pop_back();
-            }
-            opStack.push_back(token);
-        }*/
         if (token.is_operator() /*|| token.type() == tuc::TokenType::IDENTIFIER*/) {
             while(!opStack.empty() && opStack.back().is_operator() && (
                         (token.fixity() == Associativity::LEFT && token.precedence() <= opStack.back().precedence()) ||

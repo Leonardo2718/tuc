@@ -39,6 +39,14 @@ THE SOFTWARE.
 
 
 /*
+constructs a rule with the name `_name` and uses `_regex` as regular expression for searching;
+`_nextRulesIndex` points to the next list of rules to be used
+*/
+tuc::Rule::Rule(const TokenType& _type, const std::string& _regex, GrammarIndex _nextRulesIndex,
+    Precedence _precedence, Associativity _fixity)
+    : ruleType{_type}, rgx{_regex}, nextRulesIndex{_nextRulesIndex}, opPred{_precedence}, opFixity{_fixity} {}
+
+/*
 returns the type of the rule (which should also be the type of the token it searches for)
 */
 tuc::TokenType tuc::Rule::type() const noexcept {
@@ -75,10 +83,12 @@ tuc::Associativity tuc::Rule::fixity() const noexcept {
 
 
 
+tuc::Token::Token(const TokenType& _type, std::smatch m, int _pos, Precedence _precedence, Associativity _fixity)
+    : tokenType{_type}, match{m}, pos{_pos}, opPred{_precedence}, opFixity{_fixity} {}
+
 /*  constructs a token from a grammar rule and a rule match */
 tuc::Token::Token(const tuc::Rule& _rule, const std::smatch _rmatch, int _pos) :
     tokenType{_rule.type()}, match{_rmatch}, pos{_pos}, opPred{_rule.precedence()}, opFixity{_rule.fixity()} {
-    //Token{_rule.type(), _rmatch, _pos, _rule.precedence(), _rule.fixity()};
 }
 
 /*

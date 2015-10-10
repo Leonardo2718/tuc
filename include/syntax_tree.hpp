@@ -64,7 +64,8 @@ namespace tuc {
 
 class tuc::SyntaxNode {
     public:
-        enum class NodeType {PROGRAM, ASSIGN, ADD, SUBTRACT, MULTIPLY, DIVIDE, INTEGER, LEFTPAREN, RIGHTPAREN, SEMICOL, IDENTIFIER, UNKNOWN};
+        enum class NodeType {PROGRAM, ASSIGN, ADD, SUBTRACT, MULTIPLY, DIVIDE, INTEGER, LEFTPAREN, RIGHTPAREN, SEMICOL,
+                                IDENTIFIER, UNKNOWN};
 
         SyntaxNode(NodeType _type);
 

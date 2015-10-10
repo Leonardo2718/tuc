@@ -73,8 +73,7 @@ class tuc::Rule {    // a class that defines the rules used to find tokens
     public:
         Rule() = default;
         Rule(const TokenType& _type, const std::string& _regex, GrammarIndex _nextRulesIndex,
-            Precedence _precedence = -1, Associativity _fixity = Associativity::NONE)
-            : ruleType{_type}, rgx{_regex}, nextRulesIndex{_nextRulesIndex}, opPred{_precedence}, opFixity{_fixity} {}
+            Precedence _precedence = -1, Associativity _fixity = Associativity::NONE);
         /*  constructs a rule with the name `_name` and uses `_regex` as regular expression for searching;
             `_nextRulesIndex` points to the next list of rules to be used */
 
@@ -95,18 +94,17 @@ class tuc::Rule {    // a class that defines the rules used to find tokens
 
     private:
         TokenType ruleType;
-        std::regex rgx;                 // holds the regular expression (regex) used to indentify the token
-        GrammarIndex nextRulesIndex = 0;// indexes the next rules to be used for tokenization
-        Precedence opPred;        // precedence if operator
-        Associativity opFixity;   // associativity if operator
+        std::regex rgx;                                 // the regular expression (regex) used to indentify the token
+        GrammarIndex nextRulesIndex = 0;                // indexes the next rules to be used for tokenization
+        Precedence opPred = -1;                         // precedence if operator
+        Associativity opFixity = Associativity::NONE;   // associativity if operator
 };
 
 class tuc::Token {
     public:
         Token() = default;
         Token(const TokenType& _type, std::smatch m, int _pos = -1,
-            Precedence _precedence = -1, Associativity _fixity = Associativity::NONE)
-            : tokenType{_type}, match{m}, pos{_pos}, opPred{_precedence}, opFixity{_fixity} {}
+            Precedence _precedence = -1, Associativity _fixity = Associativity::NONE);
 
         Token(const Rule& _rule, const std::smatch _rmatch, int _pos);
         /*  constructs a token from a grammar rule and a rule match */
@@ -135,8 +133,8 @@ class tuc::Token {
         TokenType tokenType;
         std::smatch match;  // holds the lexem matched associated with the token
         int pos;            // holds the position of the token in the text (-1 is "unkown position")
-        Precedence opPred;        // precedence if operator
-        Associativity opFixity;   // associativity if operator
+        Precedence opPred = -1;                         // precedence if operator
+        Associativity opFixity = Associativity::NONE;   // associativity if operator
 };
 
 #endif//TUC_GRAMMAR_HPP

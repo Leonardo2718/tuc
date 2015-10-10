@@ -96,7 +96,6 @@ std::vector<tuc::Token> tuc::lex_analyze(RandomAccessIterator first, RandomAcces
             //tokenList.push_back(Token{});
             break;
         } else {
-            //tokenList.push_back(Token{rule.type(), firstMatch, currentPosition - first + firstMatch.position()});
             tokenList.push_back(Token{rule, firstMatch, currentPosition - first + firstMatch.position()});
             ruleListIndex = rule.nextRules();
             currentPosition += firstMatch.position() + firstMatch.length();
