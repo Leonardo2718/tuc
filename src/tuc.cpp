@@ -3,7 +3,7 @@ Project: TUC
 File: tuc.cpp
 Author: Leonardo Banderali
 Created: August 7, 2015
-Last Modified: October 9, 2015
+Last Modified: November, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -71,15 +71,8 @@ void print_syntax_tree(std::ostream& os, tuc::SyntaxNode* root) {
 
 int main(int argc, char** argv) {
     if (argc == 3) {
-        // read input file
-        auto inputFile = std::ifstream{argv[1]};
-        std::stringbuf sb;
-        inputFile.get(sb, static_cast<char>(-1)); // read the entire file
-        inputFile.close();
-        const auto fileText = sb.str();
-
         // create lexer instance for the text
-        auto tokens = tuc::lex_analyze(fileText.cbegin(), fileText.cend());
+        auto tokens = tuc::lex_analyze(argv[1]);
 
         // generate a syntax tree
         auto syntaxTreeRoot = std::make_unique<tuc::SyntaxNode>(tuc::SyntaxNode::NodeType::UNKNOWN);
