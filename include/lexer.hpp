@@ -3,7 +3,7 @@ Project: TUC
 File: lexer.hpp
 Author: Leonardo Banderali
 Created: August 21, 2015
-Last Modified: October 9, 2015
+Last Modified: November 1, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -41,7 +41,9 @@ THE SOFTWARE.
 #include "grammar.hpp"
 
 // standard libraries
+#include <string>
 #include <regex>
+#include <fstream>
 #include <utility>
 
 //~declare namespace members~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -50,6 +52,9 @@ namespace tuc {
     template <typename RandomAccessIterator>
     std::vector<tuc::Token> lex_analyze(RandomAccessIterator first, RandomAccessIterator last);
     /*  analyze the input text and returns it as a list of tokens */
+
+    std::vector<tuc::Token> lex_analyze(const std::string& filePath);
+    /*  analyze an input file and returns its contents as a list of tokens */
 }
 
 
@@ -80,6 +85,8 @@ std::vector<tuc::Token> tuc::lex_analyze(RandomAccessIterator first, RandomAcces
     std::vector<tuc::Token> tokenList;
     RandomAccessIterator currentPosition = first;
     auto ruleListIndex = 0;
+    int l = 1;
+    int c = 1;
 
     while (currentPosition < last) {
         Rule rule;
@@ -96,9 +103,88 @@ std::vector<tuc::Token> tuc::lex_analyze(RandomAccessIterator first, RandomAcces
             //tokenList.push_back(Token{});
             break;
         } else {
-            tokenList.push_back(Token{rule, firstMatch, currentPosition - first + firstMatch.position()});
+            /*tokenList.push_back(Token{rule, firstMatch, currentPosition - first + firstMatch.position()});
             ruleListIndex = rule.nextRules();
-            currentPosition += firstMatch.position() + firstMatch.length();
+            currentPosition += firstMatch.position() + firstMatch.length();*/
+            for (int i = firstMatch.position() + firstMatch.length() - 1; i >= 0; i--) {
+                auto c = *currentPosition;
+                if (c == '\n') {
+                    l++;
+                    c = 1;
+                }
+                else {
+                    c++;
+                }
+                currentPosition++;
+            }
+            tokenList.push_back(Token{TextEntity{firstMatch.str(), "", currentPosition - firstMatch.length() - first, l, c}, rule});
+            ruleListIndex = rule.nextRules();
+        }
+    }
+
+    return tokenList;
+}
+
+/*
+analyze an input file and returns its contents as a list of tokens
+*/
+std::vector<tuc::Token> tuc::lex_analyze(const std::string& filePath) {
+    tuc::Grammar grammar = tuc::Grammar{
+        {
+            Rule{TokenType::LCOMMENT, "//(.*)(\\n|$)", 0},
+            Rule{TokenType::ASSIGN, "\\=", 0, 14},
+            Rule{TokenType::ADD, "\\+", 0, 3, Associativity::LEFT},
+            Rule{TokenType::SUBTRACT, "\\-", 0, 3, Associativity::LEFT},
+            Rule{TokenType::MULTIPLY, "\\*", 0, 4, Associativity::LEFT},
+            Rule{TokenType::DIVIDE, "\\/", 0, 4, Associativity::LEFT},
+            Rule{TokenType::INTEGER, "\\d+", 0},
+            Rule{TokenType::LPAREN, "\\(", 0},
+            Rule{TokenType::RPAREN, "\\)", 0},
+            Rule{TokenType::SEMICOL, ";", 0},
+            Rule{TokenType::IDENTIFIER, "\\b[A-Za-z_]+\\b", 0, 0, Associativity::RIGHT}
+        }
+    };
+
+    auto inputFile = std::ifstream{filePath};
+    std::stringbuf sb;
+    inputFile.get(sb, static_cast<char>(-1)); // read the entire file
+    inputFile.close();
+    const auto fileText = sb.str();
+    auto first = fileText.cbegin();
+    auto last = fileText.cend();
+    auto currentPosition = first;
+    std::vector<tuc::Token> tokenList;
+    auto ruleListIndex = 0;
+    int l = 1;
+    int c = 1;
+
+    while (currentPosition < last) {
+        Rule rule;
+        std::smatch firstMatch;
+        std::smatch m;
+        for (auto r: grammar[ruleListIndex]) {
+            if (std::regex_search(currentPosition, last, m, r.regex()) && (firstMatch.empty() || m.position() < firstMatch.position() )) {
+                firstMatch = std::move(m);
+                rule = std::move(r);
+            }
+        }
+
+        if (firstMatch.empty()) {
+            break;
+        } else {
+            for (int i = firstMatch.position() + firstMatch.length() - 1; i >= 0; i--) {
+                auto c = *currentPosition;
+                if (c == '\n') {
+                    l++;
+                    c = 1;
+                }
+                else {
+                    c++;
+                }
+                currentPosition++;
+            }
+            tokenList.push_back(Token{TextEntity{firstMatch.str(), filePath, currentPosition - firstMatch.length() - first, l, c}, rule});
+            ruleListIndex = rule.nextRules();
         }
     }
 

@@ -84,9 +84,9 @@ class tuc::TextEntity {
     private:
         std::string entityText; // the text entity
         std::string filePath;   // file containing the entity
-        int pos;                // position of the entity within the file
-        int lineNumber;         // the line number where the text starts
-        int columnNumber;       // the column number whre the entity starts
+        int pos = -1;           // position of the entity within the file
+        int lineNumber = -1;    // the line number where the text starts
+        int columnNumber = -1;  // the column number whre the entity starts
 };
 
 

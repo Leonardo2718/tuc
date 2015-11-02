@@ -3,7 +3,7 @@ Project: TUC
 File: grammar.hpp
 Author: Leonardo Banderali
 Created: August 31, 2015
-Last Modified: October 9, 2015
+Last Modified: November 1, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -37,10 +37,15 @@ THE SOFTWARE.
 #ifndef TUC_GRAMMAR_HPP
 #define TUC_GRAMMAR_HPP
 
-//include standard c++ libraries
+// project headers
+#include "text_entity.hpp"
+
+// c++ standard libraries
 #include <string>
 #include <vector>
 #include <regex>
+
+
 
 //~declare namespace members~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -102,15 +107,17 @@ class tuc::Rule {    // a class that defines the rules used to find tokens
 
 class tuc::Token {
     public:
-        Token() = default;
-        Token(const TokenType& _type, std::smatch m, int _pos = -1,
+        /*Token(const TokenType& _type, std::smatch m, int _pos = -1,
+            Precedence _precedence = -1, Associativity _fixity = Associativity::NONE);*/
+        Token(const TokenType& _type, const TextEntity& _lexemeInfo,
             Precedence _precedence = -1, Associativity _fixity = Associativity::NONE);
 
-        Token(const Rule& _rule, const std::smatch _rmatch, int _pos);
+        //Token(const Rule& _rule, const std::smatch _rmatch, int _pos);
         /*  constructs a token from a grammar rule and a rule match */
+        Token(const TextEntity& _lexemeInfo, const Rule& _rule);
 
-        bool empty() const noexcept;
-        /*  returns true if token was generated from an empty match */
+        bool valid() const noexcept;
+        /*  returns true if token is valid (was generated from a valid match) */
 
         TokenType type() const noexcept;
         /*  returns the type of the token (which should match the type of the rule used to find it) */
@@ -131,8 +138,7 @@ class tuc::Token {
 
     private:
         TokenType tokenType;
-        std::smatch match;  // holds the lexem matched associated with the token
-        int pos;            // holds the position of the token in the text (-1 is "unkown position")
+        TextEntity lexemeInfo;  // holds the token's lexeme and its location
         Precedence opPred = -1;                         // precedence if operator
         Associativity opFixity = Associativity::NONE;   // associativity if operator
 };

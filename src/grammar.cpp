@@ -3,7 +3,7 @@ Project: TUC
 File: lexer.cpp
 Author: Leonardo Banderali
 Created: August 31, 2015
-Last Modified: October 9, 2015
+Last Modified: November 1, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -83,19 +83,24 @@ tuc::Associativity tuc::Rule::fixity() const noexcept {
 
 
 
-tuc::Token::Token(const TokenType& _type, std::smatch m, int _pos, Precedence _precedence, Associativity _fixity)
-    : tokenType{_type}, match{m}, pos{_pos}, opPred{_precedence}, opFixity{_fixity} {}
+/*tuc::Token::Token(const TokenType& _type, std::smatch m, int _pos, Precedence _precedence, Associativity _fixity)
+    : tokenType{_type}, match{m}, pos{_pos}, opPred{_precedence}, opFixity{_fixity} {}*/
+
+tuc::Token::Token(const TokenType& _type, const TextEntity& _lexemeInfo, Precedence _precedence, Associativity _fixity)
+: tokenType{_type}, lexemeInfo{_lexemeInfo}, opPred{_precedence}, opFixity{_fixity} {}
 
 /*  constructs a token from a grammar rule and a rule match */
-tuc::Token::Token(const tuc::Rule& _rule, const std::smatch _rmatch, int _pos) :
+/*tuc::Token::Token(const tuc::Rule& _rule, const std::smatch _rmatch, int _pos) :
     tokenType{_rule.type()}, match{_rmatch}, pos{_pos}, opPred{_rule.precedence()}, opFixity{_rule.fixity()} {
-}
+}*/
+tuc::Token::Token(const TextEntity& _lexemeInfo, const Rule& _rule)
+: tokenType{_rule.type()}, lexemeInfo{_lexemeInfo}, opPred{_rule.precedence()}, opFixity{_rule.fixity()} {}
 
 /*
-returns true if token was generated from an empty match
+returns true if token is valid (was generated from a valid match)
 */
-bool tuc::Token::empty() const noexcept {
-    return match.empty();
+bool tuc::Token::valid() const noexcept {
+    return !lexemeInfo.text().empty();
 }
 
 /*
@@ -109,14 +114,14 @@ tuc::TokenType tuc::Token::type() const noexcept {
 returns the position of the token within the alayzed text
 */
 int tuc::Token::position() const noexcept {
-    return pos;
+    return lexemeInfo.position();
 }
 
 /*
 returns the lexeme for the token; behavior is undefined if token is empty
 */
 std::string tuc::Token::lexeme() const noexcept {
-    return match.str();
+    return lexemeInfo.text();
 }
 
 bool tuc::Token::is_operator() const noexcept {
