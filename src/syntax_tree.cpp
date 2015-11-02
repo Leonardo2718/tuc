@@ -3,7 +3,7 @@ Project: TUC
 File: syntax_tree.cpp
 Author: Leonardo Banderali
 Created: September 6, 2015
-Last Modified: October 9, 2015
+Last Modified: November 2, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -48,14 +48,15 @@ THE SOFTWARE.
 
 tuc::SyntaxNode::SyntaxNode(NodeType _type) : syntaxNodeType{_type} {}
 
-tuc::SyntaxNode::SyntaxNode(NodeType _type, const std::string& _value, int _pos) :
-    syntaxNodeType{_type}, textValue{_value}, pos{_pos} {}
+tuc::SyntaxNode::SyntaxNode(NodeType _type, const TextEntity& _textValue)
+: syntaxNodeType{_type}, textValue{_textValue} {}
 
 /*
 constructs a node from a syntax token
 */
 tuc::SyntaxNode::SyntaxNode(const Token& _token)
-: textValue{_token.lexeme()}, pos{_token.position()} {
+//: textValue{_token.lexeme()}, pos{_token.position()} {
+: textValue{_token.text()} {
     switch (_token.type()) {
     case TokenType::ASSIGN:     syntaxNodeType = NodeType::ASSIGN; break;
     case TokenType::ADD:        syntaxNodeType = NodeType::ADD; break;
@@ -84,11 +85,11 @@ int tuc::SyntaxNode::child_count() const noexcept {
     return children.size();
 }
 
-void tuc::SyntaxNode::append_child(NodeType _type, const std::string& _value, int _pos) {
-    children.push_back(std::make_unique<SyntaxNode>(_type, _value, _pos));
+void tuc::SyntaxNode::append_child(NodeType _type, const TextEntity& _textValue) {
+    children.push_back(std::make_unique<SyntaxNode>(_type, _textValue));
 }
 
-void tuc::SyntaxNode::appedn_child(const Token& _token) {
+void tuc::SyntaxNode::append_child(const Token& _token) {
     children.push_back(std::make_unique<SyntaxNode>(_token));
 }
 
@@ -109,11 +110,15 @@ bool tuc::SyntaxNode::is_operator() const noexcept {
 }
 
 std::string tuc::SyntaxNode::value() const noexcept {
-    return textValue;
+    return textValue.text();
 }
 
 int tuc::SyntaxNode::position() const noexcept {
-    return pos;
+    return textValue.position();
+}
+
+tuc::TextEntity tuc::SyntaxNode::text() const noexcept {
+    return textValue;
 }
 
 

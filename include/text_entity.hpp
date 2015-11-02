@@ -3,7 +3,7 @@ Project: TUC
 File: text_entity.hpp
 Author: Leonardo Banderali
 Created: November 1, 2015
-Last Modified: November 1, 2015
+Last Modified: November 2, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -64,6 +64,7 @@ to the file its in and its position inside it.
 */
 class tuc::TextEntity {
     public:
+        TextEntity() = default;
         TextEntity(const std::string& _text, const std::string& _filePath, int _position, int _line, int _column);
 
         std::string text() const noexcept;

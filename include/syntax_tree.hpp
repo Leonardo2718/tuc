@@ -3,7 +3,7 @@ Project: TUC
 File: syntax_tree.hpp
 Author: Leonardo Banderali
 Created: September 6, 2015
-Last Modified: October 9, 2015
+Last Modified: November 2, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -39,6 +39,7 @@ THE SOFTWARE.
 
 // project headers
 #include "grammar.hpp"
+#include "text_entity.hpp"
 #include "symbol_table.hpp"
 
 // standard libraries
@@ -69,7 +70,7 @@ class tuc::SyntaxNode {
 
         SyntaxNode(NodeType _type);
 
-        SyntaxNode(NodeType _type, const std::string& _value, int _pos);
+        SyntaxNode(NodeType _type, const TextEntity& _textValue);
 
         explicit SyntaxNode(const Token& _token);
         /*  constructs a node from a syntax token */
@@ -81,9 +82,9 @@ class tuc::SyntaxNode {
 
         int child_count() const noexcept;
 
-        void append_child(NodeType _type, const std::string& _value, int _pos = -1);
+        void append_child(NodeType _type, const TextEntity& _textValue);
 
-        void appedn_child(const Token& _token);
+        void append_child(const Token& _token);
 
         void append_child(std::unique_ptr<SyntaxNode>&& c) noexcept;
         /*  appends an already existing (allocated) child; since this node must "own" the child, move semantics *must*
@@ -96,14 +97,15 @@ class tuc::SyntaxNode {
 
         std::string value() const noexcept;
 
+        TextEntity text() const noexcept;
+
         int position() const noexcept;
 
     private:
         std::vector<std::unique_ptr<SyntaxNode>> children;
         SyntaxNode* parentNode = nullptr;
         NodeType syntaxNodeType;
-        std::string textValue = "";
-        int pos = -1;
+        TextEntity textValue;
 };
 
 #endif//TUC_SYNTAX_TREE_HPP

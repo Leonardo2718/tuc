@@ -3,7 +3,7 @@ Project: TUC
 File: lexer.cpp
 Author: Leonardo Banderali
 Created: August 31, 2015
-Last Modified: November 1, 2015
+Last Modified: November 2, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -122,6 +122,13 @@ returns the lexeme for the token; behavior is undefined if token is empty
 */
 std::string tuc::Token::lexeme() const noexcept {
     return lexemeInfo.text();
+}
+
+/*
+returns the text entity of the lexeme
+*/
+tuc::TextEntity tuc::Token::text() const noexcept {
+    return lexemeInfo;
 }
 
 bool tuc::Token::is_operator() const noexcept {

@@ -3,7 +3,7 @@ Project: TUC
 File: tuc.cpp
 Author: Leonardo Banderali
 Created: August 7, 2015
-Last Modified: November, 2015
+Last Modified: November 2, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
