@@ -1,0 +1,5 @@
+// This is a comment!
+
+1+2;    // simple expression; result should be 3
+
+(3*4 + 4*5)/(2*3 - 1*2);    // complex expression; result should be 8

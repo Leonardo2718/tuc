@@ -141,9 +141,9 @@ std::vector<tuc::Token> tuc::lex_analyze(const std::string& filePath) {
         if (firstMatch.empty()) {
             break;
         } else {
-            for (int i = firstMatch.position() + firstMatch.length() - 1; i >= 0; i--) {
-                auto c = *currentPosition;
-                if (c == '\n') {
+            for (int i = firstMatch.position() - 1; i >= 0; i--) {
+                auto character = *currentPosition;
+                if (character == '\n') {
                     l++;
                     c = 1;
                 }
@@ -152,7 +152,18 @@ std::vector<tuc::Token> tuc::lex_analyze(const std::string& filePath) {
                 }
                 currentPosition++;
             }
-            tokenList.push_back(Token{TextEntity{firstMatch.str(), filePath, currentPosition - firstMatch.length() - first, l, c}, rule});
+            tokenList.push_back(Token{TextEntity{firstMatch.str(), filePath, currentPosition - first, l, c}, rule});
+            for (int i = firstMatch.length() - 1; i >= 0; i--) {
+                auto character = *currentPosition;
+                if (character == '\n') {
+                    l++;
+                    c = 1;
+                }
+                else {
+                    c++;
+                }
+                currentPosition++;
+            }
             ruleListIndex = rule.nextRules();
         }
     }

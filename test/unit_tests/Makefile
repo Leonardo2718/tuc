@@ -6,11 +6,14 @@ LIBS		= /lib/libboost_unit_test_framework.a
 SRCDIR		= ../../src
 INCLUDEDIR	= ../../include
 
+SOURCES	= $(SRCDIR)/*
+HEADERS	= $(INCLUDEDIR)/*
+
 
 
 # make rules
 
-all: lexer_test
+all: tuc_test
 
-lexer_test: lexer_test.cpp $(INCLUDEDIR)/grammar.hpp $(SRCDIR)/grammar.cpp $(INCLUDEDIR)/lexer.hpp
-	$(CXX) $(CXXFLAGS) lexer_test.cpp $(SRCDIR)/grammar.cpp $(LIBS) -o "$@"
+tuc_test: tuc_test.cpp Makefile $(SOURCES) $(HEADERS)
+	$(CXX) $(CXXFLAGS) tuc_test.cpp ../../obj/text_entity.o ../../obj/grammar.o $(LIBS) -o "$@"
