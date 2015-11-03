@@ -3,7 +3,7 @@ Project: TUC
 File: syntax_tree.cpp
 Author: Leonardo Banderali
 Created: September 6, 2015
-Last Modified: November 2, 2015
+Last Modified: November 3, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -55,7 +55,6 @@ tuc::SyntaxNode::SyntaxNode(NodeType _type, const TextEntity& _textValue)
 constructs a node from a syntax token
 */
 tuc::SyntaxNode::SyntaxNode(const Token& _token)
-//: textValue{_token.lexeme()}, pos{_token.position()} {
 : textValue{_token.text()} {
     switch (_token.type()) {
     case TokenType::ASSIGN:     syntaxNodeType = NodeType::ASSIGN; break;
@@ -137,12 +136,7 @@ std::tuple<std::unique_ptr<tuc::SyntaxNode>, tuc::SymbolTable> tuc::gen_syntax_t
     /*##########################################################################################################
     ### To parse mathematical expressions, first use a variation of Dijkstra's shunting yard algorithm to     ##
     ### transform the expression into Reverse Polish Notation (RPN).  Once transformed, the expression can be ##
-    ### read *right-to-left* (*backwards*) into the syntax tree.  This is because the last operations to be   ##
-    ### executed are the ones that must appear at the top of the syntax tree for the expression.  This also   ##
-    ### means that the branches (linking to the operator's operands) must also be added right-to-left.        ##
-    ###                                                                                                       ##
-    ### This top-down approach is neither efficient nor elegant.  So, it will likely be replaced by a         ##
-    ### bottom-up parser in the future.                                                                       ##
+    ### read into the syntax tree.                                                                            ##
     ##########################################################################################################*/
 
     for (const auto token: tokenList) {

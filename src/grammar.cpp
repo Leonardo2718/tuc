@@ -3,7 +3,7 @@ Project: TUC
 File: lexer.cpp
 Author: Leonardo Banderali
 Created: August 31, 2015
-Last Modified: November 2, 2015
+Last Modified: November 3, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -83,16 +83,9 @@ tuc::Associativity tuc::Rule::fixity() const noexcept {
 
 
 
-/*tuc::Token::Token(const TokenType& _type, std::smatch m, int _pos, Precedence _precedence, Associativity _fixity)
-    : tokenType{_type}, match{m}, pos{_pos}, opPred{_precedence}, opFixity{_fixity} {}*/
-
 tuc::Token::Token(const TokenType& _type, const TextEntity& _lexemeInfo, Precedence _precedence, Associativity _fixity)
 : tokenType{_type}, lexemeInfo{_lexemeInfo}, opPred{_precedence}, opFixity{_fixity} {}
 
-/*  constructs a token from a grammar rule and a rule match */
-/*tuc::Token::Token(const tuc::Rule& _rule, const std::smatch _rmatch, int _pos) :
-    tokenType{_rule.type()}, match{_rmatch}, pos{_pos}, opPred{_rule.precedence()}, opFixity{_rule.fixity()} {
-}*/
 tuc::Token::Token(const TextEntity& _lexemeInfo, const Rule& _rule)
 : tokenType{_rule.type()}, lexemeInfo{_lexemeInfo}, opPred{_rule.precedence()}, opFixity{_rule.fixity()} {}
 
