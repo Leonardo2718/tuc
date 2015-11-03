@@ -3,7 +3,7 @@ Project: TUC
 File: lexer.hpp
 Author: Leonardo Banderali
 Created: August 21, 2015
-Last Modified: November 1, 2015
+Last Modified: November 2, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -39,6 +39,7 @@ THE SOFTWARE.
 
 // project headers
 #include "grammar.hpp"
+#include "u_language.hpp"
 
 // standard libraries
 #include <string>
@@ -66,22 +67,6 @@ analyze the input text and returns it as a list of tokens
 */
 template <typename RandomAccessIterator>
 std::vector<tuc::Token> tuc::lex_analyze(RandomAccessIterator first, RandomAccessIterator last) {
-    tuc::Grammar grammar = tuc::Grammar{
-        {
-            Rule{TokenType::LCOMMENT, "//(.*)(\\n|$)", 0},
-            Rule{TokenType::ASSIGN, "\\=", 0, 14},
-            Rule{TokenType::ADD, "\\+", 0, 3, Associativity::LEFT},
-            Rule{TokenType::SUBTRACT, "\\-", 0, 3, Associativity::LEFT},
-            Rule{TokenType::MULTIPLY, "\\*", 0, 4, Associativity::LEFT},
-            Rule{TokenType::DIVIDE, "\\/", 0, 4, Associativity::LEFT},
-            Rule{TokenType::INTEGER, "\\d+", 0},
-            Rule{TokenType::LPAREN, "\\(", 0},
-            Rule{TokenType::RPAREN, "\\)", 0},
-            Rule{TokenType::SEMICOL, ";", 0},
-            Rule{TokenType::IDENTIFIER, "\\b[A-Za-z_]+\\b", 0, 0, Associativity::RIGHT}
-        }
-    };
-
     std::vector<tuc::Token> tokenList;
     RandomAccessIterator currentPosition = first;
     auto ruleListIndex = 0;
@@ -92,7 +77,7 @@ std::vector<tuc::Token> tuc::lex_analyze(RandomAccessIterator first, RandomAcces
         Rule rule;
         std::smatch firstMatch;
         std::smatch m;
-        for (auto r: grammar[ruleListIndex]) {
+        for (auto r : u_lexer_grammar[ruleListIndex]) {
             if (std::regex_search(currentPosition, last, m, r.regex()) && (firstMatch.empty() || m.position() < firstMatch.position() )) {
                 firstMatch = std::move(m);
                 rule = std::move(r);
@@ -100,7 +85,6 @@ std::vector<tuc::Token> tuc::lex_analyze(RandomAccessIterator first, RandomAcces
         }
 
         if (firstMatch.empty()) {
-            //tokenList.push_back(Token{});
             break;
         } else {
             /*tokenList.push_back(Token{rule, firstMatch, currentPosition - first + firstMatch.position()});
@@ -129,26 +113,11 @@ std::vector<tuc::Token> tuc::lex_analyze(RandomAccessIterator first, RandomAcces
 analyze an input file and returns its contents as a list of tokens
 */
 std::vector<tuc::Token> tuc::lex_analyze(const std::string& filePath) {
-    tuc::Grammar grammar = tuc::Grammar{
-        {
-            Rule{TokenType::LCOMMENT, "//(.*)(\\n|$)", 0},
-            Rule{TokenType::ASSIGN, "\\=", 0, 14},
-            Rule{TokenType::ADD, "\\+", 0, 3, Associativity::LEFT},
-            Rule{TokenType::SUBTRACT, "\\-", 0, 3, Associativity::LEFT},
-            Rule{TokenType::MULTIPLY, "\\*", 0, 4, Associativity::LEFT},
-            Rule{TokenType::DIVIDE, "\\/", 0, 4, Associativity::LEFT},
-            Rule{TokenType::INTEGER, "\\d+", 0},
-            Rule{TokenType::LPAREN, "\\(", 0},
-            Rule{TokenType::RPAREN, "\\)", 0},
-            Rule{TokenType::SEMICOL, ";", 0},
-            Rule{TokenType::IDENTIFIER, "\\b[A-Za-z_]+\\b", 0, 0, Associativity::RIGHT}
-        }
-    };
-
     auto inputFile = std::ifstream{filePath};
     std::stringbuf sb;
     inputFile.get(sb, static_cast<char>(-1)); // read the entire file
     inputFile.close();
+
     const auto fileText = sb.str();
     auto first = fileText.cbegin();
     auto last = fileText.cend();
@@ -162,7 +131,7 @@ std::vector<tuc::Token> tuc::lex_analyze(const std::string& filePath) {
         Rule rule;
         std::smatch firstMatch;
         std::smatch m;
-        for (auto r: grammar[ruleListIndex]) {
+        for (auto r : u_lexer_grammar[ruleListIndex]) {
             if (std::regex_search(currentPosition, last, m, r.regex()) && (firstMatch.empty() || m.position() < firstMatch.position() )) {
                 firstMatch = std::move(m);
                 rule = std::move(r);
