@@ -36,6 +36,7 @@ THE SOFTWARE.
 
 // project headers
 #include "syntax_tree.hpp"
+#include "compiler_exceptions.hpp"
 
 // standard libraries
 #include <stdexcept>
@@ -162,11 +163,7 @@ std::tuple<std::unique_ptr<tuc::SyntaxNode>, tuc::SymbolTable> tuc::gen_syntax_t
                 opStack.push_back(token);
             }
             else {
-                // if symbol is not defined in the symbol table, throw a runtime exception
-                //%TODO% create specialized exceptions for compilation errors %%
-                auto err = std::stringstream{};
-                err << "Undefined reference to symbol `" << token.lexeme() << "`.\n";
-                throw std::runtime_error{err.str()};
+                throw CompilerException::UnknownSymbol{token.text()};
             }
         }
         else if (token.type() == tuc::TokenType::INTEGER) {

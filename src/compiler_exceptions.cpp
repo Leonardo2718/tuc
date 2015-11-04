@@ -3,7 +3,7 @@ Project: TUC
 File: compiler_exceptions.cpp
 Author: Leonardo Banderali
 Created: October 9, 2015
-Last Modified: October 9, 2015
+Last Modified: November 3, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -37,29 +37,38 @@ THE SOFTWARE.
 // project headers
 #include "compiler_exceptions.hpp"
 
+// c++ standard libraries
+#include <sstream>
+
 
 
 //~class implementations~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-tuc::CompilerException::CompilerError::CompilerError(const char* _file, const int _position) noexcept : srcFile{_file}, pos{_position} {}
-
 /*
-returns the file where the error was found
+returns an error code that can be returned by the program (default is -1)
 */
-const char* tuc::CompilerException::CompilerError::file() const noexcept {
-    return srcFile;
+int tuc::CompilerException::AbstractError::error_code() const noexcept {
+    return -1;
 }
 
-/*
-returns the position in the file where the error was found
-*/
-int tuc::CompilerException::CompilerError::position() const noexcept {
-    return pos;
+tuc::CompilerException::UnknownSymbol::UnknownSymbol(const TextEntity& _culpritText) : culpritText{_culpritText} {}
+
+const char* tuc::CompilerException::UnknownSymbol::file() const noexcept {
+    return culpritText.file_path().c_str();
 }
 
-/*
-returns a string describing what the error was
-*/
-const char* tuc::CompilerException::CompilerError::what() const noexcept {
-    return "Unkown error.";
+int tuc::CompilerException::UnknownSymbol::line() const noexcept {
+    return culpritText.line();
+}
+
+int tuc::CompilerException::UnknownSymbol::column() const noexcept {
+    return culpritText.column();
+}
+
+const char* tuc::CompilerException::UnknownSymbol::what() const noexcept {
+    std::stringstream text;
+    text << "Error: Unknown symbol `" << culpritText.text() << "` in file `" << culpritText.file_path() << "` at line "
+         << culpritText.line() << ", column " << culpritText.column() << ".\n";
+
+    return text.str().c_str();
 }

@@ -3,7 +3,7 @@ Project: TUC
 File: compiler_exceptions.hpp
 Author: Leonardo Banderali
 Created: October 9, 2015
-Last Modified: October 9, 2015
+Last Modified: November 3, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -34,17 +34,24 @@ THE SOFTWARE.
 
 */
 
-#ifndef COMPILER_EXCEPTIONS_HPP
-#define COMPILER_EXCEPTIONS_HPP
+#ifndef TUC_COMPILER_EXCEPTIONS_HPP
+#define TUC_COMPILER_EXCEPTIONS_HPP
 
-// standard libraries
+// project headers
+#include "text_entity.hpp"
+
+// c++ standard libraries
 #include <exception>
+
+
 
 //~declare namespace members~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 namespace tuc {
     namespace CompilerException {
-        class CompilerError; // a exception class for generating compilation errors
+        class AbstractError;    // an abstract exception class for generating any kind of error
+        class CompilationError; // an abstract exception class for generating compilation errors
+        class UnknownSymbol;    // exception class for unknown symbol (undeclared symbols)
     }
 }
 
@@ -53,24 +60,51 @@ namespace tuc {
 //~class declarations~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 /*
-A exception class for generating compilation errors.
+an abstract exception class for generating any kind of error
 */
-class tuc::CompilerException::CompilerError: public std::exception {
+class tuc::CompilerException::AbstractError : public std::exception {
     public:
-        CompilerError(const char* _file, const int _position) noexcept;
+        virtual ~AbstractError() noexcept = default;
 
-        const char* file() const noexcept;
-        /*  returns the file where the error was found */
-
-        int position() const noexcept;
-        /*  returns the position in the file where the error was found */
-
-        virtual const char* what() const noexcept;
+        virtual const char* what() const noexcept = 0;
         /*  returns a string describing what the error was */
 
-    private:
-        const char* srcFile;
-        const int pos;
+        virtual int error_code() const noexcept;
+        /*  returns an error code that can be returned by the program (default is -1) */
 };
 
-#endif//COMPILER_EXCEPTIONS_HPP
+/*
+an abstract exception class for generating compilation errors.
+*/
+class tuc::CompilerException::CompilationError : public tuc::CompilerException::AbstractError {
+    public:
+        virtual const char* file() const noexcept = 0;
+        /*  returns the file where the error was found */
+
+        virtual int line() const noexcept = 0;
+        /*  returns the line number where the error was found */
+
+        virtual int column() const noexcept = 0;
+        /*  returns the column number where the error was found */
+};
+
+/*
+exception class for unknown symbol (undeclared symbols)
+*/
+class tuc::CompilerException::UnknownSymbol : public tuc::CompilerException::CompilationError {
+    public:
+        UnknownSymbol(const TextEntity& _culpritText);
+
+        virtual const char* file() const noexcept;
+
+        virtual int line() const noexcept;
+
+        virtual int column() const noexcept;
+
+        virtual const char* what() const noexcept;
+
+    private:
+        TextEntity culpritText; // text that caused syntax error
+};
+
+#endif//TUC_COMPILER_EXCEPTIONS_HPP

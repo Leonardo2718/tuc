@@ -3,7 +3,7 @@ Project: TUC
 File: tuc.cpp
 Author: Leonardo Banderali
 Created: August 7, 2015
-Last Modified: November 2, 2015
+Last Modified: November 3, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -34,6 +34,12 @@ THE SOFTWARE.
 
 */
 
+// project headers
+#include "compiler_exceptions.hpp"
+#include "lexer.hpp"
+#include "syntax_tree.hpp"
+#include "asm_generator.hpp"
+
 // c++ standard libraries
 #include <memory>
 #include <fstream>
@@ -41,11 +47,6 @@ THE SOFTWARE.
 #include <string>
 #include <tuple>
 #include <list>
-
-// project headers
-#include "lexer.hpp"
-#include "syntax_tree.hpp"
-#include "asm_generator.hpp"
 
 
 
@@ -71,29 +72,35 @@ void print_syntax_tree(std::ostream& os, tuc::SyntaxNode* root) {
 
 int main(int argc, char** argv) {
     if (argc == 3) {
-        // create lexer instance for the text
-        auto tokens = tuc::lex_analyze(argv[1]);
+        try {
+            // tokenize the text from the input file
+            auto tokens = tuc::lex_analyze(argv[1]);
 
-        // generate a syntax tree
-        auto syntaxTreeRoot = std::make_unique<tuc::SyntaxNode>(tuc::SyntaxNode::NodeType::UNKNOWN);
-        auto symbolTable = tuc::SymbolTable{};
-        std::tie(syntaxTreeRoot, symbolTable) = tuc::gen_syntax_tree(tokens);
+            // generate a syntax tree
+            auto syntaxTreeRoot = std::make_unique<tuc::SyntaxNode>(tuc::SyntaxNode::NodeType::UNKNOWN);
+            auto symbolTable = tuc::SymbolTable{};
+            std::tie(syntaxTreeRoot, symbolTable) = tuc::gen_syntax_tree(tokens);
 
-        // generate the asembly code
-        auto outputASM = std::ostringstream{};
-        outputASM << "section .text\nglobal _start\n\n_start:\n";
+            // generate the asembly code
+            auto outputASM = std::ostringstream{};
+            outputASM << "section .text\nglobal _start\n\n_start:\n";
 
-        for (int i = 0, count = syntaxTreeRoot->child_count(); i < count; i++) {
-            auto n = syntaxTreeRoot->child(i);
-            //print_syntax_tree(std::cout, n);  // useful for debugging
-            outputASM << tuc::gen_expr_asm(n, symbolTable);
+            for (int i = 0, count = syntaxTreeRoot->child_count(); i < count; i++) {
+                auto n = syntaxTreeRoot->child(i);
+                //print_syntax_tree(std::cout, n);  // useful for debugging
+                outputASM << tuc::gen_expr_asm(n, symbolTable);
+            }
+
+            outputASM << "\nmov ebx, eax\nmov eax, 1\nint 80h\n";
+
+            // print the asembly code to a file
+            auto outputFile = std::ofstream{argv[2]};
+            outputFile << outputASM.str();
+            outputFile.close();
         }
-
-        outputASM << "\nmov ebx, eax\nmov eax, 1\nint 80h\n";
-
-        // print the asembly code to a file
-        auto outputFile = std::ofstream{argv[2]};
-        outputFile << outputASM.str();
-        outputFile.close();
+        catch (const tuc::CompilerException::AbstractError& e) {
+            std::cout << e.what();
+            return e.error_code();
+        }
     }
 }
