@@ -61,7 +61,7 @@ tuc::SyntaxNode::SyntaxNode(const Token& _token)
     case TokenType::TYPE:       syntaxNodeType = NodeType::TYPE; break;
     case TokenType::HASTYPE:    syntaxNodeType = NodeType::HASTYPE; break;
     case TokenType::ASSIGN:     syntaxNodeType = NodeType::ASSIGN; break;
-    case TokeType::MAPTO:       syntaxNodeType = NodeType::MAPTO; break;
+    case TokenType::MAPTO:      syntaxNodeType = NodeType::MAPTO; break;
     case TokenType::ADD:        syntaxNodeType = NodeType::ADD; break;
     case TokenType::SUBTRACT:   syntaxNodeType = NodeType::SUBTRACT; break;
     case TokenType::MULTIPLY:   syntaxNodeType = NodeType::MULTIPLY; break;
@@ -134,13 +134,13 @@ generate a syntax tree from a list of tokens
 std::tuple<std::unique_ptr<tuc::SyntaxNode>, tuc::SymbolTable> tuc::gen_syntax_tree(const std::vector<tuc::Token>& tokenList) {
     auto treeRoot = std::make_unique<tuc::SyntaxNode>(tuc::SyntaxNode::NodeType::PROGRAM);
     auto symTable = SymbolTable{};
-    auto rpnExpr = std::vector<tuc::Token>{};
+    auto nodeStack = std::vector<std::unique_ptr<tuc::SyntaxNode>>{};
     auto opStack = std::vector<tuc::Token>{};
 
     /*##########################################################################################################
-    ### To parse mathematical expressions, first use a variation of Dijkstra's shunting yard algorithm to     ##
-    ### transform the expression into Reverse Polish Notation (RPN).  Once transformed, the expression can be ##
-    ### read into the syntax tree.                                                                            ##
+    ### To parse expressions, use a variation of Dijkstra's shunting yard algorithm. Instead of generating a  ##
+    ### Reverse Polish Notation (RPN) expression, create syntax trees in equivalent to the expression and     ##
+    ### add it to the main syntax tree at the end.                                                            ##
     ##########################################################################################################*/
 
     for (const auto token: tokenList) {
@@ -148,8 +148,17 @@ std::tuple<std::unique_ptr<tuc::SyntaxNode>, tuc::SymbolTable> tuc::gen_syntax_t
             while(!opStack.empty() && opStack.back().is_operator() && (
                         (token.fixity() == Associativity::LEFT && token.precedence() <= opStack.back().precedence()) ||
                         (token.fixity() == Associativity::RIGHT && token.precedence() < opStack.back().precedence()) )) {
-                rpnExpr.push_back(opStack.back());
+                auto op = std::make_unique<tuc::SyntaxNode>(opStack.back());
+
+                auto n2 = std::move(nodeStack.back());
+                nodeStack.pop_back();
+                auto n1 = std::move(nodeStack.back());
+                nodeStack.pop_back();
+                op->append_child(std::move(n1));
+                op->append_child(std::move(n2));
+
                 opStack.pop_back();
+                nodeStack.push_back(std::move(op));
             }
             opStack.push_back(token);
         }
@@ -160,8 +169,17 @@ std::tuple<std::unique_ptr<tuc::SyntaxNode>, tuc::SymbolTable> tuc::gen_syntax_t
                 while(!opStack.empty() && opStack.back().is_operator() && (
                             (token.fixity() == Associativity::LEFT && token.precedence() <= opStack.back().precedence()) ||
                             (token.fixity() == Associativity::RIGHT && token.precedence() < opStack.back().precedence()) )) {
-                    rpnExpr.push_back(opStack.back());
+                    auto op = std::make_unique<tuc::SyntaxNode>(opStack.back());
+
+                    auto n2 = std::move(nodeStack.back());
+                    nodeStack.pop_back();
+                    auto n1 = std::move(nodeStack.back());
+                    nodeStack.pop_back();
+                    op->append_child(std::move(n1));
+                    op->append_child(std::move(n2));
+
                     opStack.pop_back();
+                    nodeStack.push_back(std::move(op));
                 }
                 opStack.push_back(token);
             }
@@ -170,7 +188,8 @@ std::tuple<std::unique_ptr<tuc::SyntaxNode>, tuc::SymbolTable> tuc::gen_syntax_t
             }
         }
         else if (token.type() == tuc::TokenType::INTEGER) {
-            rpnExpr.push_back(token);
+            nodeStack.push_back(std::make_unique<tuc::SyntaxNode>(token));
+
         }
         else if (token.type() == tuc::TokenType::LPAREN) {
             opStack.push_back(token);
@@ -178,33 +197,37 @@ std::tuple<std::unique_ptr<tuc::SyntaxNode>, tuc::SymbolTable> tuc::gen_syntax_t
         else if (token.type() == tuc::TokenType::RPAREN) {
             auto t = opStack.back();
             while(t.type() != tuc::TokenType::LPAREN) {
-                rpnExpr.push_back(t);
+                auto op = std::make_unique<tuc::SyntaxNode>(opStack.back());
+
+                auto n2 = std::move(nodeStack.back());
+                nodeStack.pop_back();
+                auto n1 = std::move(nodeStack.back());
+                nodeStack.pop_back();
+                op->append_child(std::move(n1));
+                op->append_child(std::move(n2));
+
+                nodeStack.push_back(std::move(op));
                 opStack.pop_back();
                 t = opStack.back();
             }
+            opStack.pop_back();
         }
         else if (token.type() == tuc::TokenType::SEMICOL) {
             while (!opStack.empty()) {
-                rpnExpr.push_back(opStack.back());
+                auto op = std::make_unique<tuc::SyntaxNode>(opStack.back());
+
+                auto n2 = std::move(nodeStack.back());
+                nodeStack.pop_back();
+                auto n1 = std::move(nodeStack.back());
+                nodeStack.pop_back();
+                op->append_child(std::move(n1));
+                op->append_child(std::move(n2));
+
+                nodeStack.push_back(std::move(op));
                 opStack.pop_back();
             }
-            auto nodeStack = std::vector<std::unique_ptr<tuc::SyntaxNode>>{};
-            for (auto t : rpnExpr) {
-                auto node = std::make_unique<tuc::SyntaxNode>(t);
-                if (node->is_operator()) {
-                    auto secondVal = std::move(nodeStack.back());   // using `std::move()` causes `.back()` to exist
-                    nodeStack.pop_back();                           // also note that node come out in reverse order
-                    auto firstVal = std::move(nodeStack.back());
-                    nodeStack.pop_back();
-                    node->append_child(std::move(firstVal));
-                    node->append_child(std::move(secondVal));
-                    nodeStack.push_back(std::move(node));
-                } else if (t.type() == tuc::TokenType::INTEGER) {
-                    nodeStack.push_back(std::move(node));
-                }
-            }
             treeRoot->append_child(std::move(nodeStack.back()));
-            rpnExpr.clear();
+            nodeStack.clear();
         }
     }
 
