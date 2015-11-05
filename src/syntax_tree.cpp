@@ -3,7 +3,7 @@ Project: TUC
 File: syntax_tree.cpp
 Author: Leonardo Banderali
 Created: September 6, 2015
-Last Modified: November 3, 2015
+Last Modified: November 4, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -58,7 +58,10 @@ constructs a node from a syntax token
 tuc::SyntaxNode::SyntaxNode(const Token& _token)
 : textValue{_token.text()} {
     switch (_token.type()) {
+    case TokenType::TYPE:       syntaxNodeType = NodeType::TYPE; break;
+    case TokenType::HASTYPE:    syntaxNodeType = NodeType::HASTYPE; break;
     case TokenType::ASSIGN:     syntaxNodeType = NodeType::ASSIGN; break;
+    case TokeType::MAPTO:       syntaxNodeType = NodeType::MAPTO; break;
     case TokenType::ADD:        syntaxNodeType = NodeType::ADD; break;
     case TokenType::SUBTRACT:   syntaxNodeType = NodeType::SUBTRACT; break;
     case TokenType::MULTIPLY:   syntaxNodeType = NodeType::MULTIPLY; break;
@@ -141,7 +144,7 @@ std::tuple<std::unique_ptr<tuc::SyntaxNode>, tuc::SymbolTable> tuc::gen_syntax_t
     ##########################################################################################################*/
 
     for (const auto token: tokenList) {
-        if (token.is_operator() /*|| token.type() == tuc::TokenType::IDENTIFIER*/) {
+        if (token.is_operator() /*|| token.type() == tuc::TokenType::IDENTIFIER || token.type() == tuc::TokenType::HASTYPE*/) {
             while(!opStack.empty() && opStack.back().is_operator() && (
                         (token.fixity() == Associativity::LEFT && token.precedence() <= opStack.back().precedence()) ||
                         (token.fixity() == Associativity::RIGHT && token.precedence() < opStack.back().precedence()) )) {
