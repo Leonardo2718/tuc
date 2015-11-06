@@ -3,7 +3,7 @@ Project: TUC
 File: u_language.hpp
 Author: Leonardo Banderali
 Created: November 2, 2015
-Last Modified: November 4, 2015
+Last Modified: November 5, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -48,19 +48,19 @@ namespace tuc {
     const auto u_lexer_grammar = tuc::Grammar{
         {
             Rule{TokenType::LCOMMENT, "//(.*)(\\n|$)", 0},
-            Rule{TokenType::TYPE, "\\b(int)\\b", 0},
-            Rule{TokenType::HASTYPE, "\\:", 0, 1},
-            Rule{TokenType::ASSIGN, "\\=", 0, 14},
+            Rule{TokenType::TYPE, "\\b(int)\\b", 0, 20, Associativity::LEFT},
+            Rule{TokenType::HASTYPE, "\\:", 0, 9},
+            Rule{TokenType::ASSIGN, "\\=", 0, 1},
             Rule{TokenType::MAPTO, "\\-\\>", 2},
             Rule{TokenType::ADD, "\\+", 0, 3, Associativity::LEFT},
             Rule{TokenType::SUBTRACT, "\\-", 0, 3, Associativity::LEFT},
             Rule{TokenType::MULTIPLY, "\\*", 0, 4, Associativity::LEFT},
             Rule{TokenType::DIVIDE, "\\/", 0, 4, Associativity::LEFT},
-            Rule{TokenType::INTEGER, "\\d+", 0},
+            Rule{TokenType::INTEGER, "\\d+", 0, 20, Associativity::LEFT},
             Rule{TokenType::LPAREN, "\\(", 0},
             Rule{TokenType::RPAREN, "\\)", 0},
             Rule{TokenType::SEMICOL, ";", 0},
-            Rule{TokenType::IDENTIFIER, "\\b[A-Za-z_]+\\b", 0, 0, Associativity::RIGHT}
+            Rule{TokenType::IDENTIFIER, "\\b[A-Za-z_]+\\b", 0, 20, Associativity::RIGHT}
         }
     };
 }

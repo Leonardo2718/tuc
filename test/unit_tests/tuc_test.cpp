@@ -3,7 +3,7 @@ Project: OGLA
 File: tuc_test.cpp
 Author: Leonardo Banderali
 Created: November 2, 2015
-Last Modified: November 2, 2015
+Last Modified: November 5, 2015
 
 Description: A collection of unit tests for the lexer, syntax tree generator,
     and assembly code generator. These unit tests use the Boos Test framework.
@@ -58,36 +58,36 @@ const std::string source_file_path = "tuc_program.ul";
 const std::vector<Token> expected_tokens = {
     Token{TokenType::LCOMMENT, TextEntity{"// This is a comment!\n", source_file_path, 0, 1, 1}, -1, Associativity::NONE},
 
-    Token{TokenType::INTEGER, TextEntity{"1", source_file_path, 23, 3, 1}, -1, Associativity::NONE},
+    Token{TokenType::INTEGER, TextEntity{"1", source_file_path, 23, 3, 1}, 20, Associativity::NONE},
     Token{TokenType::ADD, TextEntity{"+", source_file_path, 24, 3, 2}, 3, Associativity::LEFT},
-    Token{TokenType::INTEGER, TextEntity{"2", source_file_path, 25, 3, 3}, -1, Associativity::NONE},
+    Token{TokenType::INTEGER, TextEntity{"2", source_file_path, 25, 3, 3}, 20, Associativity::NONE},
     Token{TokenType::SEMICOL, TextEntity{";", source_file_path, 26, 3, 4}, -1, Associativity::NONE},
     Token{TokenType::LCOMMENT, TextEntity{"// simple expression; result should be 3\n", source_file_path, 31, 3, 9}, -1, Associativity::NONE},
+    Token{TokenType::LCOMMENT, TextEntity{"// complex expression; result should be 8\n", source_file_path, 73, 5, 1}, -1, Associativity::NONE},
 
-    Token{TokenType::LPAREN, TextEntity{"(", source_file_path, 73, 5, 1}, -1, Associativity::NONE},
-    Token{TokenType::INTEGER, TextEntity{"3", source_file_path, 74, 5, 2}, -1, Associativity::NONE},
-    Token{TokenType::MULTIPLY, TextEntity{"*", source_file_path, 75, 5, 3}, 4, Associativity::LEFT},
-    Token{TokenType::INTEGER, TextEntity{"4", source_file_path, 76, 5, 4}, -1, Associativity::NONE},
-    Token{TokenType::ADD, TextEntity{"+", source_file_path, 78, 5, 6}, 3, Associativity::LEFT},
-    Token{TokenType::INTEGER, TextEntity{"4", source_file_path, 80, 5, 8}, -1, Associativity::NONE},
-    Token{TokenType::MULTIPLY, TextEntity{"*", source_file_path, 81, 5, 9}, 4, Associativity::LEFT},
-    Token{TokenType::INTEGER, TextEntity{"5", source_file_path, 82, 5, 10}, -1, Associativity::NONE},
-    Token{TokenType::RPAREN, TextEntity{")", source_file_path, 83, 5, 11}, -1, Associativity::NONE},
+    Token{TokenType::LPAREN, TextEntity{"(", source_file_path, 115, 6, 1}, -1, Associativity::NONE},
+    Token{TokenType::INTEGER, TextEntity{"3", source_file_path, 116, 6, 2}, 20, Associativity::NONE},
+    Token{TokenType::MULTIPLY, TextEntity{"*", source_file_path, 117, 6, 3}, 4, Associativity::LEFT},
+    Token{TokenType::INTEGER, TextEntity{"4", source_file_path, 118, 6, 4}, 20, Associativity::NONE},
+    Token{TokenType::ADD, TextEntity{"+", source_file_path, 120, 6, 6}, 3, Associativity::LEFT},
+    Token{TokenType::INTEGER, TextEntity{"4", source_file_path, 122, 6, 8}, 20, Associativity::NONE},
+    Token{TokenType::MULTIPLY, TextEntity{"*", source_file_path, 123, 6, 9}, 4, Associativity::LEFT},
+    Token{TokenType::INTEGER, TextEntity{"5", source_file_path, 124, 6, 10}, 20, Associativity::NONE},
+    Token{TokenType::RPAREN, TextEntity{")", source_file_path, 125, 6, 11}, -1, Associativity::NONE},
 
-    Token{TokenType::DIVIDE, TextEntity{"/", source_file_path, 84, 5, 12}, 4, Associativity::LEFT},
+    Token{TokenType::DIVIDE, TextEntity{"/", source_file_path, 126, 6, 12}, 4, Associativity::LEFT},
 
-    Token{TokenType::LPAREN, TextEntity{"(", source_file_path, 85, 5, 13}, -1, Associativity::NONE},
-    Token{TokenType::INTEGER, TextEntity{"2", source_file_path, 86, 5, 14}, -1, Associativity::NONE},
-    Token{TokenType::MULTIPLY, TextEntity{"*", source_file_path, 87, 5, 15}, 4, Associativity::LEFT},
-    Token{TokenType::INTEGER, TextEntity{"3", source_file_path, 88, 5, 16}, -1, Associativity::NONE},
-    Token{TokenType::SUBTRACT, TextEntity{"-", source_file_path, 90, 5, 18}, 3, Associativity::LEFT},
-    Token{TokenType::INTEGER, TextEntity{"1", source_file_path, 92, 5, 20}, -1, Associativity::NONE},
-    Token{TokenType::MULTIPLY, TextEntity{"*", source_file_path, 93, 5, 21}, 4, Associativity::LEFT},
-    Token{TokenType::INTEGER, TextEntity{"2", source_file_path, 94, 5, 22}, -1, Associativity::NONE},
-    Token{TokenType::RPAREN, TextEntity{")", source_file_path, 95, 5, 23}, -1, Associativity::NONE},
+    Token{TokenType::LPAREN, TextEntity{"(", source_file_path, 127, 6, 13}, -1, Associativity::NONE},
+    Token{TokenType::INTEGER, TextEntity{"2", source_file_path, 128, 6, 14}, 20, Associativity::NONE},
+    Token{TokenType::MULTIPLY, TextEntity{"*", source_file_path, 129, 6, 15}, 4, Associativity::LEFT},
+    Token{TokenType::INTEGER, TextEntity{"3", source_file_path, 130, 6, 16}, 20, Associativity::NONE},
+    Token{TokenType::SUBTRACT, TextEntity{"-", source_file_path, 132, 6, 18}, 3, Associativity::LEFT},
+    Token{TokenType::INTEGER, TextEntity{"1", source_file_path, 134, 6, 20}, 20, Associativity::NONE},
+    Token{TokenType::MULTIPLY, TextEntity{"*", source_file_path, 135, 6, 21}, 4, Associativity::LEFT},
+    Token{TokenType::INTEGER, TextEntity{"2", source_file_path, 136, 6, 22}, 20, Associativity::NONE},
+    Token{TokenType::RPAREN, TextEntity{")", source_file_path, 137, 6, 23}, -1, Associativity::NONE},
 
-    Token{TokenType::SEMICOL, TextEntity{";", source_file_path, 96, 5, 24}, -1, Associativity::NONE},
-    Token{TokenType::LCOMMENT, TextEntity{"// complex expression; result should be 8\n", source_file_path, 101, 5, 29}, -1, Associativity::NONE}
+    Token{TokenType::SEMICOL, TextEntity{";", source_file_path, 138, 6, 24}, -1, Associativity::NONE}
 };
 
 
