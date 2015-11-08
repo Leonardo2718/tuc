@@ -50,26 +50,6 @@ THE SOFTWARE.
 
 
 
-void print_syntax_nodes(std::ostream& os, const std::list<tuc::SyntaxNode*>& nodeQueue) {
-    auto queue = std::list<tuc::SyntaxNode*>{};
-    for (auto node : nodeQueue) {
-        os << node->value() << " ";
-        for (int i = 0, count = node->child_count(); i < count; i++)
-            queue.push_back(node->child(i));
-    }
-    os << "\n";
-    if (!queue.empty())
-        print_syntax_nodes(os, queue);
-}
-
-void print_syntax_tree(std::ostream& os, tuc::SyntaxNode* root) {
-    auto queue = std::list<tuc::SyntaxNode*>{};
-    queue.push_back(root);
-    print_syntax_nodes(os, queue);
-}
-
-
-
 int main(int argc, char** argv) {
     if (argc == 3) {
         try {
@@ -85,12 +65,11 @@ int main(int argc, char** argv) {
             auto outputASM = std::ostringstream{};
             outputASM << "section .text\nglobal _start\n\n_start:\n";
 
-            std::cout << syntaxTreeRoot;
-            //std::cout << syntaxTreeRoot.get() << "\n";
+            //std::cout << syntaxTreeRoot;    // useful for debugging
 
             for (int i = 0, count = syntaxTreeRoot->child_count(); i < count; i++) {
                 auto n = syntaxTreeRoot->child(i);
-                //print_syntax_tree(std::cout, n);  // useful for debugging
+                //std::cout << n;             // useful for debugging
                 outputASM << tuc::gen_expr_asm(n, symbolTable);
             }
 

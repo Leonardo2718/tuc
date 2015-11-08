@@ -45,9 +45,9 @@ THE SOFTWARE.
 // standard libraries
 #include <tuple>
 #include <memory>
-#include <iostream>
 #include <vector>
 #include <string>
+#include <iostream>
 
 
 
@@ -59,12 +59,6 @@ namespace tuc {
     // generate a syntax tree and symbol table from a list of tokens
     std::tuple<std::unique_ptr<SyntaxNode>, SymbolTable> gen_syntax_tree(const std::vector<Token>& tokenList);
 }
-
-std::ostream& operator<< (std::ostream& os, const std::unique_ptr<tuc::SyntaxNode, std::default_delete<tuc::SyntaxNode>>& node);
-/*  puts a textual representation of a node hierarchy in an output stream */
-
-std::ostream& operator<< (std::ostream& os, const tuc::SyntaxNode* node);
-/*  puts a textual representation of a node hierarchy in an output stream */
 
 
 
@@ -118,5 +112,15 @@ class tuc::SyntaxNode {
         NodeType syntaxNodeType;
         TextEntity textValue;
 };
+
+
+
+//~overloaded functions~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+std::ostream& operator<< (std::ostream& os, const tuc::SyntaxNode* node);
+/*  puts a textual representation of a node hierarchy in an output stream */
+
+std::ostream& operator<< (std::ostream& os, const std::unique_ptr<tuc::SyntaxNode, std::default_delete<tuc::SyntaxNode>>& node);
+/*  puts a textual representation of a node hierarchy in an output stream */
 
 #endif//TUC_SYNTAX_TREE_HPP

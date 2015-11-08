@@ -39,8 +39,7 @@ THE SOFTWARE.
 #include "compiler_exceptions.hpp"
 
 // standard libraries
-#include <stack>
-#include <sstream>
+//#include <sstream>
 
 
 
@@ -133,65 +132,72 @@ tuc::TextEntity tuc::SyntaxNode::text() const noexcept {
 
 
 
-//~function implementations~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-/*
-puts a textual representation of a node hierarchy in an output stream
-*/
-std::ostream& operator<< (std::ostream& os, const std::unique_ptr<tuc::SyntaxNode, std::default_delete<tuc::SyntaxNode>>& node) {
-    //const tuc::SyntaxNode* nodeItr = node.get();
-    auto nodeStack = std::vector<const tuc::SyntaxNode*>{};
-    auto childIndexStack = std::vector<int>{};
-
-    os << "[" << node->value() << "]\n";
-
-    nodeStack.push_back(node.get());
-    childIndexStack.push_back(0);
-    while (!nodeStack.empty()) {
-        if (childIndexStack.back() < nodeStack.back()->child_count()) {
-            auto child = nodeStack.back()->child(childIndexStack.back());
-
-            for (decltype(nodeStack)::size_type i = 0; i < nodeStack.size(); i++) {
-                if (childIndexStack[i] < nodeStack[i]->child_count())
-                    os << "    |";
-                else
-                    os << "     ";
-            }
-
-
-            /*if (child->child_count() > 0) {
-                os << "\n";
-                for (decltype(nodeStack)::size_type i = 0; i < nodeStack.size(); i++) {
-                    os << "   |";
-                }
-            }*/
-
-            os << "-> [" << child->value() << "]\n";
-
-            childIndexStack[childIndexStack.size() - 1]++;
-            nodeStack.push_back(child);
-            childIndexStack.push_back(0);
-        }
-        else {
-            nodeStack.pop_back();
-            childIndexStack.pop_back();
-        }
-    }
-
-    return os;
-}
+//~overloaded functions~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 std::ostream& operator<< (std::ostream& os, const tuc::SyntaxNode* node) {
-    os << "(" << node->value();
+    /*os << "(" << node->value();
 
     for (int i = 0; i < node->child_count(); i++) {
         os << " " << node->child(i);
     }
 
-    os << ")";
+    os << ")";*/
+    auto nodeStack = std::vector<const tuc::SyntaxNode*>{};
+    auto childIndexStack = std::vector<int>{};
+
+    os << "[" << node->value() << "]\n";
+
+    nodeStack.push_back(node);
+    childIndexStack.push_back(0);
+    while (!nodeStack.empty()) {
+        if (childIndexStack.back() < nodeStack.back()->child_count()) {
+            auto child = nodeStack.back()->child(childIndexStack.back());
+
+            for (decltype(nodeStack)::size_type i = 0, s = nodeStack.size() - 1; i < s; i++) {
+                if (childIndexStack[i] < nodeStack[i]->child_count())
+                    os << " |   ";
+                else
+                    os << "     ";
+            }
+
+            os << " |-> [" << child->value() << "]\n";
+
+            childIndexStack[childIndexStack.size() - 1]++;
+            if (child->child_count() > 0) {
+                nodeStack.push_back(child);
+                childIndexStack.push_back(0);
+            }
+        }
+        else {
+            while (!nodeStack.empty() && childIndexStack.back() >= nodeStack.back()->child_count()) {
+                nodeStack.pop_back();
+                childIndexStack.pop_back();
+            }
+            /*if (!nodeStack.empty()) {
+                for (decltype(nodeStack)::size_type i = 0, s = nodeStack.size(); i < s; i++) {
+                    if (childIndexStack[i] < nodeStack[i]->child_count())
+                        os << " |   ";
+                    else
+                        os << "     ";
+                }
+                os << "\n";
+            }*/
+        }
+    }
 
     return os;
 }
+
+/*
+puts a textual representation of a node hierarchy in an output stream
+*/
+std::ostream& operator<< (std::ostream& os, const std::unique_ptr<tuc::SyntaxNode, std::default_delete<tuc::SyntaxNode>>& node) {
+    return os << node.get();
+}
+
+
+
+//~function implementations~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 /*
 generate a syntax tree from a list of tokens
