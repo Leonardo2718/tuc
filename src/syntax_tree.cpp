@@ -39,9 +39,8 @@ THE SOFTWARE.
 #include "compiler_exceptions.hpp"
 
 // standard libraries
-#include <stdexcept>
+#include <stack>
 #include <sstream>
-#include <iostream>
 
 
 
@@ -73,6 +72,10 @@ tuc::SyntaxNode::SyntaxNode(const Token& _token)
     }
 }
 
+const tuc::SyntaxNode* tuc::SyntaxNode::parent() const noexcept {
+    return parentNode;
+}
+
 tuc::SyntaxNode* tuc::SyntaxNode::parent() noexcept {
     return parentNode;
 }
@@ -80,6 +83,10 @@ tuc::SyntaxNode* tuc::SyntaxNode::parent() noexcept {
 /*
 returns child with index `i`
 */
+const tuc::SyntaxNode* tuc::SyntaxNode::child(int i) const noexcept {
+    return children[i].get();
+}
+
 tuc::SyntaxNode* tuc::SyntaxNode::child(int i) noexcept {
     return children[i].get();
 }
@@ -127,6 +134,64 @@ tuc::TextEntity tuc::SyntaxNode::text() const noexcept {
 
 
 //~function implementations~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+/*
+puts a textual representation of a node hierarchy in an output stream
+*/
+std::ostream& operator<< (std::ostream& os, const std::unique_ptr<tuc::SyntaxNode, std::default_delete<tuc::SyntaxNode>>& node) {
+    //const tuc::SyntaxNode* nodeItr = node.get();
+    auto nodeStack = std::vector<const tuc::SyntaxNode*>{};
+    auto childIndexStack = std::vector<int>{};
+
+    os << "[" << node->value() << "]\n";
+
+    nodeStack.push_back(node.get());
+    childIndexStack.push_back(0);
+    while (!nodeStack.empty()) {
+        if (childIndexStack.back() < nodeStack.back()->child_count()) {
+            auto child = nodeStack.back()->child(childIndexStack.back());
+
+            for (decltype(nodeStack)::size_type i = 0; i < nodeStack.size(); i++) {
+                if (childIndexStack[i] < nodeStack[i]->child_count())
+                    os << "    |";
+                else
+                    os << "     ";
+            }
+
+
+            /*if (child->child_count() > 0) {
+                os << "\n";
+                for (decltype(nodeStack)::size_type i = 0; i < nodeStack.size(); i++) {
+                    os << "   |";
+                }
+            }*/
+
+            os << "-> [" << child->value() << "]\n";
+
+            childIndexStack[childIndexStack.size() - 1]++;
+            nodeStack.push_back(child);
+            childIndexStack.push_back(0);
+        }
+        else {
+            nodeStack.pop_back();
+            childIndexStack.pop_back();
+        }
+    }
+
+    return os;
+}
+
+std::ostream& operator<< (std::ostream& os, const tuc::SyntaxNode* node) {
+    os << "(" << node->value();
+
+    for (int i = 0; i < node->child_count(); i++) {
+        os << " " << node->child(i);
+    }
+
+    os << ")";
+
+    return os;
+}
 
 /*
 generate a syntax tree from a list of tokens

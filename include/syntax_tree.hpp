@@ -3,7 +3,7 @@ Project: TUC
 File: syntax_tree.hpp
 Author: Leonardo Banderali
 Created: September 6, 2015
-Last Modified: November 4, 2015
+Last Modified: November 8, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -45,6 +45,7 @@ THE SOFTWARE.
 // standard libraries
 #include <tuple>
 #include <memory>
+#include <iostream>
 #include <vector>
 #include <string>
 
@@ -58,6 +59,12 @@ namespace tuc {
     // generate a syntax tree and symbol table from a list of tokens
     std::tuple<std::unique_ptr<SyntaxNode>, SymbolTable> gen_syntax_tree(const std::vector<Token>& tokenList);
 }
+
+std::ostream& operator<< (std::ostream& os, const std::unique_ptr<tuc::SyntaxNode, std::default_delete<tuc::SyntaxNode>>& node);
+/*  puts a textual representation of a node hierarchy in an output stream */
+
+std::ostream& operator<< (std::ostream& os, const tuc::SyntaxNode* node);
+/*  puts a textual representation of a node hierarchy in an output stream */
 
 
 
@@ -75,10 +82,14 @@ class tuc::SyntaxNode {
         explicit SyntaxNode(const Token& _token);
         /*  constructs a node from a syntax token */
 
+        const SyntaxNode* parent() const noexcept;
+
         SyntaxNode* parent() noexcept;
 
-        SyntaxNode* child(int i) noexcept;
+        const SyntaxNode* child(int i) const noexcept;
         /*  returns child with index `i` */
+
+        SyntaxNode* child(int i) noexcept;
 
         int child_count() const noexcept;
 

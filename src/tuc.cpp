@@ -3,7 +3,7 @@ Project: TUC
 File: tuc.cpp
 Author: Leonardo Banderali
 Created: August 7, 2015
-Last Modified: November 3, 2015
+Last Modified: November 8, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -84,6 +84,9 @@ int main(int argc, char** argv) {
             // generate the asembly code
             auto outputASM = std::ostringstream{};
             outputASM << "section .text\nglobal _start\n\n_start:\n";
+
+            std::cout << syntaxTreeRoot;
+            //std::cout << syntaxTreeRoot.get() << "\n";
 
             for (int i = 0, count = syntaxTreeRoot->child_count(); i < count; i++) {
                 auto n = syntaxTreeRoot->child(i);
