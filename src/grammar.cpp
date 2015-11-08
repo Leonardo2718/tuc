@@ -3,7 +3,7 @@ Project: TUC
 File: lexer.cpp
 Author: Leonardo Banderali
 Created: August 31, 2015
-Last Modified: November 3, 2015
+Last Modified: November 8, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -106,8 +106,8 @@ tuc::TokenType tuc::Token::type() const noexcept {
 /*
 returns the position of the token within the alayzed text
 */
-int tuc::Token::position() const noexcept {
-    return lexemeInfo.position();
+int tuc::Token::index() const noexcept {
+    return lexemeInfo.index();
 }
 
 /*

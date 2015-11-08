@@ -122,7 +122,7 @@ std::string tuc::SyntaxNode::value() const noexcept {
     return textValue.text();
 }
 
-int tuc::SyntaxNode::position() const noexcept {
+tuc::FilePosition tuc::SyntaxNode::position() const {
     return textValue.position();
 }
 

@@ -3,7 +3,7 @@ Project: TUC
 File: grammar.hpp
 Author: Leonardo Banderali
 Created: August 31, 2015
-Last Modified: November 4, 2015
+Last Modified: November 8, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -122,7 +122,7 @@ class tuc::Token {
         TokenType type() const noexcept;
         /*  returns the type of the token (which should match the type of the rule used to find it) */
 
-        int position() const noexcept;
+        int index() const noexcept;
         /*  returns the position of the token within the alayzed text */
 
         std::string lexeme() const noexcept;

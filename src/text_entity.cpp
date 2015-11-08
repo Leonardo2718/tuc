@@ -3,7 +3,7 @@ Project: TUC
 File: text_entity.cpp
 Author: Leonardo Banderali
 Created: November 1, 2015
-Last Modified: November 1, 2015
+Last Modified: November 8, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -41,8 +41,43 @@ THE SOFTWARE.
 
 //~class implementation~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-tuc::TextEntity::TextEntity(const std::string& _text, const std::string& _file_path, int _position, int _line, int _column)
-: entityText{_text}, filePath{_file_path}, pos{_position}, lineNumber{_line}, columnNumber{_column} {}
+tuc::FilePosition::FilePosition(const std::string& _file_path, int _index, unsigned int _line, unsigned int _column)
+: filePath{_file_path}, indexPosition{_index}, lineNumber{_line}, columnNumber{_column} {}
+
+/*
+returns path to the file containing the entity
+*/
+std::string tuc::FilePosition::file_path() const noexcept {
+    return filePath;
+}
+
+/*
+returns the position of the text within the file
+*/
+int tuc::FilePosition::index() const noexcept {
+    return indexPosition;
+}
+
+/*
+returns the line number where the text starts
+*/
+unsigned int tuc::FilePosition::line() const noexcept {
+    return lineNumber;
+}
+
+/*
+returns the column number where the text starts
+*/
+unsigned int tuc::FilePosition::column() const noexcept {
+    return columnNumber;
+}
+
+
+
+tuc::TextEntity::TextEntity() : entityText{""}, textPosition{"", 0, 0, 0} {}
+
+tuc::TextEntity::TextEntity(const std::string& _text, const std::string& _file_path, int _index, unsigned int _line, unsigned int _column)
+: entityText{_text}, textPosition{_file_path, _index, _line, _column} {}
 
 /*
 returns the text entity
@@ -52,29 +87,37 @@ std::string tuc::TextEntity::text() const noexcept {
 }
 
 /*
+returns a copy of the internal file position object
+*/
+tuc::FilePosition tuc::TextEntity::position() const {
+    return textPosition;
+}
+
+
+/*
 returns path to the file containing the entity
 */
 std::string tuc::TextEntity::file_path() const noexcept {
-    return filePath;
+    return textPosition.file_path();
 }
 
 /*
 returns the position of the text within the file
 */
-int tuc::TextEntity::position() const noexcept {
-    return pos;
+int tuc::TextEntity::index() const noexcept {
+    return textPosition.index();
 }
 
 /*
 returns the line number where the text starts
 */
-int tuc::TextEntity::line() const noexcept {
-    return lineNumber;
+unsigned int tuc::TextEntity::line() const noexcept {
+    return textPosition.line();
 }
 
 /*
 returns the column number where the text starts
 */
-int tuc::TextEntity::column() const noexcept {
-    return columnNumber;
+unsigned int tuc::TextEntity::column() const noexcept {
+    return textPosition.column();
 }

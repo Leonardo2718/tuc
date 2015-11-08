@@ -3,7 +3,7 @@ Project: TUC
 File: text_entity.hpp
 Author: Leonardo Banderali
 Created: November 1, 2015
-Last Modified: November 2, 2015
+Last Modified: November 8, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -47,6 +47,7 @@ THE SOFTWARE.
 //~declare namespace members~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 namespace tuc {
+    class FilePosition; // represents a position within a file
     class TextEntity;   // represents a textual entity of a file
 
     template <typename RandomAccessIterator>
@@ -58,36 +59,59 @@ namespace tuc {
 
 //~declare classes~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+class tuc::FilePosition {
+    public:
+        FilePosition(const std::string& _file_path, int _index, unsigned int _line, unsigned int _column);
+
+        std::string file_path() const noexcept;
+        /*  returns path to the file being indexed */
+
+        int index() const noexcept;
+        /*  returns the index of the position inside the file */
+
+        unsigned int line() const noexcept;
+        /*  returns the line number */
+
+        unsigned int column() const noexcept;
+        /*  returns the column number */
+
+    private:
+        std::string filePath;
+        int indexPosition;
+        unsigned int lineNumber;
+        unsigned int columnNumber;
+};
+
 /*
 A class representing a textual entity (a string) inside a specific file. It holds, the text itself as well as the path
 to the file its in and its position inside it.
 */
 class tuc::TextEntity {
     public:
-        TextEntity() = default;
-        TextEntity(const std::string& _text, const std::string& _filePath, int _position, int _line, int _column);
+        TextEntity();
+        TextEntity(const std::string& _text, const std::string& _filePath, int _index, unsigned int _line, unsigned int _column);
 
         std::string text() const noexcept;
         /*  returns the text entity */
 
+        FilePosition position() const;
+        /*  returns a copy of the internal file position object */
+
         std::string file_path() const noexcept;
         /*  returns path to the file containing the entity */
 
-        int position() const noexcept;
+        int index() const noexcept;
         /*  returns the position of the text within the file */
 
-        int line() const noexcept;
+        unsigned int line() const noexcept;
         /*  returns the line number where the text starts */
 
-        int column() const noexcept;
+        unsigned int column() const noexcept;
         /*  returns the column number where the text starts */
 
     private:
-        std::string entityText; // the text entity
-        std::string filePath;   // file containing the entity
-        int pos = -1;           // position of the entity within the file
-        int lineNumber = -1;    // the line number where the text starts
-        int columnNumber = -1;  // the column number whre the entity starts
+        std::string entityText;     // the text entity
+        FilePosition textPosition;  // holds the position of the text
 };
 
 

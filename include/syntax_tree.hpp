@@ -104,7 +104,7 @@ class tuc::SyntaxNode {
 
         TextEntity text() const noexcept;
 
-        int position() const noexcept;
+        FilePosition position() const;
 
     private:
         std::vector<std::unique_ptr<SyntaxNode>> children;

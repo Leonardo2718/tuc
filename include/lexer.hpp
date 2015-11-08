@@ -3,7 +3,7 @@ Project: TUC
 File: lexer.hpp
 Author: Leonardo Banderali
 Created: August 21, 2015
-Last Modified: November 2, 2015
+Last Modified: November 8, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -70,8 +70,8 @@ std::vector<tuc::Token> tuc::lex_analyze(RandomAccessIterator first, RandomAcces
     std::vector<tuc::Token> tokenList;
     RandomAccessIterator currentPosition = first;
     auto ruleListIndex = 0;
-    int l = 1;
-    int c = 1;
+    unsigned int l = 1;
+    unsigned int c = 1;
 
     while (currentPosition < last) {
         Rule rule;
@@ -102,6 +102,17 @@ std::vector<tuc::Token> tuc::lex_analyze(RandomAccessIterator first, RandomAcces
                 currentPosition++;
             }
             tokenList.push_back(Token{TextEntity{firstMatch.str(), "", currentPosition - firstMatch.length() - first, l, c}, rule});
+            for (int i = firstMatch.position() + firstMatch.length() - 1; i >= 0; i--) {
+                auto c = *currentPosition;
+                if (c == '\n') {
+                    l++;
+                    c = 1;
+                }
+                else {
+                    c++;
+                }
+                currentPosition++;
+            }
             ruleListIndex = rule.nextRules();
         }
     }
@@ -124,8 +135,8 @@ std::vector<tuc::Token> tuc::lex_analyze(const std::string& filePath) {
     auto currentPosition = first;
     std::vector<tuc::Token> tokenList;
     auto ruleListIndex = 0;
-    int l = 1;
-    int c = 1;
+    unsigned int l = 1;
+    unsigned int c = 1;
 
     while (currentPosition < last) {
         Rule rule;
