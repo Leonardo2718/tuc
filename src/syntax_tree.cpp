@@ -3,7 +3,7 @@ Project: TUC
 File: syntax_tree.cpp
 Author: Leonardo Banderali
 Created: September 6, 2015
-Last Modified: November 5, 2015
+Last Modified: November 8, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -137,6 +137,51 @@ std::tuple<std::unique_ptr<tuc::SyntaxNode>, tuc::SymbolTable> tuc::gen_syntax_t
     auto nodeStack = std::vector<std::unique_ptr<tuc::SyntaxNode>>{};
     auto opStack = std::vector<tuc::Token>{};
 
+    auto popTokenToNodeStack = [&](){
+        auto t = opStack.back();
+        opStack.pop_back();
+        if (t.is_operator()) {
+            auto op = std::make_unique<tuc::SyntaxNode>(t);
+            auto n2 = std::move(nodeStack.back());
+            nodeStack.pop_back();
+            auto n1 = std::move(nodeStack.back());
+            nodeStack.pop_back();
+            op->append_child(std::move(n1));
+            op->append_child(std::move(n2));
+            nodeStack.push_back(std::move(op));
+        }
+        else if (t.type() == tuc::TokenType::HASTYPE) {
+            auto op = std::make_unique<tuc::SyntaxNode>(t);
+            auto nodeHolder = std::vector<std::unique_ptr<tuc::SyntaxNode>>{};
+            while (!nodeStack.empty() && (
+                    nodeStack.back()->type() == tuc::SyntaxNode::NodeType::MAPTO ||
+                    nodeStack.back()->type() == tuc::SyntaxNode::NodeType::TYPE ||
+                    nodeStack.back()->type() == tuc::SyntaxNode::NodeType::IDENTIFIER)) {
+                nodeHolder.push_back(std::move(nodeStack.back()));
+                nodeStack.pop_back();
+            }
+            for (int i = nodeHolder.size() - 1; i >= 0; i--) {
+                op->append_child(std::move(nodeHolder[i]));
+            }
+            nodeStack.push_back(std::move(op));
+        }
+        else if (t.type() == tuc::TokenType::MAPTO) {
+            auto op = std::make_unique<tuc::SyntaxNode>(t);
+            auto nodeHolder = std::vector<std::unique_ptr<tuc::SyntaxNode>>{};
+            while (!nodeStack.empty() && (
+                    nodeStack.back()->type() == tuc::SyntaxNode::NodeType::MAPTO ||
+                    nodeStack.back()->type() == tuc::SyntaxNode::NodeType::TYPE /*||
+                    nodeStack.back()->type() == tuc::SyntaxNode::NodeType::IDENTIFIER*/)) {
+                nodeHolder.push_back(std::move(nodeStack.back()));
+                nodeStack.pop_back();
+            }
+            for (int i = nodeHolder.size() - 1; i >= 0; i--) {
+                op->append_child(std::move(nodeHolder[i]));
+            }
+            nodeStack.push_back(std::move(op));
+        }
+    };
+
     /*##########################################################################################################
     ### To parse expressions, use a variation of Dijkstra's shunting yard algorithm. Instead of generating a  ##
     ### Reverse Polish Notation (RPN) expression, create syntax trees in equivalent to the expression and     ##
@@ -144,79 +189,22 @@ std::tuple<std::unique_ptr<tuc::SyntaxNode>, tuc::SymbolTable> tuc::gen_syntax_t
     ##########################################################################################################*/
 
     for (const auto token: tokenList) {
-    //std::cout << token.lexeme() << "\n";
         if (token.is_operator() /*|| token.type() == tuc::TokenType::IDENTIFIER || token.type() == tuc::TokenType::HASTYPE*/) {
             while(!opStack.empty() /*&& opStack.back().is_operator()*/ && (
                         (token.fixity() == Associativity::LEFT && token.precedence() <= opStack.back().precedence()) ||
                         (token.fixity() == Associativity::RIGHT && token.precedence() < opStack.back().precedence()) )) {
-                auto op = std::make_unique<tuc::SyntaxNode>(opStack.back());
-
-                auto n2 = std::move(nodeStack.back());
-                nodeStack.pop_back();
-                auto n1 = std::move(nodeStack.back());
-                nodeStack.pop_back();
-                op->append_child(std::move(n1));
-                op->append_child(std::move(n2));
-
-                opStack.pop_back();
-                nodeStack.push_back(std::move(op));
+                popTokenToNodeStack();
             }
             opStack.push_back(token);
         }
-        /*else if (token.type() == tuc::TokenType::IDENTIFIER) {
-            auto symIterator = symTable.find(token.lexeme());
-            if (symIterator != symTable.end()) {   // test if symbol is defined in the symbol table
-                // treat symbol as an operator
-                while(!opStack.empty() && opStack.back().is_operator() && (
-                            (token.fixity() == Associativity::LEFT && token.precedence() <= opStack.back().precedence()) ||
-                            (token.fixity() == Associativity::RIGHT && token.precedence() < opStack.back().precedence()) )) {
-                    auto op = std::make_unique<tuc::SyntaxNode>(opStack.back());
-
-                    auto n2 = std::move(nodeStack.back());
-                    nodeStack.pop_back();
-                    auto n1 = std::move(nodeStack.back());
-                    nodeStack.pop_back();
-                    op->append_child(std::move(n1));
-                    op->append_child(std::move(n2));
-
-                    opStack.pop_back();
-                    nodeStack.push_back(std::move(op));
-                }
-                opStack.push_back(token);
-            }
-            else {
-                throw CompilerException::UnknownSymbol{token.text()};
-            }
-        }*/
-        else if (token.type() == tuc::TokenType::HASTYPE) {
+        else if (token.type() == tuc::TokenType::HASTYPE || token.type() == tuc::TokenType::MAPTO) {
             while(!opStack.empty() /*&& opStack.back().is_operator()*/ && (
                         (token.fixity() == Associativity::LEFT && token.precedence() <= opStack.back().precedence()) ||
                         (token.fixity() == Associativity::RIGHT && token.precedence() < opStack.back().precedence()) )) {
-                auto op = std::make_unique<tuc::SyntaxNode>(opStack.back());
-
-                auto n2 = std::move(nodeStack.back());
-                nodeStack.pop_back();
-                auto n1 = std::move(nodeStack.back());
-                nodeStack.pop_back();
-                op->append_child(std::move(n1));
-                op->append_child(std::move(n2));
-
-                opStack.pop_back();
-                nodeStack.push_back(std::move(op));
+                popTokenToNodeStack();
             }
             opStack.push_back(token);
-            /*auto op = std::make_unique<tuc::SyntaxNode>(token);
-            while(!nodeStack.empty() && nodeStack.back()->type() == tuc::SyntaxNode::NodeType::IDENTIFIER) {
-                op->append_child(std::move(nodeStack.back()));
-                nodeStack.pop_back();
-            }
-            nodeStack.push_back(std::move(op));*/
         }
-        /*else if (token.type() == tuc::TokenType::TYPE) {
-            //std::cout << "got here!!!\n";
-            //opStack.push_back(token);
-            //nodeStack.push_back(std::make_unique<tuc::SyntaxNode>(token));
-        }*/
         else if (token.type() == tuc::TokenType::INTEGER || token.type() == tuc::TokenType::IDENTIFIER || token.type() == tuc::TokenType::TYPE) {
             nodeStack.push_back(std::make_unique<tuc::SyntaxNode>(token));
         }
@@ -224,52 +212,14 @@ std::tuple<std::unique_ptr<tuc::SyntaxNode>, tuc::SymbolTable> tuc::gen_syntax_t
             opStack.push_back(token);
         }
         else if (token.type() == tuc::TokenType::RPAREN) {
-            auto t = opStack.back();
-            while(t.type() != tuc::TokenType::LPAREN) {
-                auto op = std::make_unique<tuc::SyntaxNode>(opStack.back());
-
-                auto n2 = std::move(nodeStack.back());
-                nodeStack.pop_back();
-                auto n1 = std::move(nodeStack.back());
-                nodeStack.pop_back();
-                op->append_child(std::move(n1));
-                op->append_child(std::move(n2));
-
-                nodeStack.push_back(std::move(op));
-                opStack.pop_back();
-                t = opStack.back();
+            while(opStack.back().type() != tuc::TokenType::LPAREN) {
+                popTokenToNodeStack();
             }
             opStack.pop_back();
         }
         else if (token.type() == tuc::TokenType::SEMICOL) {
             while (!opStack.empty()) {
-                auto t = opStack.back();
-                opStack.pop_back();
-                if (t.is_operator()) {
-                    auto op = std::make_unique<tuc::SyntaxNode>(t);
-                    auto n2 = std::move(nodeStack.back());
-                    nodeStack.pop_back();
-                    auto n1 = std::move(nodeStack.back());
-                    nodeStack.pop_back();
-                    op->append_child(std::move(n1));
-                    op->append_child(std::move(n2));
-                    nodeStack.push_back(std::move(op));
-                }
-                else if (t.type() == tuc::TokenType::HASTYPE) {
-                    auto op = std::make_unique<tuc::SyntaxNode>(t);
-                    auto nodeHolder = std::vector<std::unique_ptr<tuc::SyntaxNode>>{};
-                    while (!nodeStack.empty() && (
-                            nodeStack.back()->type() == tuc::SyntaxNode::NodeType::MAPTO ||
-                            nodeStack.back()->type() == tuc::SyntaxNode::NodeType::TYPE ||
-                            nodeStack.back()->type() == tuc::SyntaxNode::NodeType::IDENTIFIER)) {
-                        nodeHolder.push_back(std::move(nodeStack.back()));
-                        nodeStack.pop_back();
-                    }
-                    for (int i = nodeHolder.size() - 1; i >= 0; i--) {
-                        op->append_child(std::move(nodeHolder[i]));
-                    }
-                    nodeStack.push_back(std::move(op));
-                }
+                popTokenToNodeStack();
             }
             treeRoot->append_child(std::move(nodeStack.back()));
             nodeStack.clear();

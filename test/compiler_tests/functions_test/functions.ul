@@ -1,4 +1,4 @@
 //stuff; // function with no parameters is considered a variable
 //1 + stuff + 3*4;    // should cause a compilation error with message "Undefined reference to symbol `stuff`."
 
-stuff : int int;
+stuff : int int -> int;
