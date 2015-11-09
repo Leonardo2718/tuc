@@ -3,7 +3,7 @@ Project: TUC
 File: compiler_exceptions.cpp
 Author: Leonardo Banderali
 Created: October 9, 2015
-Last Modified: November 3, 2015
+Last Modified: November 8, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -39,7 +39,7 @@ THE SOFTWARE.
 
 // c++ standard libraries
 #include <sstream>
-
+#include <iostream>
 
 
 //~class implementations~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -51,24 +51,53 @@ int tuc::CompilerException::AbstractError::error_code() const noexcept {
     return -1;
 }
 
-tuc::CompilerException::UnknownSymbol::UnknownSymbol(const TextEntity& _culpritText) : culpritText{_culpritText} {}
 
-const char* tuc::CompilerException::UnknownSymbol::file() const noexcept {
-    return culpritText.file_path().c_str();
+
+tuc::CompilerException::CompilationError::CompilationError(FilePosition _position) : position{_position} {}
+
+std::string tuc::CompilerException::CompilationError::message() const noexcept {
+    std::stringstream text;
+    text << "Error: " << what() << " in file `" << file() << "` at line " << line() << ", column " << column() << ".\n";
+    return text.str();
 }
 
-int tuc::CompilerException::UnknownSymbol::line() const noexcept {
-    return culpritText.line();
+/*
+returns the file where the error was found
+*/
+const char* tuc::CompilerException::CompilationError::file() const noexcept {
+    return position.file_path().c_str();
 }
 
-int tuc::CompilerException::UnknownSymbol::column() const noexcept {
-    return culpritText.column();
+/*
+returns the line number where the error was found
+*/
+unsigned int tuc::CompilerException::CompilationError::line() const noexcept {
+    return position.line();
+}
+
+/*
+returns the column number where the error was found
+*/
+unsigned int tuc::CompilerException::CompilationError::column() const noexcept {
+    return position.column();
+}
+
+
+
+tuc::CompilerException::UnknownSymbol::UnknownSymbol(const TextEntity& _symbol) : CompilationError{_symbol.position()} {
+    std::stringstream text;
+    text << "Unknown symbol `" << _symbol.text() << "`";
+    error = text.str();
 }
 
 const char* tuc::CompilerException::UnknownSymbol::what() const noexcept {
-    std::stringstream text;
-    text << "Error: Unknown symbol `" << culpritText.text() << "` in file `" << culpritText.file_path() << "` at line "
-         << culpritText.line() << ", column " << culpritText.column() << ".\n";
+    return error.c_str();
+}
 
-    return text.str().c_str();
+
+
+tuc::CompilerException::MismatchedParenthesis::MismatchedParenthesis(const TextEntity& _symbol) : CompilationError{_symbol.position()} {}
+
+const char* tuc::CompilerException::MismatchedParenthesis::what() const noexcept {
+    return "Mismatched parenthesis";
 }

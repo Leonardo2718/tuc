@@ -38,9 +38,6 @@ THE SOFTWARE.
 #include "syntax_tree.hpp"
 #include "compiler_exceptions.hpp"
 
-// standard libraries
-//#include <sstream>
-
 
 
 //~class implementations~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -285,11 +282,15 @@ std::tuple<std::unique_ptr<tuc::SyntaxNode>, tuc::SymbolTable> tuc::gen_syntax_t
         else if (token.type() == tuc::TokenType::RPAREN) {
             while(opStack.back().type() != tuc::TokenType::LPAREN) {
                 popTokenToNodeStack();
+                if (opStack.empty())
+                    throw tuc::CompilerException::MismatchedParenthesis{token.text()};
             }
             opStack.pop_back();
         }
         else if (token.type() == tuc::TokenType::SEMICOL) {
             while (!opStack.empty()) {
+                if (opStack.back().type() == tuc::TokenType::LPAREN)
+                    throw tuc::CompilerException::MismatchedParenthesis{opStack.back().text()};
                 popTokenToNodeStack();
             }
             treeRoot->append_child(std::move(nodeStack.back()));

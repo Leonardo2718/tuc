@@ -3,7 +3,7 @@ Project: TUC
 File: compiler_exceptions.hpp
 Author: Leonardo Banderali
 Created: October 9, 2015
-Last Modified: November 3, 2015
+Last Modified: November 8, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -49,9 +49,14 @@ THE SOFTWARE.
 
 namespace tuc {
     namespace CompilerException {
-        class AbstractError;    // an abstract exception class for generating any kind of error
-        class CompilationError; // an abstract exception class for generating compilation errors
-        class UnknownSymbol;    // exception class for unknown symbol (undeclared symbols)
+        class AbstractError;            // an abstract exception class for generating any kind of error
+        class CompilationError;         // an abstract exception class for generating compilation errors
+
+        class UnknownSymbol;            // exception class for unknown symbol (undeclared symbols)
+
+        class MismatchedParenthesis;    // exceptions for mismatched parentheses
+        class MissingRParenthesis;
+        class MissingLParenthesis;
     }
 }
 
@@ -66,6 +71,9 @@ class tuc::CompilerException::AbstractError : public std::exception {
     public:
         virtual ~AbstractError() noexcept = default;
 
+        virtual std::string message() const noexcept = 0;
+        /*  returns a message associated with the error */
+
         virtual const char* what() const noexcept = 0;
         /*  returns a string describing what the error was */
 
@@ -78,14 +86,21 @@ an abstract exception class for generating compilation errors.
 */
 class tuc::CompilerException::CompilationError : public tuc::CompilerException::AbstractError {
     public:
-        virtual const char* file() const noexcept = 0;
+        explicit CompilationError(FilePosition _position);
+
+        virtual std::string message() const noexcept;
+
+        virtual const char* file() const noexcept;
         /*  returns the file where the error was found */
 
-        virtual int line() const noexcept = 0;
+        virtual unsigned int line() const noexcept;
         /*  returns the line number where the error was found */
 
-        virtual int column() const noexcept = 0;
+        virtual unsigned int column() const noexcept;
         /*  returns the column number where the error was found */
+
+    private:
+        FilePosition position;
 };
 
 /*
@@ -93,18 +108,22 @@ exception class for unknown symbol (undeclared symbols)
 */
 class tuc::CompilerException::UnknownSymbol : public tuc::CompilerException::CompilationError {
     public:
-        UnknownSymbol(const TextEntity& _culpritText);
-
-        virtual const char* file() const noexcept;
-
-        virtual int line() const noexcept;
-
-        virtual int column() const noexcept;
+        UnknownSymbol(const TextEntity& _textEntiry);
 
         virtual const char* what() const noexcept;
 
     private:
-        TextEntity culpritText; // text that caused syntax error
+        std::string error;
+};
+
+/*
+exceptions for mismatched parentheses
+*/
+class tuc::CompilerException::MismatchedParenthesis : public tuc::CompilerException::CompilationError {
+    public:
+        explicit MismatchedParenthesis(const TextEntity& _symbol);
+
+        virtual const char* what() const noexcept;
 };
 
 #endif//TUC_COMPILER_EXCEPTIONS_HPP

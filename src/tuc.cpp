@@ -81,7 +81,7 @@ int main(int argc, char** argv) {
             outputFile.close();
         }
         catch (const tuc::CompilerException::AbstractError& e) {
-            std::cout << e.what();
+            std::cout << e.message();
             return e.error_code();
         }
     }
