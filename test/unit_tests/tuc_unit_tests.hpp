@@ -1,8 +1,8 @@
 /*
 Project: OGLA
-File: tuc_test.cpp
+File: tuc_unit_tests.hpp
 Author: Leonardo Banderali
-Created: November 2, 2015
+Created: November 8, 2015
 Last Modified: November 8, 2015
 
 Description: A collection of unit tests for the lexer, syntax tree generator,
@@ -32,6 +32,9 @@ THE SOFTWARE.
 
 */
 
+#ifndef TUC_UNIT_TESTS_HPP
+#define TUC_UNIT_TESTS_HPP
+
 // tuc headers
 #include "text_entity.hpp"
 #include "lexer.hpp"
@@ -45,7 +48,8 @@ THE SOFTWARE.
 // c++ standard libraries
 #include <string>
 #include <vector>
-#include <tuple>
+#include <memory>
+#include <utility>
 
 using namespace tuc;
 
@@ -53,7 +57,7 @@ using namespace tuc;
 
 //~expected values and stubs~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-const std::string source_file_path = "tuc_program.ul";
+const std::string source_file_path = "arithmetic_program.ul";
 
 const std::vector<Token> expected_tokens = {
     Token{TokenType::LCOMMENT, TextEntity{"// This is a comment!\n", source_file_path, 0, 1, 1}, -1, Associativity::NONE},
@@ -90,25 +94,47 @@ const std::vector<Token> expected_tokens = {
     Token{TokenType::SEMICOL, TextEntity{";", source_file_path, 138, 6, 24}, -1, Associativity::NONE}
 };
 
+std::unique_ptr<SyntaxNode> get_syntax_tree();/* {
+    auto rootNode = std::make_unique<SyntaxNode>(SyntaxNode::NodeType::PROGRAM);
 
+    auto n1 = std::make_unique<SyntaxNode>(SyntaxNode::NodeType::ADD, TextEntity{"+", source_file_path, 24, 3, 2});
+    n1->append_child(std::make_unique<SyntaxNode>(SyntaxNode::NodeType::INTEGER, TextEntity{"1", source_file_path, 23, 3, 1}));
+    n1->append_child(std::make_unique<SyntaxNode>(SyntaxNode::NodeType::INTEGER, TextEntity{"2", source_file_path, 25, 3, 3}));
+    rootNode->append_child(std::move(n1));
 
-//~test cases~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    n1 = std::make_unique<SyntaxNode>(SyntaxNode::NodeType::DIVIDE, TextEntity{"/", source_file_path, 126, 6, 12});
 
+    auto n2 = std::make_unique<SyntaxNode>(SyntaxNode::NodeType::ADD, TextEntity{"+", source_file_path, 120, 6, 6});
 
-BOOST_AUTO_TEST_CASE(lexer_test) {
-    auto actual_tokens = tuc::lex_analyze(source_file_path);
-    BOOST_TEST(actual_tokens.size() == expected_tokens.size());
-    for (int i = 0, l = expected_tokens.size(); i < l; i++) {
-        BOOST_TEST_CONTEXT("token index: " << i) {
-            BOOST_TEST(actual_tokens[i].valid() == expected_tokens[i].valid());
-            BOOST_TEST(actual_tokens[i].lexeme() == expected_tokens[i].lexeme(), "[\"" << actual_tokens[i].lexeme() << "\" != \"" << expected_tokens[i].lexeme() << "\"]");
-            //BOOST_TEST(actual_tokens[i].type() == expected_tokens[i].type(), "[" << static_cast<char>(actual_tokens[i].type()) << " != " << static_cast<char>(expected_tokens[i].type()) << "]");
-            BOOST_TEST(actual_tokens[i].text().index() == expected_tokens[i].text().index());
-            BOOST_TEST(actual_tokens[i].text().line() == expected_tokens[i].text().line());
-            BOOST_TEST(actual_tokens[i].text().column() == expected_tokens[i].text().column());
-            BOOST_TEST(actual_tokens[i].is_operator() == expected_tokens[i].is_operator());
-            BOOST_TEST(actual_tokens[i].precedence() == expected_tokens[i].precedence());
-            //BOOST_TEST(actual_tokens[i].fixity() == expected_tokens[i].fixity());
-        }
-    }
-}
+    auto n3 = std::make_unique<SyntaxNode>(SyntaxNode::NodeType::MULTIPLY, TextEntity{"*", source_file_path, 117, 6, 3});
+    n3->append_child(std::make_unique<SyntaxNode>(SyntaxNode::NodeType::INTEGER, TextEntity{"3", source_file_path, 116, 6, 2}));
+    n3->append_child(std::make_unique<SyntaxNode>(SyntaxNode::NodeType::INTEGER, TextEntity{"4", source_file_path, 118, 6, 4}));
+    n2->append_child(std::move(n3));
+
+    n3 = std::make_unique<SyntaxNode>(SyntaxNode::NodeType::MULTIPLY, TextEntity{"*", source_file_path, 123, 6, 9});
+    n3->append_child(std::make_unique<SyntaxNode>(SyntaxNode::NodeType::INTEGER, TextEntity{"4", source_file_path, 122, 6, 8}));
+    n3->append_child(std::make_unique<SyntaxNode>(SyntaxNode::NodeType::INTEGER, TextEntity{"5", source_file_path, 124, 6, 10}));
+    n2->append_child(std::move(n3));
+
+    n1->append_child(std::move(n2));
+
+    n2 = std::make_unique<SyntaxNode>(SyntaxNode::NodeType::SUBTRACT, TextEntity{"-", source_file_path, 132, 6, 18});
+
+    n3 = std::make_unique<SyntaxNode>(SyntaxNode::NodeType::MULTIPLY, TextEntity{"*", source_file_path, 129, 6, 15});
+    n3->append_child(std::make_unique<SyntaxNode>(SyntaxNode::NodeType::INTEGER, TextEntity{"2", source_file_path, 128, 6, 14}));
+    n3->append_child(std::make_unique<SyntaxNode>(SyntaxNode::NodeType::INTEGER, TextEntity{"3", source_file_path, 130, 6, 16}));
+    n2->append_child(std::move(n3));
+
+    n3 = std::make_unique<SyntaxNode>(SyntaxNode::NodeType::MULTIPLY, TextEntity{"*", source_file_path, 135, 6, 21});
+    n3->append_child(std::make_unique<SyntaxNode>(SyntaxNode::NodeType::INTEGER, TextEntity{"1", source_file_path, 134, 6, 20}));
+    n3->append_child(std::make_unique<SyntaxNode>(SyntaxNode::NodeType::INTEGER, TextEntity{"2", source_file_path, 136, 6, 22}));
+    n2->append_child(std::move(n3));
+
+    n1->append_child(std::move(n2));
+
+    rootNode->append_child(std::move(n1));
+
+    return std::move(rootNode);
+}*/
+
+#endif//TUC_UNIT_TESTS_HPP

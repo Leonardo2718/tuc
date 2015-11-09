@@ -1,0 +1,3 @@
+// this program contains intentional errors and should not compile
+
+1+2);
