@@ -43,9 +43,8 @@ THE SOFTWARE.
 
 // standard libraries
 #include <string>
-#include <regex>
-#include <fstream>
-#include <utility>
+
+
 
 //~declare namespace members~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -56,130 +55,6 @@ namespace tuc {
 
     std::vector<tuc::Token> lex_analyze(const std::string& filePath);
     /*  analyze an input file and returns its contents as a list of tokens */
-}
-
-
-
-//~declare and implement template classes~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-/*
-analyze the input text and returns it as a list of tokens
-*/
-template <typename RandomAccessIterator>
-std::vector<tuc::Token> tuc::lex_analyze(RandomAccessIterator first, RandomAccessIterator last) {
-    std::vector<tuc::Token> tokenList;
-    RandomAccessIterator currentPosition = first;
-    auto ruleListIndex = 0;
-    unsigned int l = 1;
-    unsigned int c = 1;
-
-    while (currentPosition < last) {
-        Rule rule;
-        std::smatch firstMatch;
-        std::smatch m;
-        for (auto r : u_lexer_grammar[ruleListIndex]) {
-            if (std::regex_search(currentPosition, last, m, r.regex()) && (firstMatch.empty() || m.position() < firstMatch.position() )) {
-                firstMatch = std::move(m);
-                rule = std::move(r);
-            }
-        }
-
-        if (firstMatch.empty()) {
-            break;
-        } else {
-            /*tokenList.push_back(Token{rule, firstMatch, currentPosition - first + firstMatch.position()});
-            ruleListIndex = rule.nextRules();
-            currentPosition += firstMatch.position() + firstMatch.length();*/
-            for (int i = firstMatch.position() + firstMatch.length() - 1; i >= 0; i--) {
-                auto c = *currentPosition;
-                if (c == '\n') {
-                    l++;
-                    c = 1;
-                }
-                else {
-                    c++;
-                }
-                currentPosition++;
-            }
-            tokenList.push_back(Token{TextEntity{firstMatch.str(), "", currentPosition - firstMatch.length() - first, l, c}, rule});
-            for (int i = firstMatch.position() + firstMatch.length() - 1; i >= 0; i--) {
-                auto c = *currentPosition;
-                if (c == '\n') {
-                    l++;
-                    c = 1;
-                }
-                else {
-                    c++;
-                }
-                currentPosition++;
-            }
-            ruleListIndex = rule.nextRules();
-        }
-    }
-
-    return tokenList;
-}
-
-/*
-analyze an input file and returns its contents as a list of tokens
-*/
-std::vector<tuc::Token> tuc::lex_analyze(const std::string& filePath) {
-    auto inputFile = std::ifstream{filePath};
-    std::stringbuf sb;
-    inputFile.get(sb, static_cast<char>(-1)); // read the entire file
-    inputFile.close();
-
-    const auto fileText = sb.str();
-    auto first = fileText.cbegin();
-    auto last = fileText.cend();
-    auto currentPosition = first;
-    std::vector<tuc::Token> tokenList;
-    auto ruleListIndex = 0;
-    unsigned int l = 1;
-    unsigned int c = 1;
-
-    while (currentPosition < last) {
-        Rule rule;
-        std::smatch firstMatch;
-        std::smatch m;
-        for (auto r : u_lexer_grammar[ruleListIndex]) {
-            if (std::regex_search(currentPosition, last, m, r.regex()) && (firstMatch.empty() || m.position() < firstMatch.position() )) {
-                firstMatch = std::move(m);
-                rule = std::move(r);
-            }
-        }
-
-        if (firstMatch.empty()) {
-            break;
-        } else {
-            for (int i = firstMatch.position() - 1; i >= 0; i--) {
-                auto character = *currentPosition;
-                if (character == '\n') {
-                    l++;
-                    c = 1;
-                }
-                else {
-                    c++;
-                }
-                currentPosition++;
-            }
-            tokenList.push_back(Token{TextEntity{firstMatch.str(), filePath, currentPosition - first, l, c}, rule});
-            for (int i = firstMatch.length() - 1; i >= 0; i--) {
-                auto character = *currentPosition;
-                if (character == '\n') {
-                    l++;
-                    c = 1;
-                }
-                else {
-                    c++;
-                }
-                currentPosition++;
-            }
-            ruleListIndex = rule.nextRules();
-        }
-    }
-
-    return tokenList;
 }
 
 #endif//TUC_LEXER_HPP

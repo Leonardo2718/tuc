@@ -3,7 +3,7 @@ Project: OGLA
 File: tuc_unit_tests.hpp
 Author: Leonardo Banderali
 Created: November 8, 2015
-Last Modified: November 8, 2015
+Last Modified: November 10, 2015
 
 Description: A collection of unit tests for the lexer, syntax tree generator,
     and assembly code generator. These unit tests use the Boos Test framework.
@@ -42,8 +42,9 @@ THE SOFTWARE.
 #include "asm_generator.hpp"
 
 // testing framework
-#define BOOST_TEST_MODULE TUC_tests
-#include <boost/test/unit_test.hpp>
+//#define BOOST_TEST_DYN_LINK
+//#define BOOST_TEST_MODULE TUC_tests
+//#include <boost/test/unit_test.hpp>
 
 // c++ standard libraries
 #include <string>

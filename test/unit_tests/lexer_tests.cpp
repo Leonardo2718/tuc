@@ -3,7 +3,7 @@ Project: OGLA
 File: lexer_tests.cpp
 Author: Leonardo Banderali
 Created: November 2, 2015
-Last Modified: November 8, 2015
+Last Modified: November 10, 2015
 
 Description: A collection of unit tests for the lexer, syntax tree generator,
     and assembly code generator. These unit tests use the Boos Test framework.
@@ -32,12 +32,16 @@ THE SOFTWARE.
 
 */
 
+#define BOOST_TEST_DYN_LINK
+#include <boost/test/unit_test.hpp>
+
 #include "tuc_unit_tests.hpp"
 
 
 
 //~test cases~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+BOOST_AUTO_TEST_SUITE(lexer_unit_tests)
 
 BOOST_AUTO_TEST_CASE(lexer_test) {
     auto actual_tokens = tuc::lex_analyze(source_file_path);
@@ -56,3 +60,5 @@ BOOST_AUTO_TEST_CASE(lexer_test) {
         }
     }
 }
+
+BOOST_AUTO_TEST_SUITE_END()

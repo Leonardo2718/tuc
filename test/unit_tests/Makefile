@@ -1,7 +1,7 @@
 # compiler, tools, and options
 CXX			= g++
-CXXFLAGS	= -Wall -std=c++14 -iquote../../include
-LIBS		= /lib/libboost_unit_test_framework.a
+CXXFLAGS	= -Wall -std=c++14 -iquote../../include #-lboost_unit_test_framework
+LIBS		= -lboost_unit_test_framework
 
 SRCDIR		= ../../src
 INCLUDEDIR	= ../../include
@@ -10,27 +10,24 @@ SOURCES	= $(SRCDIR)/*
 HEADERS	= $(INCLUDEDIR)/*
 
 TESTFILES	= lexer_tests.cpp parser_tests.cpp tuc_unit_tests.cpp
-TUCFILES	= text_entity.cpp grammar.cpp syntax_tree.cpp compiler_exceptions.cpp
+TUCFILES	= text_entity.cpp grammar.cpp lexer.cpp syntax_tree.cpp compiler_exceptions.cpp
 
 TESTOBJS	= $(addprefix obj/,$(subst .cpp,.o,$(TESTFILES)))
 TUCOBJS		= $(addprefix obj/__tuc_,$(subst .cpp,.o,$(TUCFILES)))
 
 
+
 # make rules
-
-all: lexer_tests parser_tests
-
-#%_tests: %_tests.cpp tuc_unit_tests.hpp Makefile $(SOURCES) $(HEADERS)
-#	$(CXX) $(CXXFLAGS) $< ../../src/text_entity.cpp ../../src/grammar.cpp ../../src/syntax_tree.cpp \
-#	../../src/compiler_exceptions.cpp $(LIBS) -o "$@"
-
-%_tests: obj/%_tests.o obj/tuc_unit_tests.o tuc_unit_tests.hpp Makefile $(TUCOBJS)
-	$(CXX) $(CXXFLAGS) $< $(TUCOBJS) $(LIBS) -o "$@"
-
-
 
 complete_test: tuc_unit_tests.hpp Makefile $(TESTOBJS) $(TUCOBJS)
 	$(CXX) $(CXXFLAGS) $(TESTOBJS) $(TUCOBJS) $(LIBS) -o "$@"
+
+
+
+all: lexer_tests parser_tests
+
+%_tests: obj/%_tests.o obj/tuc_unit_tests.o tuc_unit_tests.hpp Makefile $(TUCOBJS)
+	$(CXX) $(CXXFLAGS) -DSTANDALONE $< $(TUCOBJS) obj/tuc_unit_tests.o $(LIBS) -o "$@"
 
 
 
@@ -39,3 +36,11 @@ obj/__tuc_%.o:$(SRCDIR)/%.cpp $(HEADERS)
 
 obj/%.o:%.cpp
 	$(CXX) $(CXXFLAGS) -c "$<" -o "$@"
+
+
+
+run: complete_test
+	./complete_test
+
+clean:
+	rm obj/*
