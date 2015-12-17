@@ -41,11 +41,6 @@ THE SOFTWARE.
 #include "syntax_tree.hpp"
 #include "asm_generator.hpp"
 
-// testing framework
-//#define BOOST_TEST_DYN_LINK
-//#define BOOST_TEST_MODULE TUC_tests
-//#include <boost/test/unit_test.hpp>
-
 // c++ standard libraries
 #include <string>
 #include <vector>
@@ -104,48 +99,5 @@ const std::vector<Token> expected_tokens = {
 
     Token{TokenType::SEMICOL, TextEntity{";", source_file_path, 201, 9, 28}, -1, Associativity::NONE}
 };
-
-std::unique_ptr<SyntaxNode> get_syntax_tree();/* {
-    auto rootNode = std::make_unique<SyntaxNode>(SyntaxNode::NodeType::PROGRAM);
-
-    auto n1 = std::make_unique<SyntaxNode>(SyntaxNode::NodeType::ADD, TextEntity{"+", source_file_path, 24, 3, 2});
-    n1->append_child(std::make_unique<SyntaxNode>(SyntaxNode::NodeType::INTEGER, TextEntity{"1", source_file_path, 23, 3, 1}));
-    n1->append_child(std::make_unique<SyntaxNode>(SyntaxNode::NodeType::INTEGER, TextEntity{"2", source_file_path, 25, 3, 3}));
-    rootNode->append_child(std::move(n1));
-
-    n1 = std::make_unique<SyntaxNode>(SyntaxNode::NodeType::DIVIDE, TextEntity{"/", source_file_path, 126, 6, 12});
-
-    auto n2 = std::make_unique<SyntaxNode>(SyntaxNode::NodeType::ADD, TextEntity{"+", source_file_path, 120, 6, 6});
-
-    auto n3 = std::make_unique<SyntaxNode>(SyntaxNode::NodeType::MULTIPLY, TextEntity{"*", source_file_path, 117, 6, 3});
-    n3->append_child(std::make_unique<SyntaxNode>(SyntaxNode::NodeType::INTEGER, TextEntity{"3", source_file_path, 116, 6, 2}));
-    n3->append_child(std::make_unique<SyntaxNode>(SyntaxNode::NodeType::INTEGER, TextEntity{"4", source_file_path, 118, 6, 4}));
-    n2->append_child(std::move(n3));
-
-    n3 = std::make_unique<SyntaxNode>(SyntaxNode::NodeType::MULTIPLY, TextEntity{"*", source_file_path, 123, 6, 9});
-    n3->append_child(std::make_unique<SyntaxNode>(SyntaxNode::NodeType::INTEGER, TextEntity{"4", source_file_path, 122, 6, 8}));
-    n3->append_child(std::make_unique<SyntaxNode>(SyntaxNode::NodeType::INTEGER, TextEntity{"5", source_file_path, 124, 6, 10}));
-    n2->append_child(std::move(n3));
-
-    n1->append_child(std::move(n2));
-
-    n2 = std::make_unique<SyntaxNode>(SyntaxNode::NodeType::SUBTRACT, TextEntity{"-", source_file_path, 132, 6, 18});
-
-    n3 = std::make_unique<SyntaxNode>(SyntaxNode::NodeType::MULTIPLY, TextEntity{"*", source_file_path, 129, 6, 15});
-    n3->append_child(std::make_unique<SyntaxNode>(SyntaxNode::NodeType::INTEGER, TextEntity{"2", source_file_path, 128, 6, 14}));
-    n3->append_child(std::make_unique<SyntaxNode>(SyntaxNode::NodeType::INTEGER, TextEntity{"3", source_file_path, 130, 6, 16}));
-    n2->append_child(std::move(n3));
-
-    n3 = std::make_unique<SyntaxNode>(SyntaxNode::NodeType::MULTIPLY, TextEntity{"*", source_file_path, 135, 6, 21});
-    n3->append_child(std::make_unique<SyntaxNode>(SyntaxNode::NodeType::INTEGER, TextEntity{"1", source_file_path, 134, 6, 20}));
-    n3->append_child(std::make_unique<SyntaxNode>(SyntaxNode::NodeType::INTEGER, TextEntity{"2", source_file_path, 136, 6, 22}));
-    n2->append_child(std::move(n3));
-
-    n1->append_child(std::move(n2));
-
-    rootNode->append_child(std::move(n1));
-
-    return std::move(rootNode);
-}*/
 
 #endif//TUC_UNIT_TESTS_HPP
