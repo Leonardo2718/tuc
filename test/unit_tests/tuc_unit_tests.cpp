@@ -3,7 +3,7 @@ Project: OGLA
 File: tuc_unit_tests.cpp
 Author: Leonardo Banderali
 Created: November 8, 2015
-Last Modified: November 10, 2015
+Last Modified: December 17, 2015
 
 Description: A collection of unit tests for the lexer, syntax tree generator,
     and assembly code generator. These unit tests use the Boos Test framework.
@@ -75,6 +75,19 @@ std::unique_ptr<SyntaxNode> get_syntax_tree() {
     n3->append_child(std::make_unique<SyntaxNode>(SyntaxNode::NodeType::INTEGER, TextEntity{"1", source_file_path, 134, 6, 20}));
     n3->append_child(std::make_unique<SyntaxNode>(SyntaxNode::NodeType::INTEGER, TextEntity{"2", source_file_path, 136, 6, 22}));
     n2->append_child(std::move(n3));
+
+    n1->append_child(std::move(n2));
+
+    rootNode->append_child(std::move(n1));
+
+    n1 = std::make_unique<SyntaxNode>(SyntaxNode::NodeType::HASTYPE, TextEntity{":", source_file_path, 185, 9, 12});
+    n1->append_child(std::make_unique<SyntaxNode>(SyntaxNode::NodeType::IDENTIFIER, TextEntity{"function_a", source_file_path, 174, 9, 1}));
+
+    n2 = std::make_unique<SyntaxNode>(SyntaxNode::NodeType::MAPTO, TextEntity{"->", source_file_path, 195, 9, 22});
+    n3 = std::make_unique<SyntaxNode>(SyntaxNode::NodeType::TYPE, TextEntity{"int", source_file_path, 191, 9, 18});
+    n3->append_child(std::make_unique<SyntaxNode>(SyntaxNode::NodeType::TYPE, TextEntity{"int", source_file_path, 187, 9, 14}));
+    n2->append_child(std::move(n3));
+    n2->append_child(std::make_unique<SyntaxNode>(SyntaxNode::NodeType::TYPE, TextEntity{"int", source_file_path, 198, 9, 25}));
 
     n1->append_child(std::move(n2));
 

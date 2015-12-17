@@ -65,7 +65,7 @@ BOOST_AUTO_TEST_CASE(parser_test) {
         auto actualNode = actualNodes.front();
         actualNodes.pop_front();
         std::stringstream context;
-        context << expectedNode;
+        context << "expected node:\n" << expectedNode << "\n    actual node:\n" << actualNode;
         BOOST_TEST_CONTEXT(context.str()) {
             //BOOST_TEST(actualNode->type() == expectedNode->type());
             BOOST_TEST(actualNode->is_operator() == expectedNode->is_operator());

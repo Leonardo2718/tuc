@@ -3,7 +3,7 @@ Project: OGLA
 File: tuc_unit_tests.hpp
 Author: Leonardo Banderali
 Created: November 8, 2015
-Last Modified: November 10, 2015
+Last Modified: December 17, 2015
 
 Description: A collection of unit tests for the lexer, syntax tree generator,
     and assembly code generator. These unit tests use the Boos Test framework.
@@ -58,7 +58,7 @@ using namespace tuc;
 
 //~expected values and stubs~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-const std::string source_file_path = "arithmetic_program.ul";
+const std::string source_file_path = "good_program.ul";
 
 const std::vector<Token> expected_tokens = {
     Token{TokenType::LCOMMENT, TextEntity{"// This is a comment!\n", source_file_path, 0, 1, 1}, -1, Associativity::NONE},
@@ -92,7 +92,17 @@ const std::vector<Token> expected_tokens = {
     Token{TokenType::INTEGER, TextEntity{"2", source_file_path, 136, 6, 22}, 20, Associativity::NONE},
     Token{TokenType::RPAREN, TextEntity{")", source_file_path, 137, 6, 23}, -1, Associativity::NONE},
 
-    Token{TokenType::SEMICOL, TextEntity{";", source_file_path, 138, 6, 24}, -1, Associativity::NONE}
+    Token{TokenType::SEMICOL, TextEntity{";", source_file_path, 138, 6, 24}, -1, Associativity::NONE},
+
+    Token{TokenType::LCOMMENT, TextEntity{"// a simple function declaration\n", source_file_path, 141, 8, 1}, -1, Associativity::NONE},
+    Token{TokenType::IDENTIFIER, TextEntity{"function_a", source_file_path, 174, 9, 1}, 20, Associativity::LEFT},
+    Token{TokenType::HASTYPE, TextEntity{":", source_file_path, 185, 9, 12}, 9, Associativity::LEFT},
+    Token{TokenType::TYPE, TextEntity{"int", source_file_path, 187, 9, 14}, 20, Associativity::LEFT},
+    Token{TokenType::TYPE, TextEntity{"int", source_file_path, 191, 9, 18}, 20, Associativity::LEFT},
+    Token{TokenType::MAPTO, TextEntity{"->", source_file_path, 195, 9, 22}, 10, Associativity::RIGHT},
+    Token{TokenType::TYPE, TextEntity{"int", source_file_path, 198, 9, 25}, 20, Associativity::LEFT},
+
+    Token{TokenType::SEMICOL, TextEntity{";", source_file_path, 201, 9, 28}, -1, Associativity::NONE}
 };
 
 std::unique_ptr<SyntaxNode> get_syntax_tree();/* {
