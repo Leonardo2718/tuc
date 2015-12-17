@@ -132,13 +132,6 @@ tuc::TextEntity tuc::SyntaxNode::text() const noexcept {
 //~overloaded functions~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 std::ostream& operator<< (std::ostream& os, const tuc::SyntaxNode* node) {
-    /*os << "(" << node->value();
-
-    for (int i = 0; i < node->child_count(); i++) {
-        os << " " << node->child(i);
-    }
-
-    os << ")";*/
     auto nodeStack = std::vector<const tuc::SyntaxNode*>{};
     auto childIndexStack = std::vector<int>{};
 
@@ -170,7 +163,8 @@ std::ostream& operator<< (std::ostream& os, const tuc::SyntaxNode* node) {
                 nodeStack.pop_back();
                 childIndexStack.pop_back();
             }
-            /*if (!nodeStack.empty()) {
+
+            if (!nodeStack.empty()) {
                 for (decltype(nodeStack)::size_type i = 0, s = nodeStack.size(); i < s; i++) {
                     if (childIndexStack[i] < nodeStack[i]->child_count())
                         os << " |   ";
@@ -178,7 +172,7 @@ std::ostream& operator<< (std::ostream& os, const tuc::SyntaxNode* node) {
                         os << "     ";
                 }
                 os << "\n";
-            }*/
+            }
         }
     }
 
