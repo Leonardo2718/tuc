@@ -3,7 +3,7 @@ Project: TUC
 File: u_language.hpp
 Author: Leonardo Banderali
 Created: November 2, 2015
-Last Modified: November 8, 2015
+Last Modified: December 17, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -49,9 +49,9 @@ namespace tuc {
         {
             Rule{TokenType::LCOMMENT, "//(.*)(\\n|$)", 0},
             Rule{TokenType::TYPE, "\\b(int)\\b", 0, 20, Associativity::LEFT},
-            Rule{TokenType::HASTYPE, "\\:", 0, 9},
+            Rule{TokenType::HASTYPE, "\\:", 0, 9, Associativity::LEFT},
             Rule{TokenType::ASSIGN, "\\=", 0, 1},
-            Rule{TokenType::MAPTO, "\\-\\>", 0, 10},
+            Rule{TokenType::MAPTO, "\\-\\>", 0, 10, Associativity::RIGHT},
             Rule{TokenType::ADD, "\\+", 0, 3, Associativity::LEFT},
             Rule{TokenType::SUBTRACT, "\\-", 0, 3, Associativity::LEFT},
             Rule{TokenType::MULTIPLY, "\\*", 0, 4, Associativity::LEFT},
@@ -60,7 +60,7 @@ namespace tuc {
             Rule{TokenType::LPAREN, "\\(", 0},
             Rule{TokenType::RPAREN, "\\)", 0},
             Rule{TokenType::SEMICOL, ";", 0},
-            Rule{TokenType::IDENTIFIER, "\\b[A-Za-z_]+\\b", 0, 20, Associativity::RIGHT}
+            Rule{TokenType::IDENTIFIER, "\\b[A-Za-z_]+\\b", 0, 20, Associativity::LEFT}
         }
     };
 }

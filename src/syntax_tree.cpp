@@ -3,7 +3,7 @@ Project: TUC
 File: syntax_tree.cpp
 Author: Leonardo Banderali
 Created: September 6, 2015
-Last Modified: November 8, 2015
+Last Modified: December 17, 2015
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -248,12 +248,25 @@ std::tuple<std::unique_ptr<tuc::SyntaxNode>, tuc::SymbolTable> tuc::gen_syntax_t
             }
             nodeStack.push_back(std::move(op));
         }
+        else if (t.type() == tuc::TokenType::INTEGER || t.type() == tuc::TokenType::IDENTIFIER || t.type() == tuc::TokenType::TYPE) {
+            auto newNode = std::make_unique<tuc::SyntaxNode>(t);
+            auto n = newNode.get();
+            while(!opStack.empty() && (
+                        (t.fixity() == Associativity::LEFT && t.precedence() <= opStack.back().precedence()) ||
+                        (t.fixity() == Associativity::RIGHT && t.precedence() < opStack.back().precedence()) )) {
+                //popTokenToNodeStack();
+                n->append_child(opStack.back());
+                opStack.pop_back();
+                n = n->child(0);
+            }
+            nodeStack.push_back(std::move(newNode));
+        }
     };
 
     /*##########################################################################################################
     ### To parse expressions, use a variation of Dijkstra's shunting yard algorithm. Instead of generating a  ##
-    ### Reverse Polish Notation (RPN) expression, create syntax trees in equivalent to the expression and     ##
-    ### add it to the main syntax tree at the end.                                                            ##
+    ### Reverse Polish Notation (RPN) expression, create syntax trees equivalent to the expression and        ##
+    ### add them to the main syntax tree at the end.                                                          ##
     ##########################################################################################################*/
 
     for (const auto token: tokenList) {
@@ -274,7 +287,7 @@ std::tuple<std::unique_ptr<tuc::SyntaxNode>, tuc::SymbolTable> tuc::gen_syntax_t
             opStack.push_back(token);
         }
         else if (token.type() == tuc::TokenType::INTEGER || token.type() == tuc::TokenType::IDENTIFIER || token.type() == tuc::TokenType::TYPE) {
-            nodeStack.push_back(std::make_unique<tuc::SyntaxNode>(token));
+            opStack.push_back(token);
         }
         else if (token.type() == tuc::TokenType::LPAREN) {
             opStack.push_back(token);
