@@ -3,14 +3,14 @@ Project: TUC
 File: syntax_tree.cpp
 Author: Leonardo Banderali
 Created: September 6, 2015
-Last Modified: December 17, 2015
+Last Modified: January 6, 2016
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
     It is not intended to have any useful purpose other than being a way to learn
     how compilers work.
 
-Copyright (C) 2015 Leonardo Banderali
+Copyright (C) 2016 Leonardo Banderali
 
 License:
 
@@ -197,11 +197,13 @@ std::tuple<std::unique_ptr<tuc::SyntaxNode>, tuc::SymbolTable> tuc::gen_syntax_t
     auto treeRoot = std::make_unique<tuc::SyntaxNode>(tuc::SyntaxNode::NodeType::PROGRAM);
     auto symTable = SymbolTable{};
     auto nodeStack = std::vector<std::unique_ptr<tuc::SyntaxNode>>{};
-    auto opStack = std::vector<tuc::Token>{};
+    auto operatorStack = std::vector<tuc::Token>{};
+    auto tempValueExpression = std::unique_ptr<tuc::SyntaxNode>{};  // a temporary node for a value expression
+                                                                    // (combination of literals, types, and identifiers)
 
     auto popTokenToNodeStack = [&](){
-        auto t = opStack.back();
-        opStack.pop_back();
+        auto t = operatorStack.back();
+        operatorStack.pop_back();
         if (t.is_operator()) {
             auto op = std::make_unique<tuc::SyntaxNode>(t);
             auto n2 = std::move(nodeStack.back());
@@ -242,68 +244,55 @@ std::tuple<std::unique_ptr<tuc::SyntaxNode>, tuc::SymbolTable> tuc::gen_syntax_t
             }
             nodeStack.push_back(std::move(op));
         }
-        else if (t.type() == tuc::TokenType::INTEGER || t.type() == tuc::TokenType::IDENTIFIER || t.type() == tuc::TokenType::TYPE) {
-            auto newNode = std::make_unique<tuc::SyntaxNode>(t);
-            auto n = newNode.get();
-            while(!opStack.empty() && (
-                        (t.fixity() == Associativity::LEFT && t.precedence() <= opStack.back().precedence()) ||
-                        (t.fixity() == Associativity::RIGHT && t.precedence() < opStack.back().precedence()) )) {
-                //popTokenToNodeStack();
-                n->append_child(opStack.back());
-                opStack.pop_back();
-                n = n->child(0);
-            }
-            nodeStack.push_back(std::move(newNode));
-        }
     };
 
-    /*##########################################################################################################
-    ### To parse expressions, use a variation of Dijkstra's shunting yard algorithm. Instead of generating a  ##
-    ### Reverse Polish Notation (RPN) expression, create syntax trees equivalent to the expression and        ##
-    ### add them to the main syntax tree at the end.                                                          ##
-    ##########################################################################################################*/
-
-    for (const auto token: tokenList) {
-        if (token.is_operator() /*|| token.type() == tuc::TokenType::IDENTIFIER || token.type() == tuc::TokenType::HASTYPE*/) {
-            while(!opStack.empty() /*&& opStack.back().is_operator()*/ && (
-                        (token.fixity() == Associativity::LEFT && token.precedence() <= opStack.back().precedence()) ||
-                        (token.fixity() == Associativity::RIGHT && token.precedence() < opStack.back().precedence()) )) {
+    for (const auto& token: tokenList) {
+        if (token.type() == tuc::TokenType::INTEGER || token.type() == tuc::TokenType::IDENTIFIER || token.type() == tuc::TokenType::TYPE) {
+            if (tempValueExpression) {
+                auto newNode = std::make_unique<tuc::SyntaxNode>(token);
+                newNode->append_child(std::move(tempValueExpression));
+                tempValueExpression = std::move(newNode);
+            }
+            else
+                tempValueExpression = std::make_unique<tuc::SyntaxNode>(token);
+        }
+        else if (token.is_operator() || token.type() == tuc::TokenType::HASTYPE || token.type() == tuc::TokenType::MAPTO) {
+            if (tempValueExpression)
+                nodeStack.push_back(std::move(tempValueExpression));
+            while(!operatorStack.empty() && (
+                        (token.fixity() == Associativity::LEFT && token.precedence() <= operatorStack.back().precedence()) ||
+                        (token.fixity() == Associativity::RIGHT && token.precedence() < operatorStack.back().precedence()) )) {
                 popTokenToNodeStack();
             }
-            opStack.push_back(token);
-        }
-        else if (token.type() == tuc::TokenType::HASTYPE || token.type() == tuc::TokenType::MAPTO) {
-            while(!opStack.empty() /*&& opStack.back().is_operator()*/ && (
-                        (token.fixity() == Associativity::LEFT && token.precedence() <= opStack.back().precedence()) ||
-                        (token.fixity() == Associativity::RIGHT && token.precedence() < opStack.back().precedence()) )) {
-                popTokenToNodeStack();
-            }
-            opStack.push_back(token);
-        }
-        else if (token.type() == tuc::TokenType::INTEGER || token.type() == tuc::TokenType::IDENTIFIER || token.type() == tuc::TokenType::TYPE) {
-            opStack.push_back(token);
+            operatorStack.push_back(token);
         }
         else if (token.type() == tuc::TokenType::LPAREN) {
-            opStack.push_back(token);
+            operatorStack.push_back(token);
         }
         else if (token.type() == tuc::TokenType::RPAREN) {
-            while(opStack.back().type() != tuc::TokenType::LPAREN) {
+            if (tempValueExpression)
+                nodeStack.push_back(std::move(tempValueExpression));
+            while(operatorStack.back().type() != tuc::TokenType::LPAREN) {
                 popTokenToNodeStack();
-                if (opStack.empty())
+                if (operatorStack.empty())
                     throw tuc::CompilerException::MismatchedParenthesis{token.text()};
             }
-            opStack.pop_back();
+            operatorStack.pop_back();
         }
         else if (token.type() == tuc::TokenType::SEMICOL) {
-            while (!opStack.empty()) {
-                if (opStack.back().type() == tuc::TokenType::LPAREN)
-                    throw tuc::CompilerException::MismatchedParenthesis{opStack.back().text()};
+            if (tempValueExpression)
+                nodeStack.push_back(std::move(tempValueExpression));
+            while (!operatorStack.empty()) {
+                if (operatorStack.back().type() == tuc::TokenType::LPAREN)
+                    throw tuc::CompilerException::MismatchedParenthesis{operatorStack.back().text()};
                 popTokenToNodeStack();
             }
             treeRoot->append_child(std::move(nodeStack.back()));
             nodeStack.clear();
         }
     }
+
+#endif
 
     return std::make_tuple(std::move(treeRoot), symTable);
 }
