@@ -204,46 +204,14 @@ std::tuple<std::unique_ptr<tuc::SyntaxNode>, tuc::SymbolTable> tuc::gen_syntax_t
     auto popTokenToNodeStack = [&](){
         auto t = operatorStack.back();
         operatorStack.pop_back();
-        if (t.is_operator()) {
-            auto op = std::make_unique<tuc::SyntaxNode>(t);
-            auto n2 = std::move(nodeStack.back());
-            nodeStack.pop_back();
-            auto n1 = std::move(nodeStack.back());
-            nodeStack.pop_back();
-            op->append_child(std::move(n1));
-            op->append_child(std::move(n2));
-            nodeStack.push_back(std::move(op));
-        }
-        else if (t.type() == tuc::TokenType::HASTYPE) {
-            auto op = std::make_unique<tuc::SyntaxNode>(t);
-            auto nodeHolder = std::vector<std::unique_ptr<tuc::SyntaxNode>>{};
-            while (!nodeStack.empty() && (
-                    nodeStack.back()->type() == tuc::SyntaxNode::NodeType::MAPTO ||
-                    nodeStack.back()->type() == tuc::SyntaxNode::NodeType::TYPE ||
-                    nodeStack.back()->type() == tuc::SyntaxNode::NodeType::IDENTIFIER)) {
-                nodeHolder.push_back(std::move(nodeStack.back()));
-                nodeStack.pop_back();
-            }
-            for (int i = nodeHolder.size() - 1; i >= 0; i--) {
-                op->append_child(std::move(nodeHolder[i]));
-            }
-            nodeStack.push_back(std::move(op));
-        }
-        else if (t.type() == tuc::TokenType::MAPTO) {
-            auto op = std::make_unique<tuc::SyntaxNode>(t);
-            auto nodeHolder = std::vector<std::unique_ptr<tuc::SyntaxNode>>{};
-            while (!nodeStack.empty() && (
-                    nodeStack.back()->type() == tuc::SyntaxNode::NodeType::MAPTO ||
-                    nodeStack.back()->type() == tuc::SyntaxNode::NodeType::TYPE /*||
-                    nodeStack.back()->type() == tuc::SyntaxNode::NodeType::IDENTIFIER*/)) {
-                nodeHolder.push_back(std::move(nodeStack.back()));
-                nodeStack.pop_back();
-            }
-            for (int i = nodeHolder.size() - 1; i >= 0; i--) {
-                op->append_child(std::move(nodeHolder[i]));
-            }
-            nodeStack.push_back(std::move(op));
-        }
+        auto op = std::make_unique<tuc::SyntaxNode>(t);
+        auto n2 = std::move(nodeStack.back());
+        nodeStack.pop_back();
+        auto n1 = std::move(nodeStack.back());
+        nodeStack.pop_back();
+        op->append_child(std::move(n1));
+        op->append_child(std::move(n2));
+        nodeStack.push_back(std::move(op));
     };
 
     for (const auto& token: tokenList) {
@@ -291,8 +259,6 @@ std::tuple<std::unique_ptr<tuc::SyntaxNode>, tuc::SymbolTable> tuc::gen_syntax_t
             nodeStack.clear();
         }
     }
-
-#endif
 
     return std::make_tuple(std::move(treeRoot), symTable);
 }
