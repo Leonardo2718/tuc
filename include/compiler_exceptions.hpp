@@ -40,9 +40,6 @@ THE SOFTWARE.
 // project headers
 #include "text_entity.hpp"
 
-// c++ standard libraries
-#include <exception>
-
 
 
 //~declare namespace members~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -68,15 +65,12 @@ namespace tuc {
 /*
 an abstract exception class for generating any kind of error
 */
-class tuc::CompilerException::AbstractError : public std::exception {
+class tuc::CompilerException::AbstractError {
     public:
         virtual ~AbstractError() noexcept = default;
 
         virtual std::string message() const noexcept = 0;
         /*  returns a message associated with the error */
-
-        virtual const char* what() const noexcept = 0;
-        /*  returns a string describing what the error was */
 
         virtual int error_code() const noexcept;
         /*  returns an error code that can be returned by the program (default is -1) */
@@ -89,7 +83,9 @@ class tuc::CompilerException::CompilationError : public tuc::CompilerException::
     public:
         explicit CompilationError(FilePosition _position);
 
-        virtual std::string message() const noexcept;
+        std::string message() const noexcept;
+
+        virtual std::string error() const noexcept = 0;
 
         std::string file() const noexcept;
         /*  returns the file where the error was found */
@@ -130,10 +126,10 @@ class tuc::CompilerException::UnknownSymbol : public tuc::CompilerException::Com
     public:
         UnknownSymbol(const TextEntity& _textEntiry);
 
-        virtual const char* what() const noexcept;
+        std::string error() const noexcept override;
 
     private:
-        std::string error;
+        std::string errorMsg;
 };
 
 /*
@@ -143,7 +139,7 @@ class tuc::CompilerException::MismatchedParenthesis : public tuc::CompilerExcept
     public:
         explicit MismatchedParenthesis(const TextEntity& _symbol);
 
-        const char* what() const noexcept override;
+        std::string error() const noexcept override;
 };
 
 /*

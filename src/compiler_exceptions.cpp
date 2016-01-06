@@ -57,7 +57,7 @@ tuc::CompilerException::CompilationError::CompilationError(FilePosition _positio
 
 std::string tuc::CompilerException::CompilationError::message() const noexcept {
     std::stringstream text;
-    text << "Error: " << what() << " in file `" << file() << "` at line " << line() << ", column " << column() << ".\n";
+    text << "Error: " << error() << " in file `" << file() << "` at line " << line() << ", column " << column() << ".\n";
     return text.str();
 }
 
@@ -96,18 +96,18 @@ std::string tuc::CompilerException::CompilerFault::message() const noexcept {
 tuc::CompilerException::UnknownSymbol::UnknownSymbol(const TextEntity& _symbol) : CompilationError{_symbol.position()} {
     std::stringstream text;
     text << "Unknown symbol `" << _symbol.text() << "`";
-    error = text.str();
+    errorMsg = text.str();
 }
 
-const char* tuc::CompilerException::UnknownSymbol::what() const noexcept {
-    return error.c_str();
+std::string tuc::CompilerException::UnknownSymbol::error() const noexcept {
+    return errorMsg;
 }
 
 
 
 tuc::CompilerException::MismatchedParenthesis::MismatchedParenthesis(const TextEntity& _symbol) : CompilationError{_symbol.position()} {}
 
-const char* tuc::CompilerException::MismatchedParenthesis::what() const noexcept {
+std::string tuc::CompilerException::MismatchedParenthesis::error() const noexcept {
     return "Mismatched parenthesis";
 }
 
