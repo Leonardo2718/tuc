@@ -129,3 +129,24 @@ std::string tuc::CompilerException::UnimplementedFeature::cause() const noexcept
 std::string tuc::CompilerException::UnimplementedFeature::feature() const noexcept {
     return featureName;
 }
+
+/*
+returns the file where the error was found
+*/
+std::string tuc::CompilerException::UnimplementedFeature::file() const noexcept {
+    return position.file_path();
+}
+
+/*
+returns the line number where the error was found
+*/
+unsigned int tuc::CompilerException::UnimplementedFeature::line() const noexcept {
+    return position.line();
+}
+
+/*
+returns the column number where the error was found
+*/
+unsigned int tuc::CompilerException::UnimplementedFeature::column() const noexcept {
+    return position.column();
+}
