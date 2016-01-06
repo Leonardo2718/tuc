@@ -3,14 +3,14 @@ Project: TUC
 File: compiler_exceptions.cpp
 Author: Leonardo Banderali
 Created: October 9, 2015
-Last Modified: November 8, 2015
+Last Modified: January 5, 2016
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
     It is not intended to have any useful purpose other than being a way to learn
     how compilers work.
 
-Copyright (C) 2015 Leonardo Banderali
+Copyright (C) 2016 Leonardo Banderali
 
 License:
 
@@ -84,6 +84,15 @@ unsigned int tuc::CompilerException::CompilationError::column() const noexcept {
 
 
 
+std::string tuc::CompilerException::CompilerFault::message() const noexcept {
+    std::stringstream text;
+    text << "Fault: " << title() << "\n";
+    text << "Cause: " << cause() << "\n";
+    return text.str();
+}
+
+
+
 tuc::CompilerException::UnknownSymbol::UnknownSymbol(const TextEntity& _symbol) : CompilationError{_symbol.position()} {
     std::stringstream text;
     text << "Unknown symbol `" << _symbol.text() << "`";
@@ -100,4 +109,23 @@ tuc::CompilerException::MismatchedParenthesis::MismatchedParenthesis(const TextE
 
 const char* tuc::CompilerException::MismatchedParenthesis::what() const noexcept {
     return "Mismatched parenthesis";
+}
+
+
+
+tuc::CompilerException::UnimplementedFeature::UnimplementedFeature(FilePosition _position, std::string _feature, std::string _cause)
+    : position{_position}, featureName{_feature}, faultCause{_cause} {}
+
+std::string tuc::CompilerException::UnimplementedFeature::title() const noexcept {
+    std::stringstream text;
+    text << "Attempted use of unimplemented feature -- " << feature();
+    return text.str();
+}
+
+std::string tuc::CompilerException::UnimplementedFeature::cause() const noexcept {
+    return faultCause;
+}
+
+std::string tuc::CompilerException::UnimplementedFeature::feature() const noexcept {
+    return featureName;
 }

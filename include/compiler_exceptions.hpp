@@ -3,14 +3,14 @@ Project: TUC
 File: compiler_exceptions.hpp
 Author: Leonardo Banderali
 Created: October 9, 2015
-Last Modified: November 8, 2015
+Last Modified: January 5, 2016
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
     It is not intended to have any useful purpose other than being a way to learn
     how compilers work.
 
-Copyright (C) 2015 Leonardo Banderali
+Copyright (C) 2016 Leonardo Banderali
 
 License:
 
@@ -50,13 +50,14 @@ THE SOFTWARE.
 namespace tuc {
     namespace CompilerException {
         class AbstractError;            // an abstract exception class for generating any kind of error
+
         class CompilationError;         // an abstract exception class for generating compilation errors
+        class CompilerFault;            // an abstract exception class for generating compiler faults
 
         class UnknownSymbol;            // exception class for unknown symbol (undeclared symbols)
+        class MismatchedParenthesis;    // exception class for mismatched parentheses
 
-        class MismatchedParenthesis;    // exceptions for mismatched parentheses
-        class MissingRParenthesis;
-        class MissingLParenthesis;
+        class UnimplementedFeature;     // exception class for when using an unimplemented language feature
     }
 }
 
@@ -104,6 +105,25 @@ class tuc::CompilerException::CompilationError : public tuc::CompilerException::
 };
 
 /*
+an abstract exception class for generating compiler faults
+
+A fault is anything that the compiler understands but does not know how to handle or cannot accept.
+An example is the use of an unimplemented feature or a feature that has been removed from the language.
+*/
+class tuc::CompilerException::CompilerFault : public tuc::CompilerException::AbstractError {
+    public:
+        CompilerFault() = default;
+
+        std::string message() const noexcept final;
+
+        virtual std::string title() const noexcept = 0;
+        /*  returns a title for the fault */
+
+        virtual std::string cause() const noexcept = 0;
+        /*  returns the cause of the fault */
+};
+
+/*
 exception class for unknown symbol (undeclared symbols)
 */
 class tuc::CompilerException::UnknownSymbol : public tuc::CompilerException::CompilationError {
@@ -117,13 +137,41 @@ class tuc::CompilerException::UnknownSymbol : public tuc::CompilerException::Com
 };
 
 /*
-exceptions for mismatched parentheses
+exception class for mismatched parentheses
 */
 class tuc::CompilerException::MismatchedParenthesis : public tuc::CompilerException::CompilationError {
     public:
         explicit MismatchedParenthesis(const TextEntity& _symbol);
 
-        virtual const char* what() const noexcept;
+        const char* what() const noexcept override;
+};
+
+/*
+exception class for when using an unimplemented language feature
+*/
+class tuc::CompilerException::UnimplementedFeature : public tuc::CompilerException::CompilerFault {
+    public:
+        UnimplementedFeature(FilePosition _position, std::string _feature, std::string _cause);
+
+        std::string title() const noexcept override;
+
+        std::string cause() const noexcept override;
+
+        std::string feature() const noexcept;
+
+        const char* file() const noexcept;
+        /*  returns the file where the error was found */
+
+        unsigned int line() const noexcept;
+        /*  returns the line number where the error was found */
+
+        unsigned int column() const noexcept;
+        /*  returns the column number where the error was found */
+
+    private:
+        FilePosition position;
+        std::string featureName;
+        std::string faultCause;
 };
 
 #endif//TUC_COMPILER_EXCEPTIONS_HPP
