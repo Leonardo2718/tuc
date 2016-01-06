@@ -3,14 +3,14 @@ Project: TUC
 File: text_entity.hpp
 Author: Leonardo Banderali
 Created: November 1, 2015
-Last Modified: November 8, 2015
+Last Modified: January 5, 2016
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
     It is not intended to have any useful purpose other than being a way to learn
     how compilers work.
 
-Copyright (C) 2015 Leonardo Banderali
+Copyright (C) 2016 Leonardo Banderali
 
 License:
 
@@ -113,38 +113,5 @@ class tuc::TextEntity {
         std::string entityText;     // the text entity
         FilePosition textPosition;  // holds the position of the text
 };
-
-
-
-//~template function definition~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-template <typename RandomAccessIterator>
-tuc::TextEntity tuc::make_entity(const std::string& filePath, const std::smatch& regexMatch, RandomAccessIterator first,
-                       RandomAccessIterator searchStart) {
-    int pos = searchStart - first + regexMatch.position();  // get the text position
-
-    // get the line and column numbers
-    std::ifstream file{filePath};
-    int l = 1;
-    int c = 1;
-    for (int i = 0; i < pos; i++) {
-        auto c = static_cast<char>(file.get());
-        if (c == '\n') {
-            l++;
-            c = 1;
-        }
-        else {
-            c++;
-        }
-
-        if (file.eof() || file.fail())
-            break;
-    }
-    file.close();
-
-    return TextEntity{regexMatch.str(), filePath, pos, l, c};
-}
-
-
 
 #endif//TUC_TEXT_ENTITY_HPP
