@@ -91,13 +91,13 @@ class tuc::CompilerException::CompilationError : public tuc::CompilerException::
 
         virtual std::string message() const noexcept;
 
-        virtual const char* file() const noexcept;
+        std::string file() const noexcept;
         /*  returns the file where the error was found */
 
-        virtual unsigned int line() const noexcept;
+        unsigned int line() const noexcept;
         /*  returns the line number where the error was found */
 
-        virtual unsigned int column() const noexcept;
+        unsigned int column() const noexcept;
         /*  returns the column number where the error was found */
 
     private:
@@ -159,7 +159,7 @@ class tuc::CompilerException::UnimplementedFeature : public tuc::CompilerExcepti
 
         std::string feature() const noexcept;
 
-        const char* file() const noexcept;
+        std::string file() const noexcept;
         /*  returns the file where the error was found */
 
         unsigned int line() const noexcept;

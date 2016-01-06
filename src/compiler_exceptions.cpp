@@ -64,8 +64,8 @@ std::string tuc::CompilerException::CompilationError::message() const noexcept {
 /*
 returns the file where the error was found
 */
-const char* tuc::CompilerException::CompilationError::file() const noexcept {
-    return position.file_path().c_str();
+std::string tuc::CompilerException::CompilationError::file() const noexcept {
+    return position.file_path();
 }
 
 /*
