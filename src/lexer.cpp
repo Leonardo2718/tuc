@@ -3,14 +3,14 @@ Project: TUC
 File: lexer.cpp
 Author: Leonardo Banderali
 Created: November 8, 2015
-Last Modified: November 8, 2015
+Last Modified: January 5, 2016
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
     It is not intended to have any useful purpose other than being a way to learn
     how compilers work.
 
-Copyright (C) 2015 Leonardo Banderali
+Copyright (C) 2016 Leonardo Banderali
 
 License:
 
@@ -62,6 +62,23 @@ std::vector<tuc::Token> tuc::lex_analyze(const std::string& filePath) {
     unsigned int l = 1;
     unsigned int c = 1;
 
+    /*
+    move itterators forward while keeping track of changes in line and column numbers
+    */
+    auto move_forward_by = [&](int ammount) {
+        for (int i = 0; i < ammount; i++) {
+            auto character = *currentPosition;
+            if (character == '\n') {
+                l++;
+                c = 1;
+            }
+            else {
+                c++;
+            }
+            currentPosition++;
+        }
+    };
+
     while (currentPosition < last) {
         Rule rule;
         std::smatch firstMatch;
@@ -76,29 +93,9 @@ std::vector<tuc::Token> tuc::lex_analyze(const std::string& filePath) {
         if (firstMatch.empty()) {
             break;
         } else {
-            for (int i = firstMatch.position() - 1; i >= 0; i--) {
-                auto character = *currentPosition;
-                if (character == '\n') {
-                    l++;
-                    c = 1;
-                }
-                else {
-                    c++;
-                }
-                currentPosition++;
-            }
+            move_forward_by(firstMatch.position());
             tokenList.push_back(Token{TextEntity{firstMatch.str(), filePath, currentPosition - first, l, c}, rule});
-            for (int i = firstMatch.length() - 1; i >= 0; i--) {
-                auto character = *currentPosition;
-                if (character == '\n') {
-                    l++;
-                    c = 1;
-                }
-                else {
-                    c++;
-                }
-                currentPosition++;
-            }
+            move_forward_by(firstMatch.length());
             ruleListIndex = rule.nextRules();
         }
     }
