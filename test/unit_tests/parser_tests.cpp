@@ -3,12 +3,12 @@ Project: OGLA
 File: parser_tests.cpp
 Author: Leonardo Banderali
 Created: November 8, 2015
-Last Modified: November 10, 2015
+Last Modified: January 5, 2016
 
 Description: A collection of unit tests for the lexer, syntax tree generator,
     and assembly code generator. These unit tests use the Boos Test framework.
 
-Copyright (C) 2015 Leonardo Banderali
+Copyright (C) 2016 Leonardo Banderali
 
 License:
 
@@ -70,6 +70,7 @@ BOOST_AUTO_TEST_CASE(parser_test) {
             //BOOST_TEST(actualNode->type() == expectedNode->type());
             BOOST_TEST(actualNode->is_operator() == expectedNode->is_operator());
             BOOST_TEST(actualNode->value() == expectedNode->value());
+            BOOST_TEST(actualNode->position().file_path() == expectedNode->position().file_path());
             BOOST_TEST(actualNode->position().index() == expectedNode->position().index());
             BOOST_TEST(actualNode->position().line() == expectedNode->position().line());
             BOOST_TEST(actualNode->position().column() == expectedNode->position().column());

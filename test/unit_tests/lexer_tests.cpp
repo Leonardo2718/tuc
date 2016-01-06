@@ -3,12 +3,12 @@ Project: OGLA
 File: lexer_tests.cpp
 Author: Leonardo Banderali
 Created: November 2, 2015
-Last Modified: November 10, 2015
+Last Modified: January 5, 2016
 
 Description: A collection of unit tests for the lexer, syntax tree generator,
     and assembly code generator. These unit tests use the Boos Test framework.
 
-Copyright (C) 2015 Leonardo Banderali
+Copyright (C) 2016 Leonardo Banderali
 
 License:
 
@@ -51,6 +51,7 @@ BOOST_AUTO_TEST_CASE(lexer_test) {
             BOOST_TEST(actual_tokens[i].valid() == expected_tokens[i].valid());
             BOOST_TEST(actual_tokens[i].lexeme() == expected_tokens[i].lexeme(), "[\"" << actual_tokens[i].lexeme() << "\" != \"" << expected_tokens[i].lexeme() << "\"]");
             //BOOST_TEST(actual_tokens[i].type() == expected_tokens[i].type(), "[" << static_cast<char>(actual_tokens[i].type()) << " != " << static_cast<char>(expected_tokens[i].type()) << "]");
+            BOOST_TEST(actual_tokens[i].text().file_path() == expected_tokens[i].text().file_path());
             BOOST_TEST(actual_tokens[i].text().index() == expected_tokens[i].text().index());
             BOOST_TEST(actual_tokens[i].text().line() == expected_tokens[i].text().line());
             BOOST_TEST(actual_tokens[i].text().column() == expected_tokens[i].text().column());

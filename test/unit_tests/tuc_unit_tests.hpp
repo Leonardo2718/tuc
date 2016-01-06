@@ -3,12 +3,12 @@ Project: OGLA
 File: tuc_unit_tests.hpp
 Author: Leonardo Banderali
 Created: November 8, 2015
-Last Modified: December 17, 2015
+Last Modified: January 5, 2016
 
 Description: A collection of unit tests for the lexer, syntax tree generator,
     and assembly code generator. These unit tests use the Boos Test framework.
 
-Copyright (C) 2015 Leonardo Banderali
+Copyright (C) 2016 Leonardo Banderali
 
 License:
 
@@ -99,5 +99,7 @@ const std::vector<Token> expected_tokens = {
 
     Token{TokenType::SEMICOL, TextEntity{";", source_file_path, 201, 9, 28}, -1, Associativity::NONE}
 };
+
+std::unique_ptr<SyntaxNode> get_syntax_tree();
 
 #endif//TUC_UNIT_TESTS_HPP
