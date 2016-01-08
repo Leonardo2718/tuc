@@ -3,14 +3,14 @@ Project: TUC
 File: syntax_tree.hpp
 Author: Leonardo Banderali
 Created: September 6, 2015
-Last Modified: December 17, 2015
+Last Modified: January 8, 2016
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
     It is not intended to have any useful purpose other than being a way to learn
     how compilers work.
 
-Copyright (C) 2015 Leonardo Banderali
+Copyright (C) 2016 Leonardo Banderali
 
 License:
 
@@ -66,8 +66,8 @@ namespace tuc {
 
 class tuc::SyntaxNode {
     public:
-        enum class NodeType {PROGRAM, TYPE, HASTYPE, ASSIGN, MAPTO, ADD, SUBTRACT, MULTIPLY, DIVIDE, INTEGER, LEFTPAREN, RIGHTPAREN, SEMICOL,
-                                IDENTIFIER, UNKNOWN};
+        //enum class NodeType {PROGRAM, TYPE, HASTYPE, ASSIGN, MAPTO, ADD, SUBTRACT, MULTIPLY, DIVIDE, INTEGER, LEFTPAREN, RIGHTPAREN, SEMICOL,
+        //                        IDENTIFIER, UNKNOWN};
 
         SyntaxNode(NodeType _type);
 

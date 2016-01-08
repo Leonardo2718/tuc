@@ -3,14 +3,14 @@ Project: TUC
 File: u_language.hpp
 Author: Leonardo Banderali
 Created: November 2, 2015
-Last Modified: December 17, 2015
+Last Modified: January 8, 2016
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
     It is not intended to have any useful purpose other than being a way to learn
     how compilers work.
 
-Copyright (C) 2015 Leonardo Banderali
+Copyright (C) 2016 Leonardo Banderali
 
 License:
 
@@ -47,20 +47,20 @@ THE SOFTWARE.
 namespace tuc {
     const auto u_lexer_grammar = tuc::Grammar{
         {
-            Rule{TokenType::LCOMMENT, "//(.*)(\\n|$)", 0},
-            Rule{TokenType::TYPE, "\\b(int)\\b", 0, 20, Associativity::LEFT},
-            Rule{TokenType::HASTYPE, "\\:", 0, 9, Associativity::LEFT},
-            Rule{TokenType::ASSIGN, "\\=", 0, 1},
-            Rule{TokenType::MAPTO, "\\-\\>", 0, 10, Associativity::RIGHT},
-            Rule{TokenType::ADD, "\\+", 0, 3, Associativity::LEFT},
-            Rule{TokenType::SUBTRACT, "\\-", 0, 3, Associativity::LEFT},
-            Rule{TokenType::MULTIPLY, "\\*", 0, 4, Associativity::LEFT},
-            Rule{TokenType::DIVIDE, "\\/", 0, 4, Associativity::LEFT},
-            Rule{TokenType::INTEGER, "\\d+", 0, 20, Associativity::LEFT},
-            Rule{TokenType::LPAREN, "\\(", 0},
-            Rule{TokenType::RPAREN, "\\)", 0},
-            Rule{TokenType::SEMICOL, ";", 0},
-            Rule{TokenType::IDENTIFIER, "\\b[A-Za-z_]+\\b", 0, 20, Associativity::LEFT}
+            Rule{NodeType::LCOMMENT, "//(.*)(\\n|$)", 0},
+            Rule{NodeType::TYPE, "\\b(int)\\b", 0, 20, Associativity::LEFT},
+            Rule{NodeType::HASTYPE, "\\:", 0, 9, Associativity::LEFT},
+            Rule{NodeType::ASSIGN, "\\=", 0, 1},
+            Rule{NodeType::MAPTO, "\\-\\>", 0, 10, Associativity::RIGHT},
+            Rule{NodeType::ADD, "\\+", 0, 3, Associativity::LEFT},
+            Rule{NodeType::SUBTRACT, "\\-", 0, 3, Associativity::LEFT},
+            Rule{NodeType::MULTIPLY, "\\*", 0, 4, Associativity::LEFT},
+            Rule{NodeType::DIVIDE, "\\/", 0, 4, Associativity::LEFT},
+            Rule{NodeType::INTEGER, "\\d+", 0, 20, Associativity::LEFT},
+            Rule{NodeType::LPAREN, "\\(", 0},
+            Rule{NodeType::RPAREN, "\\)", 0},
+            Rule{NodeType::SEMICOL, ";", 0},
+            Rule{NodeType::IDENTIFIER, "\\b[A-Za-z_]+\\b", 0, 20, Associativity::LEFT}
         }
     };
 }

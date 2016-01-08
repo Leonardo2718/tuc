@@ -3,14 +3,14 @@ Project: TUC
 File: grammar.hpp
 Author: Leonardo Banderali
 Created: August 31, 2015
-Last Modified: December 17, 2015
+Last Modified: January 8, 2016
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
     It is not intended to have any useful purpose other than being a way to learn
     how compilers work.
 
-Copyright (C) 2015 Leonardo Banderali
+Copyright (C) 2016 Leonardo Banderali
 
 License:
 
@@ -38,6 +38,7 @@ THE SOFTWARE.
 #define TUC_GRAMMAR_HPP
 
 // project headers
+#include "node_type.hpp"
 #include "text_entity.hpp"
 
 // c++ standard libraries
@@ -55,7 +56,7 @@ namespace tuc {
 
     using Precedence = int;
     enum class Associativity {LEFT, RIGHT, NONE};
-    enum class TokenType {LCOMMENT, TYPE, HASTYPE, ASSIGN, MAPTO, ADD, SUBTRACT, MULTIPLY, DIVIDE, INTEGER, LPAREN, RPAREN, SEMICOL, IDENTIFIER};
+    //enum class NodeType {LCOMMENT, TYPE, HASTYPE, ASSIGN, MAPTO, ADD, SUBTRACT, MULTIPLY, DIVIDE, INTEGER, LPAREN, RPAREN, SEMICOL, IDENTIFIER};
 
     /*################################################################################################################
     ### Here, a grammar is defined as a list of rule lists (a matrix of rules).  Each list in the grammer containes ##
@@ -77,12 +78,12 @@ namespace tuc {
 class tuc::Rule {    // a class that defines the rules used to find tokens
     public:
         Rule() = default;
-        Rule(const TokenType& _type, const std::string& _regex, GrammarIndex _nextRulesIndex,
+        Rule(const NodeType& _type, const std::string& _regex, GrammarIndex _nextRulesIndex,
             Precedence _precedence = -1, Associativity _fixity = Associativity::NONE);
         /*  constructs a rule with the name `_name` and uses `_regex` as regular expression for searching;
             `_nextRulesIndex` points to the next list of rules to be used */
 
-        TokenType type() const noexcept;
+        NodeType type() const noexcept;
         /*  returns the type of the rule (which should also be the type of the token it searches for) */
 
         std::regex regex() const noexcept;
@@ -98,7 +99,7 @@ class tuc::Rule {    // a class that defines the rules used to find tokens
         /*  if the token is some sort of operator, returns its associativity (NONE if not an operator) */
 
     private:
-        TokenType ruleType;
+        NodeType ruleType;
         std::regex rgx;                                 // the regular expression (regex) used to indentify the token
         GrammarIndex nextRulesIndex = 0;                // indexes the next rules to be used for tokenization
         Precedence opPred = -1;                         // precedence if operator
@@ -107,9 +108,9 @@ class tuc::Rule {    // a class that defines the rules used to find tokens
 
 class tuc::Token {
     public:
-        /*Token(const TokenType& _type, std::smatch m, int _pos = -1,
+        /*Token(const NodeType& _type, std::smatch m, int _pos = -1,
             Precedence _precedence = -1, Associativity _fixity = Associativity::NONE);*/
-        Token(const TokenType& _type, const TextEntity& _lexemeInfo,
+        Token(const NodeType& _type, const TextEntity& _lexemeInfo,
             Precedence _precedence = -1, Associativity _fixity = Associativity::NONE);
 
         //Token(const Rule& _rule, const std::smatch _rmatch, int _pos);
@@ -119,7 +120,7 @@ class tuc::Token {
         bool valid() const noexcept;
         /*  returns true if token is valid (was generated from a valid match) */
 
-        TokenType type() const noexcept;
+        NodeType type() const noexcept;
         /*  returns the type of the token (which should match the type of the rule used to find it) */
 
         int index() const noexcept;
@@ -140,7 +141,7 @@ class tuc::Token {
         /*  if the token is some sort of operator, returns its associativity (NONE if not an operator) */
 
     private:
-        TokenType tokenType;
+        NodeType tokenType;
         TextEntity lexemeInfo;  // holds the token's lexeme and its location
         Precedence opPred = -1;                         // precedence if operator
         Associativity opFixity = Associativity::NONE;   // associativity if operator

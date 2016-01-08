@@ -3,14 +3,14 @@ Project: TUC
 File: lexer.cpp
 Author: Leonardo Banderali
 Created: August 31, 2015
-Last Modified: November 8, 2015
+Last Modified: January 8, 2016
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
     It is not intended to have any useful purpose other than being a way to learn
     how compilers work.
 
-Copyright (C) 2015 Leonardo Banderali
+Copyright (C) 2016 Leonardo Banderali
 
 License:
 
@@ -42,14 +42,14 @@ THE SOFTWARE.
 constructs a rule with the name `_name` and uses `_regex` as regular expression for searching;
 `_nextRulesIndex` points to the next list of rules to be used
 */
-tuc::Rule::Rule(const TokenType& _type, const std::string& _regex, GrammarIndex _nextRulesIndex,
+tuc::Rule::Rule(const NodeType& _type, const std::string& _regex, GrammarIndex _nextRulesIndex,
     Precedence _precedence, Associativity _fixity)
     : ruleType{_type}, rgx{_regex}, nextRulesIndex{_nextRulesIndex}, opPred{_precedence}, opFixity{_fixity} {}
 
 /*
 returns the type of the rule (which should also be the type of the token it searches for)
 */
-tuc::TokenType tuc::Rule::type() const noexcept {
+tuc::NodeType tuc::Rule::type() const noexcept {
     return ruleType;
 }
 
@@ -83,7 +83,7 @@ tuc::Associativity tuc::Rule::fixity() const noexcept {
 
 
 
-tuc::Token::Token(const TokenType& _type, const TextEntity& _lexemeInfo, Precedence _precedence, Associativity _fixity)
+tuc::Token::Token(const NodeType& _type, const TextEntity& _lexemeInfo, Precedence _precedence, Associativity _fixity)
 : tokenType{_type}, lexemeInfo{_lexemeInfo}, opPred{_precedence}, opFixity{_fixity} {}
 
 tuc::Token::Token(const TextEntity& _lexemeInfo, const Rule& _rule)
@@ -99,7 +99,7 @@ bool tuc::Token::valid() const noexcept {
 /*
 returns the type of the token (which should match the name of the rule used to find it)
 */
-tuc::TokenType tuc::Token::type() const noexcept {
+tuc::NodeType tuc::Token::type() const noexcept {
     return tokenType;
 }
 
@@ -125,8 +125,8 @@ tuc::TextEntity tuc::Token::text() const noexcept {
 }
 
 bool tuc::Token::is_operator() const noexcept {
-    return tokenType == TokenType::ADD || tokenType == TokenType::SUBTRACT ||
-            tokenType == TokenType::MULTIPLY || tokenType == TokenType::DIVIDE;
+    return tokenType == NodeType::ADD || tokenType == NodeType::SUBTRACT ||
+            tokenType == NodeType::MULTIPLY || tokenType == NodeType::DIVIDE;
 }
 
 /*

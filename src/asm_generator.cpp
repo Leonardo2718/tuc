@@ -3,14 +3,14 @@ Project: TUC
 File: asm_generator.cpp
 Author: Leonardo Banderali
 Created: October 6, 2015
-Last Modified: October 6, 2015
+Last Modified: January 8, 2016
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
     It is not intended to have any useful purpose other than being a way to learn
     how compilers work.
 
-Copyright (C) 2015 Leonardo Banderali
+Copyright (C) 2016 Leonardo Banderali
 
 License:
 
@@ -46,7 +46,7 @@ THE SOFTWARE.
 generates assembly code from a syntax tree and symbol table
 */
 std::string tuc::gen_expr_asm(SyntaxNode* node, const SymbolTable& symTable) {
-    using NodeType = tuc::SyntaxNode::NodeType;
+    using NodeType = tuc::NodeType;
     auto outputASM = std::stringstream{};
     auto firstOperand = node->child(0);
     auto secondOperand = node->child(1);

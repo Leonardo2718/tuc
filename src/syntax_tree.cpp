@@ -3,7 +3,7 @@ Project: TUC
 File: syntax_tree.cpp
 Author: Leonardo Banderali
 Created: September 6, 2015
-Last Modified: January 6, 2016
+Last Modified: January 8, 2016
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -51,21 +51,21 @@ tuc::SyntaxNode::SyntaxNode(NodeType _type, const TextEntity& _textValue)
 constructs a node from a syntax token
 */
 tuc::SyntaxNode::SyntaxNode(const Token& _token)
-: textValue{_token.text()} {
-    switch (_token.type()) {
-    case TokenType::TYPE:       syntaxNodeType = NodeType::TYPE; break;
-    case TokenType::HASTYPE:    syntaxNodeType = NodeType::HASTYPE; break;
-    case TokenType::ASSIGN:     syntaxNodeType = NodeType::ASSIGN; break;
-    case TokenType::MAPTO:      syntaxNodeType = NodeType::MAPTO; break;
-    case TokenType::ADD:        syntaxNodeType = NodeType::ADD; break;
-    case TokenType::SUBTRACT:   syntaxNodeType = NodeType::SUBTRACT; break;
-    case TokenType::MULTIPLY:   syntaxNodeType = NodeType::MULTIPLY; break;
-    case TokenType::DIVIDE:     syntaxNodeType = NodeType::DIVIDE; break;
-    case TokenType::INTEGER:    syntaxNodeType = NodeType::INTEGER; break;
-    case TokenType::SEMICOL:    syntaxNodeType = NodeType::SEMICOL; break;
-    case TokenType::IDENTIFIER: syntaxNodeType = NodeType::IDENTIFIER; break;
+: syntaxNodeType{_token.type()}, textValue{_token.text()} {
+    /*switch (_token.type()) {
+    case NodeType::TYPE:       syntaxNodeType = NodeType::TYPE; break;
+    case NodeType::HASTYPE:    syntaxNodeType = NodeType::HASTYPE; break;
+    case NodeType::ASSIGN:     syntaxNodeType = NodeType::ASSIGN; break;
+    case NodeType::MAPTO:      syntaxNodeType = NodeType::MAPTO; break;
+    case NodeType::ADD:        syntaxNodeType = NodeType::ADD; break;
+    case NodeType::SUBTRACT:   syntaxNodeType = NodeType::SUBTRACT; break;
+    case NodeType::MULTIPLY:   syntaxNodeType = NodeType::MULTIPLY; break;
+    case NodeType::DIVIDE:     syntaxNodeType = NodeType::DIVIDE; break;
+    case NodeType::INTEGER:    syntaxNodeType = NodeType::INTEGER; break;
+    case NodeType::SEMICOL:    syntaxNodeType = NodeType::SEMICOL; break;
+    case NodeType::IDENTIFIER: syntaxNodeType = NodeType::IDENTIFIER; break;
     default:                    syntaxNodeType = NodeType::UNKNOWN;
-    }
+}*/
 }
 
 const tuc::SyntaxNode* tuc::SyntaxNode::parent() const noexcept {
@@ -106,7 +106,7 @@ void tuc::SyntaxNode::append_child(std::unique_ptr<SyntaxNode>&& c) noexcept {
     children.push_back(std::move(c));
 }
 
-tuc::SyntaxNode::NodeType tuc::SyntaxNode::type() const noexcept {
+tuc::NodeType tuc::SyntaxNode::type() const noexcept {
     return syntaxNodeType;
 }
 
@@ -194,7 +194,7 @@ std::ostream& operator<< (std::ostream& os, const std::unique_ptr<tuc::SyntaxNod
 generate a syntax tree from a list of tokens
 */
 std::tuple<std::unique_ptr<tuc::SyntaxNode>, tuc::SymbolTable> tuc::gen_syntax_tree(const std::vector<tuc::Token>& tokenList) {
-    auto treeRoot = std::make_unique<tuc::SyntaxNode>(tuc::SyntaxNode::NodeType::PROGRAM);
+    auto treeRoot = std::make_unique<tuc::SyntaxNode>(tuc::NodeType::PROGRAM);
     auto symTable = SymbolTable{};
     auto nodeStack = std::vector<std::unique_ptr<tuc::SyntaxNode>>{};
     auto operatorStack = std::vector<tuc::Token>{};
@@ -215,7 +215,8 @@ std::tuple<std::unique_ptr<tuc::SyntaxNode>, tuc::SymbolTable> tuc::gen_syntax_t
     };
 
     for (const auto& token: tokenList) {
-        if (token.type() == tuc::TokenType::INTEGER || token.type() == tuc::TokenType::IDENTIFIER || token.type() == tuc::TokenType::TYPE) {
+        //if (token.type() == tuc::NodeType::INTEGER || token.type() == tuc::NodeType::IDENTIFIER || token.type() == tuc::NodeType::TYPE) {
+        if (is_exp_entity(token.type())) {
             if (tempValueExpression) {
                 auto newNode = std::make_unique<tuc::SyntaxNode>(token);
                 newNode->append_child(std::move(tempValueExpression));
@@ -224,7 +225,8 @@ std::tuple<std::unique_ptr<tuc::SyntaxNode>, tuc::SymbolTable> tuc::gen_syntax_t
             else
                 tempValueExpression = std::make_unique<tuc::SyntaxNode>(token);
         }
-        else if (token.is_operator() || token.type() == tuc::TokenType::HASTYPE || token.type() == tuc::TokenType::MAPTO) {
+        //else if (token.is_operator() || token.type() == tuc::NodeType::HASTYPE || token.type() == tuc::NodeType::MAPTO) {
+        else if (is_highorder_op(token.type())) {
             if (tempValueExpression)
                 nodeStack.push_back(std::move(tempValueExpression));
             while(!operatorStack.empty() && (
@@ -234,24 +236,24 @@ std::tuple<std::unique_ptr<tuc::SyntaxNode>, tuc::SymbolTable> tuc::gen_syntax_t
             }
             operatorStack.push_back(token);
         }
-        else if (token.type() == tuc::TokenType::LPAREN) {
+        else if (token.type() == tuc::NodeType::LPAREN) {
             operatorStack.push_back(token);
         }
-        else if (token.type() == tuc::TokenType::RPAREN) {
+        else if (token.type() == tuc::NodeType::RPAREN) {
             if (tempValueExpression)
                 nodeStack.push_back(std::move(tempValueExpression));
-            while(operatorStack.back().type() != tuc::TokenType::LPAREN) {
+            while(operatorStack.back().type() != tuc::NodeType::LPAREN) {
                 popTokenToNodeStack();
                 if (operatorStack.empty())
                     throw tuc::CompilerException::MismatchedParenthesis{token.text()};
             }
             operatorStack.pop_back();
         }
-        else if (token.type() == tuc::TokenType::SEMICOL) {
+        else if (token.type() == tuc::NodeType::SEMICOL) {
             if (tempValueExpression)
                 nodeStack.push_back(std::move(tempValueExpression));
             while (!operatorStack.empty()) {
-                if (operatorStack.back().type() == tuc::TokenType::LPAREN)
+                if (operatorStack.back().type() == tuc::NodeType::LPAREN)
                     throw tuc::CompilerException::MismatchedParenthesis{operatorStack.back().text()};
                 popTokenToNodeStack();
             }

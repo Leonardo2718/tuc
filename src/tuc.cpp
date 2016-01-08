@@ -3,14 +3,14 @@ Project: TUC
 File: tuc.cpp
 Author: Leonardo Banderali
 Created: August 7, 2015
-Last Modified: November 8, 2015
+Last Modified: January 8, 2016
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
     It is not intended to have any useful purpose other than being a way to learn
     how compilers work.
 
-Copyright (C) 2015 Leonardo Banderali
+Copyright (C) 2016 Leonardo Banderali
 
 License:
 
@@ -57,7 +57,7 @@ int main(int argc, char** argv) {
             auto tokens = tuc::lex_analyze(argv[1]);
 
             // generate a syntax tree
-            auto syntaxTreeRoot = std::make_unique<tuc::SyntaxNode>(tuc::SyntaxNode::NodeType::UNKNOWN);
+            auto syntaxTreeRoot = std::make_unique<tuc::SyntaxNode>(tuc::NodeType::PROGRAM);
             auto symbolTable = tuc::SymbolTable{};
             std::tie(syntaxTreeRoot, symbolTable) = tuc::gen_syntax_tree(tokens);
 
