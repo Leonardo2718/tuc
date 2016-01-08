@@ -56,7 +56,6 @@ namespace tuc {
 
     using Precedence = int;
     enum class Associativity {LEFT, RIGHT, NONE};
-    //enum class NodeType {LCOMMENT, TYPE, HASTYPE, ASSIGN, MAPTO, ADD, SUBTRACT, MULTIPLY, DIVIDE, INTEGER, LPAREN, RPAREN, SEMICOL, IDENTIFIER};
 
     /*################################################################################################################
     ### Here, a grammar is defined as a list of rule lists (a matrix of rules).  Each list in the grammer containes ##
@@ -131,8 +130,6 @@ class tuc::Token {
 
         TextEntity text() const noexcept;
         /*  returns the text entity of the lexeme */
-
-        bool is_operator() const noexcept;
 
         Precedence precedence() const noexcept;
         /*  if the token is some sort of operator, returns its precedence (-1 if not an operator) */

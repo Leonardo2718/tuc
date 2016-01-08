@@ -51,22 +51,7 @@ tuc::SyntaxNode::SyntaxNode(NodeType _type, const TextEntity& _textValue)
 constructs a node from a syntax token
 */
 tuc::SyntaxNode::SyntaxNode(const Token& _token)
-: syntaxNodeType{_token.type()}, textValue{_token.text()} {
-    /*switch (_token.type()) {
-    case NodeType::TYPE:       syntaxNodeType = NodeType::TYPE; break;
-    case NodeType::HASTYPE:    syntaxNodeType = NodeType::HASTYPE; break;
-    case NodeType::ASSIGN:     syntaxNodeType = NodeType::ASSIGN; break;
-    case NodeType::MAPTO:      syntaxNodeType = NodeType::MAPTO; break;
-    case NodeType::ADD:        syntaxNodeType = NodeType::ADD; break;
-    case NodeType::SUBTRACT:   syntaxNodeType = NodeType::SUBTRACT; break;
-    case NodeType::MULTIPLY:   syntaxNodeType = NodeType::MULTIPLY; break;
-    case NodeType::DIVIDE:     syntaxNodeType = NodeType::DIVIDE; break;
-    case NodeType::INTEGER:    syntaxNodeType = NodeType::INTEGER; break;
-    case NodeType::SEMICOL:    syntaxNodeType = NodeType::SEMICOL; break;
-    case NodeType::IDENTIFIER: syntaxNodeType = NodeType::IDENTIFIER; break;
-    default:                    syntaxNodeType = NodeType::UNKNOWN;
-}*/
-}
+: syntaxNodeType{_token.type()}, textValue{_token.text()} {}
 
 const tuc::SyntaxNode* tuc::SyntaxNode::parent() const noexcept {
     return parentNode;
@@ -215,7 +200,6 @@ std::tuple<std::unique_ptr<tuc::SyntaxNode>, tuc::SymbolTable> tuc::gen_syntax_t
     };
 
     for (const auto& token: tokenList) {
-        //if (token.type() == tuc::NodeType::INTEGER || token.type() == tuc::NodeType::IDENTIFIER || token.type() == tuc::NodeType::TYPE) {
         if (is_exp_entity(token.type())) {
             if (tempValueExpression) {
                 auto newNode = std::make_unique<tuc::SyntaxNode>(token);
@@ -225,7 +209,6 @@ std::tuple<std::unique_ptr<tuc::SyntaxNode>, tuc::SymbolTable> tuc::gen_syntax_t
             else
                 tempValueExpression = std::make_unique<tuc::SyntaxNode>(token);
         }
-        //else if (token.is_operator() || token.type() == tuc::NodeType::HASTYPE || token.type() == tuc::NodeType::MAPTO) {
         else if (is_highorder_op(token.type())) {
             if (tempValueExpression)
                 nodeStack.push_back(std::move(tempValueExpression));

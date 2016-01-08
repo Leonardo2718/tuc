@@ -3,7 +3,7 @@ Project: OGLA
 File: lexer_tests.cpp
 Author: Leonardo Banderali
 Created: November 2, 2015
-Last Modified: January 5, 2016
+Last Modified: January 8, 2016
 
 Description: A collection of unit tests for the lexer, syntax tree generator,
     and assembly code generator. These unit tests use the Boos Test framework.
@@ -55,7 +55,6 @@ BOOST_AUTO_TEST_CASE(lexer_test) {
             BOOST_TEST(actual_tokens[i].text().index() == expected_tokens[i].text().index());
             BOOST_TEST(actual_tokens[i].text().line() == expected_tokens[i].text().line());
             BOOST_TEST(actual_tokens[i].text().column() == expected_tokens[i].text().column());
-            BOOST_TEST(actual_tokens[i].is_operator() == expected_tokens[i].is_operator());
             BOOST_TEST(actual_tokens[i].precedence() == expected_tokens[i].precedence());
             //BOOST_TEST(actual_tokens[i].fixity() == expected_tokens[i].fixity());
         }

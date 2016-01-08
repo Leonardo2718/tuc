@@ -124,11 +124,6 @@ tuc::TextEntity tuc::Token::text() const noexcept {
     return lexemeInfo;
 }
 
-bool tuc::Token::is_operator() const noexcept {
-    return tokenType == NodeType::ADD || tokenType == NodeType::SUBTRACT ||
-            tokenType == NodeType::MULTIPLY || tokenType == NodeType::DIVIDE;
-}
-
 /*
 if the token is some sort of operator, returns its precedence (-1 if not an operator)
 */

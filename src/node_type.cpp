@@ -1,6 +1,6 @@
 /*
 Project: TUC
-File: node_type.hpp
+File: node_type.cpp
 Author: Leonardo Banderali
 Created: January 8, 2016
 Last Modified: January 8, 2016
@@ -34,51 +34,18 @@ THE SOFTWARE.
 
 */
 
-#ifndef NODE_TYPE_HPP
-#define NODE_TYPE_HPP
+// project headers
+#include "node_type.hpp"
 
-// standard libraries
-#include <initializer_list>
-
-namespace tuc {
-    enum class NodeType {
-        PROGRAM,
-
-        INTEGER,
-        FLOAT,
-        STRING,
-        IDENTIFIER,
-        TYPE,
-        HASTYPE,
-        MAPTO,
-        ADD,
-        SUBTRACT,
-        MULTIPLY,
-        DIVIDE,
-        ASSIGN,
-
-        LPAREN,
-        RPAREN,
-        SEMICOL,
-        LCOMMENT,
-
-        UNKNOWN
-    };
-
-    template <NodeType... types>
-    auto is_type_in(NodeType type) -> bool;
-
-    auto is_literal(NodeType t) -> bool;
-    auto is_exp_entity(NodeType t) -> bool;
-    auto is_highorder_op(NodeType t) -> bool;
+auto tuc::is_literal(NodeType t) -> bool {
+    return is_type_in<NodeType::INTEGER, NodeType::FLOAT, NodeType::STRING>(t);
 }
 
-template <tuc::NodeType... types>
-auto tuc::is_type_in(NodeType type) -> bool {
-    auto flag = false;
-    for (const auto& t: {types...})
-        flag = flag || (t == type);
-    return flag;
+auto tuc::is_exp_entity(NodeType t) -> bool {
+    return is_type_in<NodeType::IDENTIFIER, NodeType::TYPE>(t) || is_literal(t);
 }
 
-#endif//NODE_TYPE_HPP
+auto tuc::is_highorder_op(NodeType t) -> bool {
+    return is_type_in<NodeType::HASTYPE, NodeType::MAPTO, NodeType::ADD, NodeType::SUBTRACT, NodeType::MULTIPLY,
+                        NodeType::DIVIDE,NodeType::ASSIGN>(t);
+}
