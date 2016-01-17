@@ -36,7 +36,6 @@ THE SOFTWARE.
 
 // project headers
 #include "syntax_tree.hpp"
-#include "compiler_exceptions.hpp"
 
 
 
@@ -94,7 +93,7 @@ void tuc::SyntaxNode::append_child(std::unique_ptr<SyntaxNode>&& c) noexcept {
 /*
 removes and returns child with index `i`
 */
-std::unique_ptr<SyntaxNode> remove(int i) {
+std::unique_ptr<tuc::SyntaxNode> tuc::SyntaxNode::remove(int i) {
     auto c = std::move(children[i]);
     children.erase(children.begin() + i);
     return c;
@@ -173,80 +172,4 @@ puts a textual representation of a node hierarchy in an output stream
 */
 std::ostream& operator<< (std::ostream& os, const std::unique_ptr<tuc::SyntaxNode, std::default_delete<tuc::SyntaxNode>>& node) {
     return os << node.get();
-}
-
-
-
-//~function implementations~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-/*
-generate a syntax tree from a list of tokens
-*/
-std::unique_ptr<tuc::SyntaxNode> tuc::gen_syntax_tree(const std::vector<tuc::Token>& tokenList) {
-    auto treeRoot = std::make_unique<tuc::SyntaxNode>(tuc::NodeType::PROGRAM);
-    auto nodeStack = std::vector<std::unique_ptr<tuc::SyntaxNode>>{};
-    auto operatorStack = std::vector<tuc::Token>{};
-    auto tempValueExpression = std::unique_ptr<tuc::SyntaxNode>{};  // a temporary node for a value expression
-                                                                    // (combination of literals, types, and identifiers)
-
-    auto popTokenToNodeStack = [&](){
-        auto t = operatorStack.back();
-        operatorStack.pop_back();
-        auto op = std::make_unique<tuc::SyntaxNode>(t);
-        auto n2 = std::move(nodeStack.back());
-        nodeStack.pop_back();
-        auto n1 = std::move(nodeStack.back());
-        nodeStack.pop_back();
-        op->append_child(std::move(n1));
-        op->append_child(std::move(n2));
-        nodeStack.push_back(std::move(op));
-    };
-
-    for (const auto& token: tokenList) {
-        if (is_exp_entity(token.type())) {
-            if (tempValueExpression) {
-                auto newNode = std::make_unique<tuc::SyntaxNode>(token);
-                newNode->append_child(std::move(tempValueExpression));
-                tempValueExpression = std::move(newNode);
-            }
-            else
-                tempValueExpression = std::make_unique<tuc::SyntaxNode>(token);
-        }
-        else if (is_highorder_op(token.type())) {
-            if (tempValueExpression)
-                nodeStack.push_back(std::move(tempValueExpression));
-            while(!operatorStack.empty() && (
-                        (token.fixity() == Associativity::LEFT && token.precedence() <= operatorStack.back().precedence()) ||
-                        (token.fixity() == Associativity::RIGHT && token.precedence() < operatorStack.back().precedence()) )) {
-                popTokenToNodeStack();
-            }
-            operatorStack.push_back(token);
-        }
-        else if (token.type() == tuc::NodeType::LPAREN) {
-            operatorStack.push_back(token);
-        }
-        else if (token.type() == tuc::NodeType::RPAREN) {
-            if (tempValueExpression)
-                nodeStack.push_back(std::move(tempValueExpression));
-            while(operatorStack.back().type() != tuc::NodeType::LPAREN) {
-                popTokenToNodeStack();
-                if (operatorStack.empty())
-                    throw tuc::CompilerException::MismatchedParenthesis{token.text()};
-            }
-            operatorStack.pop_back();
-        }
-        else if (token.type() == tuc::NodeType::SEMICOL) {
-            if (tempValueExpression)
-                nodeStack.push_back(std::move(tempValueExpression));
-            while (!operatorStack.empty()) {
-                if (operatorStack.back().type() == tuc::NodeType::LPAREN)
-                    throw tuc::CompilerException::MismatchedParenthesis{operatorStack.back().text()};
-                popTokenToNodeStack();
-            }
-            treeRoot->append_child(std::move(nodeStack.back()));
-            nodeStack.clear();
-        }
-    }
-
-    return treeRoot;
 }

@@ -37,6 +37,9 @@ THE SOFTWARE.
 
 #include "tuc_unit_tests.hpp"
 
+// tuc headers
+#include "parser.hpp"
+
 // c++ standard libraries
 #include <tuple>
 #include <deque>
@@ -66,7 +69,6 @@ BOOST_AUTO_TEST_CASE(parser_test) {
         context << "expected node:\n" << expectedNode << "\n    actual node:\n" << actualNode;
         BOOST_TEST_CONTEXT(context.str()) {
             //BOOST_TEST(actualNode->type() == expectedNode->type());
-            BOOST_TEST(actualNode->is_operator() == expectedNode->is_operator());
             BOOST_TEST(actualNode->value() == expectedNode->value());
             BOOST_TEST(actualNode->position().file_path() == expectedNode->position().file_path());
             BOOST_TEST(actualNode->position().index() == expectedNode->position().index());

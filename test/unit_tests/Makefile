@@ -10,7 +10,7 @@ SOURCES	= $(SRCDIR)/*
 HEADERS	= $(INCLUDEDIR)/*
 
 TESTFILES	= lexer_tests.cpp parser_tests.cpp tuc_unit_tests.cpp
-TUCFILES	= text_entity.cpp grammar.cpp lexer.cpp syntax_tree.cpp compiler_exceptions.cpp node_type.cpp
+TUCFILES	= text_entity.cpp grammar.cpp lexer.cpp syntax_tree.cpp parser.cpp compiler_exceptions.cpp node_type.cpp
 
 TESTOBJS	= $(addprefix obj/,$(subst .cpp,.o,$(TESTFILES)))
 TUCOBJS		= $(addprefix obj/__tuc_,$(subst .cpp,.o,$(TUCFILES)))

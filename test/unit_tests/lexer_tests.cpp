@@ -37,6 +37,9 @@ THE SOFTWARE.
 
 #include "tuc_unit_tests.hpp"
 
+// tuc headers
+#include "lexer.hpp"
+
 
 
 //~test cases~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

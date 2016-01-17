@@ -37,7 +37,6 @@ THE SOFTWARE.
 
 // tuc headers
 #include "text_entity.hpp"
-#include "lexer.hpp"
 #include "syntax_tree.hpp"
 #include "asm_generator.hpp"
 

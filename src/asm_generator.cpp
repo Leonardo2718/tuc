@@ -50,8 +50,10 @@ std::string tuc::gen_expr_asm(SyntaxNode* node, const SymbolTable& symTable) {
     auto outputASM = std::stringstream{};
     auto firstOperand = node->child(0);
     auto secondOperand = node->child(1);
-    auto firstIsOperator = firstOperand->is_operator();
-    auto secondIsOperator = secondOperand->is_operator();
+    //auto firstIsOperator = firstOperand->is_operator();
+    //auto secondIsOperator = secondOperand->is_operator();
+    auto firstIsOperator = is_highorder_op(firstOperand->type());
+    auto secondIsOperator = is_highorder_op(secondOperand->type());
     auto firstIsLiteral = (firstOperand->type() == NodeType::INTEGER);
     auto secondIsLiteral = (secondOperand->type() == NodeType::INTEGER);
 

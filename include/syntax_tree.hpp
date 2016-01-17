@@ -53,9 +53,6 @@ THE SOFTWARE.
 
 namespace tuc {
     class SyntaxNode;   // represents a node of a syntax tree
-
-    // generate a syntax tree and symbol table from a list of tokens
-    std::unique_ptr<SyntaxNode> gen_syntax_tree(const std::vector<Token>& tokenList);
 }
 
 
@@ -107,7 +104,6 @@ class tuc::SyntaxNode {
         SyntaxNode* parentNode = nullptr;
         NodeType syntaxNodeType;
         TextEntity textValue;
-        SymbolTable symbols;
 };
 
 

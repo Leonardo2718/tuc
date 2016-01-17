@@ -37,7 +37,7 @@ THE SOFTWARE.
 // project headers
 #include "compiler_exceptions.hpp"
 #include "lexer.hpp"
-#include "syntax_tree.hpp"
+#include "parser.hpp"
 #include "asm_generator.hpp"
 
 // c++ standard libraries
