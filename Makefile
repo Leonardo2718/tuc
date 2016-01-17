@@ -3,11 +3,14 @@ CXX			= g++
 CXXFLAGS	= -Wall -std=c++14 -iquoteinclude
 
 # prerequisite files
-HEADERS		= include/grammar.hpp include/lexer.hpp include/syntax_tree.hpp include/parser.hpp include/asm_generator.hpp \
-	include/symbol_table.hpp include/compiler_exceptions.hpp include/text_entity.hpp include/node_type.hpp\
-	include/u_language.hpp
-SOURCES		= src/tuc.cpp src/grammar.cpp src/lexer.cpp src/syntax_tree.cpp src/parser.cpp src/asm_generator.cpp \
-	src/symbol_table.cpp src/compiler_exceptions.cpp src/text_entity.cpp src/node_type.cpp
+HEADERFILES = grammar.hpp lexer.hpp syntax_tree.hpp parser.hpp asm_generator.hpp symbol_table.hpp \
+	compiler_exceptions.hpp text_entity.hpp node_type.hpp u_language.hpp
+
+SOURCEFILES = tuc.cpp grammar.cpp lexer.cpp syntax_tree.cpp parser.cpp asm_generator.cpp symbol_table.cpp \
+	compiler_exceptions.cpp text_entity.cpp node_type.cpp
+
+HEADERS		= $(addprefix include/,$(HEADERFILES))
+SOURCES		= $(addprefix src/,$(SOURCEFILES))
 OBJS		= $(subst src,obj,$(subst .cpp,.o,$(SOURCES)))
 
 
