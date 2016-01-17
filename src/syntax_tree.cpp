@@ -3,7 +3,7 @@ Project: TUC
 File: syntax_tree.cpp
 Author: Leonardo Banderali
 Created: September 6, 2015
-Last Modified: January 8, 2016
+Last Modified: January 17, 2016
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -91,13 +91,17 @@ void tuc::SyntaxNode::append_child(std::unique_ptr<SyntaxNode>&& c) noexcept {
     children.push_back(std::move(c));
 }
 
-tuc::NodeType tuc::SyntaxNode::type() const noexcept {
-    return syntaxNodeType;
+/*
+removes and returns child with index `i`
+*/
+std::unique_ptr<SyntaxNode> remove(int i) {
+    auto c = std::move(children[i]);
+    children.erase(children.begin() + i);
+    return c;
 }
 
-bool tuc::SyntaxNode::is_operator() const noexcept {
-    return syntaxNodeType == NodeType::ADD || syntaxNodeType == NodeType::SUBTRACT ||
-            syntaxNodeType == NodeType::MULTIPLY || syntaxNodeType == NodeType::DIVIDE;
+tuc::NodeType tuc::SyntaxNode::type() const noexcept {
+    return syntaxNodeType;
 }
 
 std::string tuc::SyntaxNode::value() const noexcept {
@@ -178,9 +182,8 @@ std::ostream& operator<< (std::ostream& os, const std::unique_ptr<tuc::SyntaxNod
 /*
 generate a syntax tree from a list of tokens
 */
-std::tuple<std::unique_ptr<tuc::SyntaxNode>, tuc::SymbolTable> tuc::gen_syntax_tree(const std::vector<tuc::Token>& tokenList) {
+std::unique_ptr<tuc::SyntaxNode> tuc::gen_syntax_tree(const std::vector<tuc::Token>& tokenList) {
     auto treeRoot = std::make_unique<tuc::SyntaxNode>(tuc::NodeType::PROGRAM);
-    auto symTable = SymbolTable{};
     auto nodeStack = std::vector<std::unique_ptr<tuc::SyntaxNode>>{};
     auto operatorStack = std::vector<tuc::Token>{};
     auto tempValueExpression = std::unique_ptr<tuc::SyntaxNode>{};  // a temporary node for a value expression
@@ -245,5 +248,5 @@ std::tuple<std::unique_ptr<tuc::SyntaxNode>, tuc::SymbolTable> tuc::gen_syntax_t
         }
     }
 
-    return std::make_tuple(std::move(treeRoot), symTable);
+    return treeRoot;
 }
