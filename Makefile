@@ -3,7 +3,7 @@ CXX			= g++
 CXXFLAGS	= -Wall -std=c++14 -iquoteinclude
 
 # prerequisite files
-HEADERFILES = grammar.hpp lexer.hpp syntax_tree.hpp parser.hpp asm_generator.hpp symbol_table.hpp \
+HEADERFILES = abstract_tree.hpp grammar.hpp lexer.hpp syntax_tree.hpp parser.hpp asm_generator.hpp symbol_table.hpp \
 	compiler_exceptions.hpp text_entity.hpp node_type.hpp u_language.hpp
 
 SOURCEFILES = tuc.cpp grammar.cpp lexer.cpp syntax_tree.cpp parser.cpp asm_generator.cpp symbol_table.cpp \

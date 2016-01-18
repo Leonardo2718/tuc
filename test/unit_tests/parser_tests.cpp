@@ -39,6 +39,7 @@ THE SOFTWARE.
 
 // tuc headers
 #include "parser.hpp"
+#include "abstract_tree.hpp"
 
 // c++ standard libraries
 #include <tuple>

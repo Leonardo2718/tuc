@@ -43,6 +43,8 @@ THE SOFTWARE.
 
 
 
+//~declare namespace members~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 namespace tuc {
     // generate a syntax tree and symbol table from a list of tokens
     std::unique_ptr<SyntaxNode> gen_syntax_tree(const std::vector<Token>& tokenList);

@@ -39,6 +39,7 @@ THE SOFTWARE.
 #include "lexer.hpp"
 #include "parser.hpp"
 #include "asm_generator.hpp"
+#include "abstract_tree.hpp"
 
 // c++ standard libraries
 #include <memory>
@@ -64,7 +65,7 @@ int main(int argc, char** argv) {
             auto outputASM = std::ostringstream{};
             outputASM << "section .text\nglobal _start\n\n_start:\n";
 
-            //std::cout << syntaxTreeRoot;    // useful for debugging
+            //std::cout << syntaxTreeRoot.get();  // useful for debugging
 
             for (int i = 0, count = syntaxTreeRoot->child_count(); i < count; i++) {
                 auto n = syntaxTreeRoot->child(i);

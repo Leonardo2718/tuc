@@ -38,6 +38,7 @@ THE SOFTWARE.
 #define TUC_SYNTAX_TREE_HPP
 
 // project headers
+#include "abstract_tree.hpp"
 #include "grammar.hpp"
 #include "text_entity.hpp"
 
@@ -59,7 +60,7 @@ namespace tuc {
 
 //~class declarations~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-class tuc::SyntaxNode {
+class tuc::SyntaxNode : public AbstractTreeNode<tuc::SyntaxNode> {
     public:
         SyntaxNode(NodeType _type);
 
@@ -67,29 +68,6 @@ class tuc::SyntaxNode {
 
         explicit SyntaxNode(const Token& _token);
         /*  constructs a node from a syntax token */
-
-        const SyntaxNode* parent() const noexcept;
-
-        SyntaxNode* parent() noexcept;
-
-        const SyntaxNode* child(int i) const noexcept;
-        /*  returns child with index `i` */
-
-        SyntaxNode* child(int i) noexcept;
-
-        int child_count() const noexcept;
-
-        void append_child(NodeType _type, const TextEntity& _textValue);
-
-        void append_child(const Token& _token);
-
-        void append_child(std::unique_ptr<SyntaxNode>&& c) noexcept;
-        /*  appends an already existing (allocated) child; since this node must "own" the child, move semantics *must*
-            be used to transfer ownership.
-        */
-
-        std::unique_ptr<SyntaxNode> remove(int i);
-        /*  removes and returns child with index `i` */
 
         NodeType type() const noexcept;
 
@@ -110,10 +88,7 @@ class tuc::SyntaxNode {
 
 //~overloaded functions~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-std::ostream& operator<< (std::ostream& os, const tuc::SyntaxNode* node);
-/*  puts a textual representation of a node hierarchy in an output stream */
-
-std::ostream& operator<< (std::ostream& os, const std::unique_ptr<tuc::SyntaxNode, std::default_delete<tuc::SyntaxNode>>& node);
-/*  puts a textual representation of a node hierarchy in an output stream */
+std::ostream& operator<< (std::ostream& os, const tuc::SyntaxNode& node);
+/*  puts textual representation of node in an output stream */
 
 #endif//TUC_SYNTAX_TREE_HPP
