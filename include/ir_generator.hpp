@@ -1,9 +1,9 @@
 /*
 Project: TUC
-File: node_type.hpp
+File: ir_generator.hpp
 Author: Leonardo Banderali
-Created: January 8, 2016
-Last Modified: January 8, 2016
+Created: June 25, 2016
+Last Modified: July 1, 2016
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -34,52 +34,46 @@ THE SOFTWARE.
 
 */
 
-#ifndef NODE_TYPE_HPP
-#define NODE_TYPE_HPP
+#ifndef TUC_IR_GENERATOR_HPP
+#define TUC_IR_GENERATOR_HPP
+
+// project headers
+#include "syntax_tree.hpp"
+#include "inter_lang.hpp"
 
 // standard libraries
-#include <initializer_list>
+#include <unordered_map>
+
+
+
+//~declare namespace members~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 namespace tuc {
-    enum class NodeType {
-        PROGRAM,
 
-        INTEGER,
-        FLOAT,
-        STRING,
-        IDENTIFIER,
-        TYPE,
-        HASTYPE,
-        MAPTO,
-        ADD,
-        SUBTRACT,
-        MULTIPLY,
-        DIVIDE,
-        ASSIGN,
+class VariableFactory;
 
-        LPAREN,
-        RPAREN,
-        SEMICOL,
-        LCOMMENT,
+auto generate_ir(const SyntaxNode* syntax_tree) -> IntermediateRepresentation;
 
-        UNKNOWN
-    };
-
-    template <NodeType... types>
-    auto is_type_in(NodeType type) -> bool;
-
-    auto is_literal(NodeType t) -> bool;
-    auto is_exp_entity(NodeType t) -> bool;
-    auto is_arithmetic(NodeType t) -> bool;
-    auto is_highorder_op(NodeType t) -> bool;
 }
 
-template <tuc::NodeType... types>
-auto tuc::is_type_in(NodeType type) -> bool {
-    auto flag = false;
-    for (const auto& t: {types...})
-        flag = flag || (t == type);
-    return flag;
-}
+class tuc::VariableFactory {
+    public:
 
-#endif//NODE_TYPE_HPP
+        static constexpr auto Anonymous = "__temp__";
+
+        static auto get_variable(const std::string& base_name = Anonymous) -> tuc::Value {
+            if (variable_list.count(base_name) == 0) {
+                variable_list[base_name] = 0;
+            }
+
+            auto suffix = variable_list[base_name];
+            variable_list[base_name] = suffix + 1;
+
+            return tuc::Value{tuc::Value::ValueKind::Variable, base_name + "#" + std::to_string(suffix)};
+        }
+
+    private:
+        static std::unordered_map<std::string, unsigned int> variable_list;
+};
+
+#endif // TUC_IR_GENERATOR_HPP

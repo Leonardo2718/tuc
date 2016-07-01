@@ -45,6 +45,11 @@ auto tuc::is_exp_entity(NodeType t) -> bool {
     return is_type_in<NodeType::IDENTIFIER, NodeType::TYPE>(t) || is_literal(t);
 }
 
+auto tuc::is_arithmetic(NodeType t) -> bool {
+    return is_type_in<NodeType::ADD, NodeType::SUBTRACT, NodeType::MULTIPLY,NodeType::DIVIDE,
+                        NodeType::INTEGER, NodeType::FLOAT>(t);
+}
+
 auto tuc::is_highorder_op(NodeType t) -> bool {
     return is_type_in<NodeType::HASTYPE, NodeType::MAPTO, NodeType::ADD, NodeType::SUBTRACT, NodeType::MULTIPLY,
                         NodeType::DIVIDE,NodeType::ASSIGN>(t);

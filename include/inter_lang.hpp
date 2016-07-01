@@ -3,7 +3,7 @@ Project: TUC
 File: inter_lang.hpp
 Author: Leonardo Banderali
 Created: June 18, 2016
-Last Modified: June 25, 2016
+Last Modified: July 1, 2016
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -43,6 +43,7 @@ THE SOFTWARE.
 // standard libraries
 #include <string>
 #include <vector>
+#include <ostream>
 
 
 
@@ -80,17 +81,19 @@ Class for representing an three-operand operations.
 */
 class Operation {
     public:
-        enum class OperationType {ADD, SUBTRACT, MULTIPLY, DIVIDE, MODULUS};
+        enum class OperationType {ADD, SUB, MUL, DIV, MOD};
 
-        Operation(OperationType _operation, Value _dest, Value _src_one, Value _src_two);
+        Operation(OperationType _operation, Value _dest, Value _src_one, Value _src_two)
+                : opType{_operation}, dest{_dest}, src_one{_src_one}, src_two{_src_two} {}
 
-        auto operation() -> OperationType const noexcept { return opType; }
 
-        auto destination() -> Value const noexcept { return dest; }
+        auto operation() const noexcept -> OperationType { return opType; }
 
-        auto source_one() -> Value const noexcept { return src_one; }
+        auto destination() const noexcept -> Value { return dest; }
 
-        auto source_two() -> Value const noexcept { return src_two; }
+        auto source_one() const noexcept -> Value { return src_one; }
+
+        auto source_two() const noexcept -> Value { return src_two; }
 
     private:
         OperationType opType;
@@ -102,5 +105,13 @@ class Operation {
 using IntermediateRepresentation = std::vector<Operation>;
 
 } // namespace tuc
+
+std::ostream& operator << (std::ostream& os, const tuc::Value& val);
+
+std::ostream& operator << (std::ostream& os, tuc::Operation::OperationType op_type);
+
+std::ostream& operator << (std::ostream& os, const tuc::Operation& op);
+
+std::ostream& operator << (std::ostream& os, const tuc::IntermediateRepresentation& ir);
 
 #endif // TUC_INTER_REP_HPP

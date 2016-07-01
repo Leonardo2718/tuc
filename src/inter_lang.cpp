@@ -1,9 +1,9 @@
 /*
 Project: TUC
-File: node_type.hpp
+File: inter_lang.cpp
 Author: Leonardo Banderali
-Created: January 8, 2016
-Last Modified: January 8, 2016
+Created: June 19, 2016
+Last Modified: July 1, 2016
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -34,52 +34,51 @@ THE SOFTWARE.
 
 */
 
-#ifndef NODE_TYPE_HPP
-#define NODE_TYPE_HPP
+// project headers
+#include "inter_lang.hpp"
 
-// standard libraries
-#include <initializer_list>
 
-namespace tuc {
-    enum class NodeType {
-        PROGRAM,
 
-        INTEGER,
-        FLOAT,
-        STRING,
-        IDENTIFIER,
-        TYPE,
-        HASTYPE,
-        MAPTO,
-        ADD,
-        SUBTRACT,
-        MULTIPLY,
-        DIVIDE,
-        ASSIGN,
+//~function implementation~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        LPAREN,
-        RPAREN,
-        SEMICOL,
-        LCOMMENT,
+std::ostream& operator << (std::ostream& os, const tuc::Value& val) {
+    if (val.kind() == tuc::Value::ValueKind::Variable) {
+        os << "{" << val.value() << "}";
+    }
+    else {
+        os << val.value();
+    }
 
-        UNKNOWN
-    };
-
-    template <NodeType... types>
-    auto is_type_in(NodeType type) -> bool;
-
-    auto is_literal(NodeType t) -> bool;
-    auto is_exp_entity(NodeType t) -> bool;
-    auto is_arithmetic(NodeType t) -> bool;
-    auto is_highorder_op(NodeType t) -> bool;
+    return os;
 }
 
-template <tuc::NodeType... types>
-auto tuc::is_type_in(NodeType type) -> bool {
-    auto flag = false;
-    for (const auto& t: {types...})
-        flag = flag || (t == type);
-    return flag;
+std::ostream& operator << (std::ostream& os, tuc::Operation::OperationType op_type) {
+    using OpType = tuc::Operation::OperationType;
+
+    switch (op_type) {
+        case OpType::ADD: os << "ADD"; break;
+        case OpType::SUB: os << "SUB"; break;
+        case OpType::MUL: os << "MUL"; break;
+        case OpType::DIV: os << "DIV"; break;
+        case OpType::MOD: os << "MOD"; break;
+    }
+
+    return os;
 }
 
-#endif//NODE_TYPE_HPP
+std::ostream& operator << (std::ostream& os, const tuc::Operation& op) {
+    os << op.operation() << " "
+       << op.destination() << " "
+       << op.source_one() << " "
+       << op.source_two();
+
+    return os;
+}
+
+std::ostream& operator << (std::ostream& os, const tuc::IntermediateRepresentation& ir) {
+    for (auto&& op : ir) {
+        os << op << "\n";
+    }
+
+    return os;
+}
