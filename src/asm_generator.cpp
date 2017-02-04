@@ -3,7 +3,7 @@ Project: TUC
 File: asm_generator.cpp
 Author: Leonardo Banderali
 Created: October 6, 2015
-Last Modified: January 8, 2016
+Last Modified: July 2, 2016
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -39,6 +39,11 @@ THE SOFTWARE.
 
 // standard libraries
 #include <sstream>
+#include <iostream>
+#include <deque>
+#include <vector>
+#include <unordered_map>
+#include <algorithm>
 
 
 
@@ -116,4 +121,59 @@ std::string tuc::gen_expr_asm(SyntaxNode* node, const SymbolTable& symTable) {
     }
 
     return outputASM.str();
+}
+
+/*
+generates assembly code from intermediate representation
+*/
+std::string tuc::generate_asm(const IntermediateRepresentation& ir) {
+    auto outputASM = std::vector<std::string>{};
+    //auto poped_regs = std::deque<std::string>{};
+    auto reg_stack = std::deque<std::string>{};
+    auto mapped_regs = std::unordered_map<std::string, std::string>{};
+    auto mapped_vars = std::unordered_map<std::string, unsigned int>{};
+    auto var_map = std::unordered_map<std::string, std::string>{};
+
+    for (auto op = ir.cbegin(), end_op = ir.cend(); op != end_op; ++op) {
+        using OpType = Operation::OperationType;
+        using ValKind = Value::ValueKind;
+        auto instruction = std::stringstream{};
+
+        auto src1 = op->source_one();
+        auto src2 = op->source_two();
+
+        if (op->operation() == OpType::ADD) {
+            if (src1.kind() == ValKind::Literal && src2.kind() == ValKind::Literal) {
+                instruction << "mov" << " " << "eax" << " " << src1.value();
+                outputASM.push_back(instruction.str());
+
+                instruction.str(std::string{});
+
+                instruction << "add" << " " << "eax" << " " << src2.value();
+                outputASM.push_back(instruction.str());
+                var_map[op->destination().value()] = "eax";
+            }
+            else if  (src1.kind() == ValKind::Variable && src2.kind() == ValKind::Literal) {
+                instruction << "add" << " " << var_map.at(src1.value()) << " " << src2.value();
+                outputASM.push_back(instruction.str());
+                var_map[op->destination().value()] = "eax";
+            }
+        }
+
+        auto next_op = op + 1;
+        if (next_op != end_op) {
+            auto destName = op->destination().value();
+            if (next_op->source_one().value() != destName && next_op->source_two().value() != destName) {
+                instruction.str(std::string{});
+                instruction << "push" << " " << var_map.at(destName);
+                outputASM.push_back(instruction.str());
+            }
+        }
+    }
+
+    auto output = std::stringstream{};
+    for (auto&& i : outputASM) {
+        output << i << "\n";
+    }
+    return output.str();
 }

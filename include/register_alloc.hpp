@@ -1,9 +1,9 @@
 /*
 Project: TUC
-File: asm_generator.hpp
+File: register_alloc.hpp
 Author: Leonardo Banderali
-Created: October 6, 2015
-Last Modified: July 2, 2016
+Created: August 21, 2016
+Last Modified: August 21, 2016
 
 Description:
     TUC is a simple, experimental compiler designed for learning and experimenting.
@@ -34,27 +34,50 @@ THE SOFTWARE.
 
 */
 
-#ifndef ASM_GENERATOR_HPP
-#define ASM_GENERATOR_HPP
+#ifndef REGISTER_ALLOC_HPP
+#define REGISTER_ALLOC_HPP
 
 // project headers
-#include "syntax_tree.hpp"
 #include "inter_lang.hpp"
-#include "symbol_table.hpp"
 
 // standard libraries
 #include <string>
+#include <vector>
+#include <unordered_map>
+#include <utility>
 
 
 
 //~declare namespace members~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 namespace tuc {
-    std::string gen_expr_asm(SyntaxNode* node, const SymbolTable& symTable);
-    /*  generates assembly code from a syntax tree and symbol table */
+    class RegisterMap;
 
-    std::string generate_asm(const IntermediateRepresentation& ir);
-    /*  generates assembly code from intermediate representation */
+    IntermediateRepresentation allocate_registers(IntermediateRepresentation const & ir);
+    /*  allocate registers to variables in the intermediate language */
+}
+
+
+
+//~class declarations~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+class tuc::RegisterMap {
+        using Variable = std::string;
+        using Register = std::string;
+
+    public:
+        auto register_for(Variable const & var) -> Register;
+        /*  returns register associated with variable `var` */
+
+        auto variable_for(Register const & reg) -> Variable;
+        /*  returns variable associated with register `reg` */
+
+        auto associate(Register const & reg, Variable const & var) -> void;
+        /*  associates variable `var` with register `reg` */
+
+    private:
+        std::unordered_map<Register, Variable> reg_map;
+        std::unordered_map<Variable, Register> var_map;
 };
 
-#endif//ASM_GENERATOR_HPP
+#endif // REGISTER_ALLOC_HPP

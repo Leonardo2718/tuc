@@ -39,6 +39,7 @@ THE SOFTWARE.
 #include "lexer.hpp"
 #include "parser.hpp"
 #include "ir_generator.hpp"
+#include "register_alloc.hpp"
 #include "asm_generator.hpp"
 #include "abstract_tree.hpp"
 
@@ -64,7 +65,10 @@ int main(int argc, char** argv) {
 
             // generate and intermediate representation
             auto ir = tuc::generate_ir(syntaxTreeRoot.get());
-            std::cout << ir;
+            std::cout << "IR:\n" << ir;
+
+            auto reg_alloc_ir = tuc::allocate_registers(ir);
+            std::cout << "Register Allocated IR:\n" << reg_alloc_ir;
 
             // generate the asembly code
             auto outputASM = std::ostringstream{};

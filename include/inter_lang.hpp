@@ -63,7 +63,9 @@ Class for representing values (variables and literals) in the intermediate langu
 */
 class Value {
     public:
-        enum class ValueKind {Variable, Literal};
+        enum class ValueKind {Variable, Literal, NONE};
+
+        Value() : val_kind{ValueKind::NONE}, val{""} {}
 
         Value(ValueKind _kind, std::string _value) : val_kind{_kind}, val{_value} {}
 
@@ -81,7 +83,7 @@ Class for representing an three-operand operations.
 */
 class Operation {
     public:
-        enum class OperationType {ADD, SUB, MUL, DIV, MOD};
+        enum class OperationType {ADD, SUB, MUL, DIV, MOD, SAVE, LOAD, NOP};
 
         Operation(OperationType _operation, Value _dest, Value _src_one, Value _src_two)
                 : opType{_operation}, dest{_dest}, src_one{_src_one}, src_two{_src_two} {}

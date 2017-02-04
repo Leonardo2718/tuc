@@ -56,11 +56,14 @@ std::ostream& operator << (std::ostream& os, tuc::Operation::OperationType op_ty
     using OpType = tuc::Operation::OperationType;
 
     switch (op_type) {
-        case OpType::ADD: os << "ADD"; break;
-        case OpType::SUB: os << "SUB"; break;
-        case OpType::MUL: os << "MUL"; break;
-        case OpType::DIV: os << "DIV"; break;
-        case OpType::MOD: os << "MOD"; break;
+        case OpType::ADD:  os << "ADD"; break;
+        case OpType::SUB:  os << "SUB"; break;
+        case OpType::MUL:  os << "MUL"; break;
+        case OpType::DIV:  os << "DIV"; break;
+        case OpType::MOD:  os << "MOD"; break;
+        case OpType::SAVE: os << "SAVE"; break;
+        case OpType::LOAD: os << "LOAD"; break;
+        case OpType::NOP:  os << "NOP"; break;
     }
 
     return os;

@@ -14,6 +14,7 @@ HEADERFILES = \
 	compiler_exceptions.hpp \
 	text_entity.hpp \
 	inter_lang.hpp \
+	register_alloc.hpp \
 	ir_generator.hpp \
 	node_type.hpp \
 	u_language.hpp
@@ -29,6 +30,7 @@ SOURCEFILES = \
 	compiler_exceptions.cpp \
 	text_entity.cpp \
 	inter_lang.cpp \
+	register_alloc.cpp \
 	ir_generator.cpp \
 	node_type.cpp
 
@@ -47,4 +49,4 @@ obj/%.o: src/%.cpp $(HEADERS) Makefile
 	$(CXX) $(CXXFLAGS) -c "$<" -o "$@"
 
 clean:
-	rm $(OBJS)
+	rm -f $(OBJS)
