@@ -17,16 +17,31 @@ tuc translates U source code into assembly code for the [nasm](http://www.nasm.u
 tuc is very primitive at the moment.  So, only simple mathematical expressions can be compiled. Hopefully, this will
 change very soon.
 
+An interested feature is that it is implemented in different languages. Currently, these are:
+
+* C++
+* Rust
+
 **Note: tuc is not intended to have any useful purpose other than being a way to learn how compilers work.**
 
 ## Building
 
-To build tuc, just run `make`.  This will create an executable called `tuc` in the current directory.
+The process of building rust depends on which implementation you want to build. In all cases, however, the build
+process will produce an executable called `tuc`.
+
+### C++
+
+1. `cd cpp`
+2. `make`
+
+### Rust
+
+[TODO]
 
 ## Using
 
 Once you've built tuc, compiling source code into assembly is very simple.  tuc only takes two arguments: the name of
-a U source file and the name of the assembly file to be generated.  
+a U source file and the name of the assembly file to be generated.
 
 Suppose you created a U source file called `uncreativename.ul`.  Here is how you could build an executable for a 32-bit
 Linux system using `nasm` and `ld`:
@@ -40,10 +55,10 @@ You can try using another "nasm compatible" assembler but your millage may vary.
 
 ## Testing
 
-The `test/` directory contains some tests useful during development.  
+The `test/` directory contains some tests useful during development.
 
 Unit tests for individual components of the program are in `test/unit_tests/`.  These use the Boost Test library so you
-will need to have it installed in order to build the unit tests.  
+will need to have it installed in order to build the unit tests.
 
 Actual tests of the compiler are in `test/compiler_tests`.  These are simple projects that can be commpiled using tuc.
 They are useful to make sure the compiler actually compiles... correctly.  They also server as good examples of how to
