@@ -31,30 +31,23 @@ THE SOFTWARE.
 
 */
 
-use std::fmt;
+use std::env;
 
-#[derive(Eq,PartialEq,Clone,Debug)]
-pub struct FilePosition {
-    pub file_path: String,
-    pub index: usize,
-    pub line: usize,
-    pub column: usize
+pub fn is_flag_set(kind: &str, name: &str) -> bool {
+    let args: Vec<_> = env::args().collect();
+    let flag = String::from("-") + kind + name;
+    args.contains(&flag)
 }
 
-impl fmt::Display for FilePosition {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}:{}:{}", self.file_path, self.line, self.column)
+pub fn get_positional(index: u32) -> Option<String> {
+    let mut i = index;
+    let args: Vec<String> = env::args().collect();
+    for arg in args {
+        let c = match arg.chars().nth(0) { Some(c) => c, None => return None };
+        if c == '-' { continue; }
+        else if i > 0 { i -= i; }
+        else { return Some(arg); }
     }
-}
 
-#[derive(Eq,PartialEq,Clone,Debug)]
-pub struct SourceSnippit {
-    pub snippit: String,
-    pub position: FilePosition,
-}
-
-impl fmt::Display for SourceSnippit {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Snippit({}, {})", self.snippit, self.position)
-    }
+    return None;
 }

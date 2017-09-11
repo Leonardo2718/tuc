@@ -31,9 +31,14 @@ THE SOFTWARE.
 
 */
 
+use debug;
 use source;
 
 use std::fmt;
+
+macro_rules! traceln {
+    ($($arg:tt)+) => { if debug::trace_enabled("lex") { println!($($arg)+) } }
+}
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub enum TokenType {
@@ -57,15 +62,30 @@ impl fmt::Display for TokenType {
 #[derive(Eq,PartialEq,Clone,Debug)]
 pub struct Token(pub TokenType, pub source::SourceSnippit);
 
+impl fmt::Display for Token {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Token({}, {})", (*self).0, (*self).1)
+    }
+}
+
 pub type TokenList = Vec<Token>;
 
-pub fn lex(source: &str, source_path: &str) -> TokenList {
-    enum State {
-        EatChar,
-        EatLine,
-        EatIdentifier,
-        EatNumber
+#[derive(Debug)]
+enum State {
+    EatChar,
+    EatLine,
+    EatIdentifier,
+    EatNumber
+}
+
+impl fmt::Display for State {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", *self)
     }
+}
+
+pub fn lex(source: &str, source_path: &str) -> TokenList {
+    traceln!("Lexing code from '{}':\n```\n{}\n```", source_path, source);
 
     let operators: [char; 8] = [':', '=', '-', '+', '*', '/', '<', '>'];
     let keywords: [&str; 1] = ["int"];
@@ -83,10 +103,12 @@ pub fn lex(source: &str, source_path: &str) -> TokenList {
 
     let mut chars = source.chars().peekable();
     loop {
-        let c = match chars.next() {
+        let current_char = match chars.next() {
             None => break,
             Some(c) => c
         };
+        traceln!("Reading character {:?} <index={},line={},column={}>", current_char, index, line, column);
+        traceln!("  current state: {}", state);
 
         match state {
             State::EatChar => {
@@ -94,42 +116,70 @@ pub fn lex(source: &str, source_path: &str) -> TokenList {
                 position.line = line;
                 position.column = column;
 
-                if c.is_whitespace() {
-                    if c == '\n' {move_line = true;};
+                if current_char.is_whitespace() {
+                    if current_char == '\n' { move_line = true; traceln!("  is newline -> incrementing line number"); }
+                    else { traceln!("  is whitespace -> ignoring"); }
                 }
-
                 else {
-                    buffer.push(c);
-                    match c {
+                    buffer.push(current_char);
+                    traceln!("  pushing to buffer [{}]", buffer);
+                    match current_char {
                         '#' => {token_type = TokenType::LComment; state = State::EatLine;},
                         '(' => {token_type = TokenType::LParen; token_ready = true;},
                         ')' => {token_type = TokenType::RParen; token_ready = true;},
                         ';' => {token_type = TokenType::Semicolon; token_ready = true;},
-                        _ if c.is_alphabetic() =>
-                            {token_type = TokenType::Identifier; state = State::EatIdentifier;},
-                        _ if c.is_numeric() =>
-                            {token_type = TokenType::Integer; match chars.peek() {
+                        _ if current_char.is_alphabetic() => {token_type = TokenType::Identifier; state = State::EatIdentifier;},
+                        _ if current_char.is_numeric() => {
+                            token_type = TokenType::Integer;
+                            let peeked_char = chars.peek();
+                            traceln!("  peeking next character -> found '{}'", match peeked_char { Some(c) => *c, _ => ' '} );
+                            match peeked_char {
                                 Some(&'.') => {state = State::EatNumber; token_type = TokenType::Decimal;},
                                 Some(c) if c.is_numeric() => {state = State::EatNumber;},
-                                _ => {token_ready = true;}};
-                            },
-                        _ if operators.contains(&c) =>
+                                _ => {token_ready = true;}
+                            };
+                        },
+                        _ if operators.contains(&current_char) =>
                             {token_type = TokenType::Operator; token_ready = true;},
-                        _ => panic!("Unidentified character `{}`", c)
+                        _ => panic!("Unidentified character `{}`", current_char)
                     }
+
+                    traceln!("  guessing is {}", token_type);
                 }
             },
-            State::EatLine =>
-                { buffer.push(c); token_ready = match chars.peek() {Some(&'\n') => true, None => true,_ => false}},
-            State::EatIdentifier => match chars.peek() {
-                Some(next_c) if next_c.is_alphanumeric() || next_c == & '_' => { buffer.push(c); },
-                _ => { buffer.push(c); if keywords.contains(&buffer.as_str()) {token_type = TokenType::Keyword} token_ready = true; }
+            State::EatLine => {
+                buffer.push(current_char);
+                traceln!("  pushing to buffer [{}]", buffer);
+                let peeked_char = chars.peek();
+                traceln!("  peeking next character -> found '{}'", match peeked_char { Some(c) => *c, _ => ' '} );
+                token_ready = match peeked_char {Some(&'\n') => true, None => true,_ => false}
             },
-            State::EatNumber => match chars.peek() {
-                Some(&'.') if token_type == TokenType::Integer => { buffer.push(c); token_type = TokenType::Decimal; },
-                Some(&'.') if token_type != TokenType::Integer => { panic!("Too many decimal points!"); },
-                Some(next_c) if next_c.is_numeric() => { buffer.push(c); },
-                _ => { buffer.push(c); token_ready = true; }
+            State::EatIdentifier => {
+                buffer.push(current_char);
+                traceln!("  pushing to buffer [{}]", buffer);
+                let peeked_char = chars.peek();
+                traceln!("  peeking next character -> found '{}'", match peeked_char { Some(c) => *c, _ => ' '} );
+                match peeked_char {
+                    Some(next_c) if !next_c.is_alphanumeric() && next_c != & '_' => {
+                        if keywords.contains(&buffer.as_str()) {
+                            token_type = TokenType::Keyword;
+                        }
+                        token_ready = true;
+                    },
+                    _ => {}
+                };
+            },
+            State::EatNumber => {
+                buffer.push(current_char);
+                traceln!("  pushing to buffer [{}]", buffer);
+                let peeked_char = chars.peek();
+                traceln!("  peeking next character -> found '{}'", match peeked_char { Some(c) => *c, _ => ' '} );
+                match peeked_char {
+                    Some(&'.') if token_type == TokenType::Integer => { token_type = TokenType::Decimal; },
+                    Some(&'.') if token_type != TokenType::Integer => { panic!("Too many decimal points!"); },
+                    Some(next_c) if next_c.is_numeric() => { },
+                    _ => { token_ready = true; }
+                }
             }
         }
 
@@ -138,11 +188,15 @@ pub fn lex(source: &str, source_path: &str) -> TokenList {
 
         if token_ready {
             let snip = source::SourceSnippit {snippit: buffer.clone(), position: position.clone()};
-            tokens.push(Token(token_type,snip));
+            let token = Token(token_type,snip);
+            traceln!("  found complete token: {}", token);
+            tokens.push(token);
             buffer.clear();
             state = State::EatChar;
             token_ready = false;
         }
+
+        traceln!("  next state is {}", state);
 
         if move_line {
             line += 1;

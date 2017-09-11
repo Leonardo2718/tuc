@@ -38,14 +38,8 @@ use std::iter::*;
 use std::slice::Iter;
 use std::fmt;
 
-macro_rules! in_debug {
-    ($body:block) => {
-        if debug::debug_flag("parse") {$body}
-    }
-}
-
-macro_rules! debug_parse {
-    ($($arg:tt)+) => { if debug::debug_flag("parse") {println!($($arg)+)} }
+macro_rules! traceln {
+    ($($arg:tt)+) => { if debug::trace_enabled("parse") { println!($($arg)+) } }
 }
 
 #[derive(Eq,PartialEq,Copy,Clone,Debug)]
@@ -136,7 +130,7 @@ fn pop_high_prec_ops(buffer: &mut Vec<ExprNode>, op_stack: &mut Vec<Token>, toke
     let mut op_iter = op_stack.iter().rev().peekable();
     while let Some(&&Token(TokenType::Operator, ref s)) = op_iter.peek() {
         op_iter.next();
-        debug_parse!("    Poping {} from operator stack", s.snippit);
+        traceln!("    Poping {} from operator stack", s.snippit);
         let op1 = token_snippit.snippit.chars().nth(0).unwrap();
         let op2 = s.snippit.chars().nth(0).unwrap();
         if (operator_assoc(op1) == Associativity::Left && operator_prec(op1) <= operator_prec(op2)) ||
@@ -157,7 +151,7 @@ fn parse_expr <'a>(token_iter: &mut Peekable<Iter<'a, Token>>) -> ExprNode {
 
     loop {
         let token = token_iter.next().expect("Expected a token");
-        debug_parse!("  Found {} token: {}", token.0, token.1.snippit);
+        traceln!("  Found {} token: {}", token.0, token.1.snippit);
         match *token {
             Token(TokenType::Semicolon, _) => {
                 while let Some(op) = op_stack.pop() {
@@ -167,40 +161,40 @@ fn parse_expr <'a>(token_iter: &mut Peekable<Iter<'a, Token>>) -> ExprNode {
                         Token(t, s) => panic!("Unexpected {} token '{}' on operator stack from {}", t, s.snippit, s.position)
                     }
                 }
-                debug_parse!("    End of expression");
+                traceln!("    End of expression");
                 break;
             },
             Token(TokenType::Integer, ref snippit) => {
-                debug_parse!("    Adding to node buffer");
+                traceln!("    Adding to node buffer");
                 buffer.push(ExprNode::Literal(Literal::Integer(snippit.snippit.clone()), snippit.clone()));
             },
             Token(TokenType::Decimal, ref snippit) => {
-                debug_parse!("    Adding to node buffer");
+                traceln!("    Adding to node buffer");
                 buffer.push(ExprNode::Literal(Literal::Decimal(snippit.snippit.clone()), snippit.clone()))
             },
             Token(TokenType::Identifier, ref snippit) => {
-                debug_parse!("    Adding to node buffer");
+                traceln!("    Adding to node buffer");
                 buffer.push(ExprNode::Identifier(snippit.clone()))
             },
             Token(TokenType::Operator, ref snippit) => {
                 let count = pop_high_prec_ops(&mut buffer, &mut op_stack, snippit);
                 op_stack.drain(count..);
-                debug_parse!("    Pushing onto operator stack");
+                traceln!("    Pushing onto operator stack");
                 op_stack.push(token.clone());
             },
             Token(TokenType::LParen, _) => {
-                debug_parse!("    Pushing onto operator stack");
+                traceln!("    Pushing onto operator stack");
                 op_stack.push(token.clone())
             },
             Token(TokenType::RParen, ref snippit) => {
                 loop {
                     match op_stack.pop() {
                         Some(Token(TokenType::Operator, s)) => {
-                            debug_parse!("    Poping {} from operator stack", s.snippit);
+                            traceln!("    Poping {} from operator stack", s.snippit);
                             add_operator_node(&mut buffer, &s);
                         },
                         Some(Token(TokenType::LParen, _)) => {
-                            debug_parse!("    Found matching parentheses on operator stack");
+                            traceln!("    Found matching parentheses on operator stack");
                             break;
                         },
                         Some(_) => panic!("Found non-operator and non-left-parenthesis on operator stack {:?}", token),
@@ -219,33 +213,33 @@ fn parse_expr <'a>(token_iter: &mut Peekable<Iter<'a, Token>>) -> ExprNode {
 pub fn parse(proc_name: &str, tokens: &[Token]) -> Box<ASTNode> {
     let mut nodes: Vec<ASTNode> = Vec::new();
 
-    debug_parse!("Parsing token list:");
+    traceln!("=== Parsing token list ===");
     let mut token_iter = tokens.iter().peekable();
     while let Some(token) = token_iter.clone().peek() {
-        debug_parse!("Next token `{}` is {}", token.1.snippit, token.0);
+        traceln!("Next token `{}` is {}", token.1.snippit, token.0);
         let node = match **token {
             Token(TokenType::Integer, _) => {
-                debug_parse!("  Parsing as expression");
+                traceln!("  Parsing as expression");
                 ASTNode::Expression(parse_expr(&mut token_iter))
             },
             Token(TokenType::Decimal, _) => {
-                debug_parse!("  Parsing as expression");
+                traceln!("  Parsing as expression");
                 ASTNode::Expression(parse_expr(&mut token_iter))
               },
             Token(TokenType::Identifier, _) => {
-                debug_parse!("  Parsing as expression");
+                traceln!("  Parsing as expression");
                 ASTNode::Expression(parse_expr(&mut token_iter))
             },
             Token(TokenType::LParen, _) => {
-                debug_parse!("  Parsing as expression");
+                traceln!("  Parsing as expression");
                 ASTNode::Expression(parse_expr(&mut token_iter))
             },
             Token(TokenType::Semicolon, _) => {
-                debug_parse!("  - Ignoring");
+                traceln!("  - Ignoring");
                 token_iter.next(); continue
             },
             Token(TokenType::LComment, _) => {
-                debug_parse!("  - Ignoring");
+                traceln!("  - Ignoring");
                 token_iter.next(); continue
             },
             _ => panic!("Unexpected token")

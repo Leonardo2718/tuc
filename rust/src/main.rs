@@ -31,10 +31,11 @@ THE SOFTWARE.
 
 */
 
+mod args;
+mod debug;
 mod source;
 mod token;
 mod ast;
-mod debug;
 mod ir;
 
 use std::ops::Index;

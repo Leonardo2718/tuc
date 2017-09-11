@@ -31,11 +31,12 @@ THE SOFTWARE.
 
 */
 
-use std::env;
+use args;
 
 pub fn debug_flag(flag_name: &str) -> bool {
-    let args: Vec<_> = env::args().collect();
-    let flag = String::from("-d") + flag_name;
-    let full = String::from("-dfull");
-    args.contains(&flag) || args.contains(&full)
+    args::is_flag_set("d", flag_name)
+}
+
+pub fn trace_enabled(item: &str) -> bool {
+    args::is_flag_set("t", item) || args::is_flag_set("t", "all")
 }
