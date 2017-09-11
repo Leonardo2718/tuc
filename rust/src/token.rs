@@ -37,7 +37,7 @@ use source;
 use std::fmt;
 
 macro_rules! traceln {
-    ($($arg:tt)+) => { if debug::trace_enabled("lex") { println!($($arg)+) } }
+    ($($arg:tt)+) => { debug::trace_if("lex", &(format!($($arg)+) + "\n")); }
 }
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]

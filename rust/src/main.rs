@@ -38,7 +38,6 @@ mod token;
 mod ast;
 mod ir;
 
-use std::ops::Index;
 use std::error::Error;
 use std::io::Read;
 
@@ -49,12 +48,9 @@ macro_rules! print_on_debug {
 }
 
 fn main() {
-    // get the cli arguments
-    let args: Vec<_> = std::env::args().collect();
-
     // get the first argument (source file path)
-    let path = std::path::Path::new(args.index(1));
-    print_on_debug!("file","source file: {}", path.display());
+    let path_str = args::get_positional(1).expect("Must specify at least one source file.");
+    let path = std::path::Path::new(&path_str);
 
     // open the source file
     let mut src_file = match std::fs::File::open(path) {

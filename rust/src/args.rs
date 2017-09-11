@@ -51,3 +51,15 @@ pub fn get_positional(index: u32) -> Option<String> {
 
     return None;
 }
+
+pub fn get_value(flag_name: &str) -> Option<String> {
+    let args: Vec<String> = env::args().collect();
+    let flag = String::from(flag_name) + "=";
+    for ref arg in args {
+        if arg.chars().skip(1).take(flag.len()).eq(flag.chars()) {
+            return Some(arg.chars().skip(flag_name.len() + 2).collect());
+        }
+    }
+
+    return None;
+}

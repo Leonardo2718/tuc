@@ -39,7 +39,7 @@ use std::slice::Iter;
 use std::fmt;
 
 macro_rules! traceln {
-    ($($arg:tt)+) => { if debug::trace_enabled("parse") { println!($($arg)+) } }
+    ($($arg:tt)+) => { debug::trace_if("parse", &(format!($($arg)+) + "\n")); }
 }
 
 #[derive(Eq,PartialEq,Copy,Clone,Debug)]

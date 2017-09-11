@@ -33,10 +33,27 @@ THE SOFTWARE.
 
 use args;
 
+use std::fs::OpenOptions;
+use std::io::Write;
+
 pub fn debug_flag(flag_name: &str) -> bool {
     args::is_flag_set("d", flag_name)
 }
 
 pub fn trace_enabled(item: &str) -> bool {
     args::is_flag_set("t", item) || args::is_flag_set("t", "all")
+}
+
+pub fn trace_msg(message: &str) {
+    match args::get_value("log") {
+        Some(path_str) => {
+            let mut file = OpenOptions::new().append(true).write(true).create(true).open(&path_str).expect("Failed to open log file.");
+            file.write_all(message.as_bytes()).expect("Failed to write to log file.");
+        },
+        None => { print!("{}", message); }
+    }
+}
+
+pub fn trace_if(flag: &str, message: &str) {
+    if trace_enabled(flag) { trace_msg(message); }
 }
