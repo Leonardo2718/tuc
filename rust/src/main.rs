@@ -86,10 +86,12 @@ fn main() {
     }
 
     // generate IR for the program
-    let blocks = ir::gen_ir(&parse_tree);
+    let functions = ir::evaluate_ast(&parse_tree);
 
     // print IR for debugging
     if debug::debug_flag("ir") {
-        ir::print_blocks(&blocks);
+        for ref f in functions {
+            ir::print_ir(&f);
+        }
     }
 }

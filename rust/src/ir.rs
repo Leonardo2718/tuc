@@ -34,9 +34,7 @@ THE SOFTWARE.
 use debug;
 use ast;
 
-use std::collections::HashMap;
 use std::fmt;
-use std::borrow::Borrow;
 
 type Symbol = String;
 
@@ -69,6 +67,15 @@ pub struct Block {
 }
 
 pub type BlockList = Vec<Block>;
+
+pub type IR = BlockList;
+
+pub struct Function {
+    pub name: String,
+    pub ir: IR,
+}
+
+type FunctionList = Vec<Function>;
 
 fn gen_opcodes_from_expr(expr: &ast::ExprNode) -> Box<Opcode> {
     use ast::ExprNode;
@@ -109,13 +116,12 @@ fn gen_opcodes(ast: &ast::ASTNode) -> Box<Opcode> {
     }
 }
 
-pub fn gen_blocks(astNodes: &Vec<ast::ASTNode>) -> BlockList {
-    use ast::ASTNode;
+fn gen_ir(ast_nodes: &Vec<ast::ASTNode>) -> IR {
     let mut id: BlockId = 0;
     let mut block: Block = Block{id: id, opcodes: Vec::new()};
     let mut blocks: BlockList = Vec::new();
 
-    for ref node in astNodes {
+    for ref node in ast_nodes {
         block.opcodes.push(gen_opcodes(node));
     }
 
@@ -123,19 +129,28 @@ pub fn gen_blocks(astNodes: &Vec<ast::ASTNode>) -> BlockList {
     return blocks;
 }
 
-pub fn gen_ir(ast: &ast::ASTNode) -> BlockList {
+pub fn evaluate_ast(ast: &ast::ASTNode) -> FunctionList {
     use ast::ASTNode;
+    let mut functions = FunctionList::new();
+
     match ast {
-        &ASTNode::Proc(_, ref nodes) => gen_blocks(nodes),
-        _ => panic!("Can only evaluate processes")
+        &ASTNode::Proc(ref name, ref nodes) => functions.push(Function{name: name.to_string(), ir: gen_ir(nodes)}),
+        _ => panic!("Can only evaluate AST for functions")
     }
+
+    return functions;
 }
 
-pub fn print_blocks(blocks: &BlockList) {
+fn print_blocks(blocks: &BlockList) {
     for ref block in blocks {
-        println!("Block {}:", block.id);
+        println!("Block {}", block.id);
         for ref opcode in block.opcodes.clone() {
             println!("  {}", opcode);
         }
     }
+}
+
+pub fn print_ir(function: &Function) {
+    println!("Function '{}':", function.name);
+    print_blocks(&function.ir);
 }
