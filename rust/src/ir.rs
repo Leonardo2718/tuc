@@ -36,6 +36,7 @@ use ast;
 
 use std::collections::HashMap;
 use std::fmt;
+use std::borrow::Borrow;
 
 type Symbol = String;
 
@@ -98,7 +99,7 @@ pub struct IR {
 }
 
 fn gen_symbol(base_name: &str, sym_counters: &mut SymbolCounterTable) -> Symbol {
-    let mut counter = sym_counters.entry(base_name.to_string()).or_insert(0);
+    let counter = sym_counters.entry(base_name.to_string()).or_insert(0);
     *counter += 1;
     return base_name.to_string() + "$" + counter.to_string().as_str();
 }
@@ -161,6 +162,108 @@ fn gen_instructions(ast_root: &ast::ASTNode) -> IR {
     instructions.push(Instruction::Move(String::from("rax"), SymVal::Value(Value::Integer(String::from("0")))));
     let ir = IR {instructions: instructions};
     return ir;
+}
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#[derive(Clone,Debug)]
+pub enum Opcode {
+    ConstInt32(i32),
+    ConstFloat64(f64),
+    Get(Symbol),
+    Set(Symbol, Box<Opcode>),
+    Add(Box<Opcode>, Box<Opcode>),
+    Sub(Box<Opcode>, Box<Opcode>),
+    Mul(Box<Opcode>, Box<Opcode>),
+    Div(Box<Opcode>, Box<Opcode>),
+}
+
+impl fmt::Display for Opcode {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", *self)
+    }
+}
+
+pub type OpcodeList = Vec<Box<Opcode>>;
+
+pub type BlockId = u32;
+
+#[derive(Clone,Debug)]
+pub struct Block {
+    pub id: BlockId,
+    pub opcodes: OpcodeList,
+}
+
+pub type BlockList = Vec<Block>;
+
+fn gen_opcodes_from_expr(expr: &ast::ExprNode) -> Box<Opcode> {
+    use ast::ExprNode;
+    use ast::Literal;
+    use ast::BinaryOperator;
+    return match expr {
+        &ExprNode::Literal(ref l, _) => {
+            match l {
+                &Literal::Integer(ref s) => Box::new(Opcode::ConstInt32(s.parse::<i32>().expect("Literal is not a valid Integer"))),
+                &Literal::Decimal(ref s) => Box::new(Opcode::ConstFloat64(s.parse::<f64>().expect("Literal is not a decimal")))
+            }
+        },
+        &ExprNode::BinaryOperator(ref op, ref l,ref r, _) => {
+            let ln = match l.as_ref() {
+                &ExprNode::Identifier(ref snippit) => Box::new(Opcode::Get(snippit.snippit.clone())),
+                _ => gen_opcodes_from_expr(l.as_ref())
+            };
+            let rn = match r.as_ref() {
+                &ExprNode::Identifier(ref snippit) => Box::new(Opcode::Get(snippit.snippit.clone())),
+                _ => gen_opcodes_from_expr(l.as_ref())
+            };
+            match op {
+                &BinaryOperator::Add => Box::new(Opcode::Add(ln, rn)),
+                &BinaryOperator::Sub => Box::new(Opcode::Sub(ln, rn)),
+                &BinaryOperator::Mul => Box::new(Opcode::Mul(ln, rn)),
+                &BinaryOperator::Div => Box::new(Opcode::Div(ln, rn)),
+            }
+        }
+        _ => panic!("Unhandled ExprNode")
+    };
+}
+
+fn gen_opcodes(ast: &ast::ASTNode) -> Box<Opcode> {
+    use ast::ASTNode;
+    match ast {
+        &ASTNode::Expression(ref expr) => return gen_opcodes_from_expr(expr),
+        _ => panic!("Unexpected AST node.")
+    }
+}
+
+pub fn gen_blocks(astNodes: &Vec<ast::ASTNode>) -> BlockList {
+    use ast::ASTNode;
+    let mut id: BlockId = 0;
+    let mut block: Block = Block{id: id, opcodes: Vec::new()};
+    let mut blocks: BlockList = Vec::new();
+
+    for ref node in astNodes {
+        block.opcodes.push(gen_opcodes(node));
+    }
+
+    blocks.push(block);
+    return blocks;
+}
+
+pub fn evaluate_ast(ast: &ast::ASTNode) -> BlockList {
+    use ast::ASTNode;
+    match ast {
+        &ASTNode::Proc(_, ref nodes) => gen_blocks(nodes),
+        _ => panic!("Can only evaluate processes")
+    }
+}
+
+pub fn print_blocks(blocks: &BlockList) {
+    for ref block in blocks {
+        println!("Block {}:", block.id);
+        for ref opcode in block.opcodes.clone() {
+            println!("  {}", opcode);
+        }
+    }
 }
 
 pub fn gen_ir(ast_root: &ast::ASTNode) -> IR {
