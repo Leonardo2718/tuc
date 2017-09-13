@@ -85,16 +85,11 @@ fn main() {
         ast::print_ast(String::from(""), &parse_tree);
     }
 
-    let blocks = ir::evaluate_ast(&parse_tree);
-    ir::print_blocks(&blocks);
-
     // generate IR for the program
-    let intermediate = ir::gen_ir(&parse_tree);
+    let blocks = ir::gen_ir(&parse_tree);
 
     // print IR for debugging
     if debug::debug_flag("ir") {
-        for inst in intermediate.instructions {
-            println!("{}", inst);
-        }
+        ir::print_blocks(&blocks);
     }
 }
