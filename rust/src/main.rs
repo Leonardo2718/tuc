@@ -60,13 +60,10 @@ fn main() {
 
     // read the source file
     let mut src_code = String::new();
-    match src_file.read_to_string(&mut src_code) {
-        Err(why) => panic!("Failed to read file {}, {}", path.display(), why.description()),
-        Ok(_) => print_on_debug!("source", "source code:\n```\n{}\n```", src_code)
-    }
+    src_file.read_to_string(&mut src_code).expect(&format!("Failed to read file {}", path.display()));
 
     // tokenize source code
-    let tokens = token::lex(&src_code, match path.to_str() {Some(p) => p, _ => panic!("Can't convert path to a string.")} );
+    let tokens = token::lex(&src_code, &path_str);
 
     // print tokens
     if debug::debug_flag("tokens") {

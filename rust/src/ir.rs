@@ -33,8 +33,11 @@ THE SOFTWARE.
 
 use debug;
 use ast;
-
 use std::fmt;
+
+macro_rules! traceln {
+    ($($arg:tt)+) => { debug::trace_if("irgen", &(format!($($arg)+) + "\n")); }
+}
 
 type Symbol = String;
 
@@ -81,22 +84,27 @@ fn gen_opcodes_from_expr(expr: &ast::ExprNode) -> Box<Opcode> {
     use ast::ExprNode;
     use ast::Literal;
     use ast::BinaryOperator;
+
+    traceln!("Evaluating sub-expression");
+
     return match expr {
         &ExprNode::Literal(ref l, _) => {
+            traceln!("  found literal");
             match l {
                 &Literal::Integer(ref s) => Box::new(Opcode::ConstInt32(s.parse::<i32>().expect("Literal is not a valid Integer"))),
                 &Literal::Decimal(ref s) => Box::new(Opcode::ConstFloat64(s.parse::<f64>().expect("Literal is not a decimal")))
             }
         },
+        &ExprNode::Identifier(ref snippit) => {
+            traceln!("  found identifier {}", snippit.snippit.clone());
+            Box::new(Opcode::Get(snippit.snippit.clone()))
+        }
         &ExprNode::BinaryOperator(ref op, ref l,ref r, _) => {
-            let ln = match l.as_ref() {
-                &ExprNode::Identifier(ref snippit) => Box::new(Opcode::Get(snippit.snippit.clone())),
-                _ => gen_opcodes_from_expr(l.as_ref())
-            };
-            let rn = match r.as_ref() {
-                &ExprNode::Identifier(ref snippit) => Box::new(Opcode::Get(snippit.snippit.clone())),
-                _ => gen_opcodes_from_expr(l.as_ref())
-            };
+            traceln!("  found binary operator {}", op);
+            traceln!("  evaluating left child");
+            let ln = gen_opcodes_from_expr(l.as_ref());
+            traceln!("  evaluating right child");
+            let rn = gen_opcodes_from_expr(r.as_ref());
             match op {
                 &BinaryOperator::Add => Box::new(Opcode::Add(ln, rn)),
                 &BinaryOperator::Sub => Box::new(Opcode::Sub(ln, rn)),
@@ -111,7 +119,7 @@ fn gen_opcodes_from_expr(expr: &ast::ExprNode) -> Box<Opcode> {
 fn gen_opcodes(ast: &ast::ASTNode) -> Box<Opcode> {
     use ast::ASTNode;
     match ast {
-        &ASTNode::Expression(ref expr) => return gen_opcodes_from_expr(expr),
+        &ASTNode::Expression(ref expr) => gen_opcodes_from_expr(expr),
         _ => panic!("Unexpected AST node.")
     }
 }
@@ -122,6 +130,7 @@ fn gen_ir(ast_nodes: &Vec<ast::ASTNode>) -> IR {
     let mut blocks: BlockList = Vec::new();
 
     for ref node in ast_nodes {
+        traceln!("Generating to block id={}", id);
         block.opcodes.push(gen_opcodes(node));
     }
 
@@ -133,8 +142,13 @@ pub fn evaluate_ast(ast: &ast::ASTNode) -> FunctionList {
     use ast::ASTNode;
     let mut functions = FunctionList::new();
 
+    traceln!("=== Generating IR ===");
+
     match ast {
-        &ASTNode::Proc(ref name, ref nodes) => functions.push(Function{name: name.to_string(), ir: gen_ir(nodes)}),
+        &ASTNode::Proc(ref name, ref nodes) => {
+            traceln!("Evaluating function '{}' ", name);
+            functions.push(Function{name: name.to_string(), ir: gen_ir(nodes)});
+        },
         _ => panic!("Can only evaluate AST for functions")
     }
 
