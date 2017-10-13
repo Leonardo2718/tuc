@@ -37,6 +37,7 @@ mod source;
 mod token;
 mod ast;
 mod ir;
+mod codegen;
 
 use std::error::Error;
 use std::io::Read;
@@ -87,8 +88,13 @@ fn main() {
 
     // print IR for debugging
     if debug::debug_flag("ir") {
-        for ref f in functions {
+        for f in &functions {
             ir::print_ir(&f);
         }
+    }
+
+    for f in &functions {
+        let instructions = codegen::gen_instructions(f);
+        codegen::print_instructions(&instructions);
     }
 }
