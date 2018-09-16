@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2018 Leonardo Banderali
  *
  * This software is released under the MIT License:
@@ -23,9 +23,64 @@
  *
  */
 
-mod token;
-mod lexer;
+use std::fmt;
+use std::collections::HashMap;
 
-fn main() {
-    println!("Hello World! -- TUC");
+#[derive(Debug,Clone,Copy,PartialEq,Eq)]
+pub enum Operator {
+    ADD,
+    SUB,
+    MUL,
+    DIV,
+}
+
+macro_rules! define_keywords {
+    ( $($e:expr => $t:ident),+ ) => {
+        #[derive(Debug,Clone,Copy,PartialEq,Eq)]
+        pub enum Keyword {
+            $($t),+
+        }
+        
+        pub fn as_keyword(k: &str) -> Option<Keyword> {
+            let keywords: HashMap<&str, Keyword> = [
+                $(($e, Keyword::$t)),+
+                ].iter().cloned().collect();
+            keywords.get(k).map(|w| *w)
+        }
+    };
+}
+
+define_keywords!(
+    "print" => PRINT,
+    "let" => LET
+);
+
+#[derive(Debug,Clone,PartialEq,Eq)]
+pub enum Const {
+    I32(i32)
+}
+
+#[derive(Debug,Clone,PartialEq)]
+pub enum TokenType {
+    COMMENT(String),
+    IDENT(String),
+    CONST(Const),
+    KEYWORD(Keyword),
+    OPERATOR(Operator),
+    LPAREN,
+    RPAREN,
+    SEMICOLON,
+}
+
+#[derive(Debug,Clone,Copy,PartialEq,Eq)]
+pub struct Position {
+    pub pos: usize,
+    pub line: usize,
+    pub col: usize,
+}
+
+#[derive(Debug,Clone)]
+pub struct Token {
+    pub token: TokenType,
+    pub pos: Position,
 }
