@@ -26,6 +26,8 @@
 use std::fmt;
 use std::collections::HashMap;
 
+use utils::*;
+
 #[derive(Debug,Clone,Copy,PartialEq,Eq)]
 pub enum Operator {
     ADD,
@@ -55,11 +57,6 @@ define_keywords!(
     "let" => LET
 );
 
-#[derive(Debug,Clone,PartialEq,Eq)]
-pub enum Const {
-    I32(i32)
-}
-
 #[derive(Debug,Clone,PartialEq)]
 pub enum TokenType {
     COMMENT(String),
@@ -70,13 +67,6 @@ pub enum TokenType {
     LPAREN,
     RPAREN,
     SEMICOLON,
-}
-
-#[derive(Debug,Clone,Copy,PartialEq,Eq)]
-pub struct Position {
-    pub pos: usize,
-    pub line: usize,
-    pub col: usize,
 }
 
 #[derive(Debug,Clone)]

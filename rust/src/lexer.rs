@@ -30,6 +30,7 @@ use std::num;
 use std::error;
 use std::result;
 
+use utils::*;
 use token::*;
 
 #[derive(Debug,Clone,PartialEq)]
@@ -78,11 +79,12 @@ pub enum LexerError {
     ParseFloatError(num::ParseFloatError),
 }
 
-#[derive(Debug,Clone)]
-pub struct Error {
-    err: LexerError,
-    pos: Position,
-}
+// #[derive(Debug,Clone,PartialEq)]
+// pub struct Error {
+//     pub err: LexerError,
+//     pub pos: Position,
+// }
+pub type Error = WithPos<LexerError>;
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -93,7 +95,7 @@ impl fmt::Display for Error {
 impl error::Error for Error {
     fn description(&self) -> &str {
         use self::LexerError::*;
-        match self.err {
+        match self.item {
             ExpectingMoreCharacters => "Lexer expected more characters for a complete token",
             UnexpectedCharacter(_) => "Lexer encountered an unexpected character",
             ParseIntError(_) => "Lexer failed to parse character sequence as an integer value (see cause)",
@@ -102,7 +104,7 @@ impl error::Error for Error {
     }
 
     fn cause(&self) -> Option<&error::Error> {
-        match self.err {
+        match self.item {
             LexerError::ParseIntError(ref e) => Some(e),
             LexerError::ParseFloatError(ref e) => Some(e),
             _ => None
@@ -155,10 +157,10 @@ impl<'a> TokenIterator<'a> {
             (c, p) if c.is_digit(10) => {
                 let int = self.iter.clone().map(|i| i.c).take_while(|c| c.is_digit(10)).collect::<String>();
                 self.iter.nth(int.len() - 1);
-                let int = int.parse::<i32>().map_err(|e| Error{err: LexerError::ParseIntError(e), pos: p})?;
+                let int = int.parse::<i32>().map_err(|e| Error{item: LexerError::ParseIntError(e), position: p})?;
                 emit!(CONST(Const::I32(int)), p)
             }
-            (c, p) => { Err(Error{err: LexerError::UnexpectedCharacter(c), pos: p}) }
+            (c, p) => { Err(Error{item: LexerError::UnexpectedCharacter(c), position: p}) }
         }
     }
 }

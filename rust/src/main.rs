@@ -23,6 +23,7 @@
  *
  */
 
+mod utils;
 mod token;
 mod lexer;
 
