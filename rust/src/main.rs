@@ -23,10 +23,42 @@
  *
  */
 
+use std::io::prelude::Read;
+use std::fs::File;
+use std::io::BufReader;
+
 mod utils;
 mod token;
 mod lexer;
+mod ast;
+mod parser;
+
+extern crate argparse;
+
+struct Options {
+    source_path: String,
+}
 
 fn main() {
-    println!("Hello World! -- TUC");
+    let mut options = Options{source_path: "".to_string()};
+    {
+        use argparse as ap;
+        let mut parser = ap::ArgumentParser::new();
+        parser.set_description("Rust implementation of TUC (The U Compiler)");
+        parser.refer(&mut options.source_path)
+            .add_argument("source_path", ap::Store, "source file to be compiled").required();
+        parser.parse_args_or_exit();
+    }
+
+    let mut source = String::new();
+    {
+        let f = File::open(options.source_path).unwrap();
+        let mut reader = BufReader::new(f);
+        reader.read_to_string(&mut source).unwrap();
+    }
+
+    let iter = lexer::TokenIterator::new(&source);
+    let ast = parser::parse_program(iter).unwrap();
+
+    println!("AST:\n{:?}", ast);
 }
