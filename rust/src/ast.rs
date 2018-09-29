@@ -28,6 +28,17 @@ use std::ops::Deref;
 use std::ops::DerefMut;
 
 use utils::*;
+use fmttree;
+
+impl<T: fmttree::Display> fmttree::Display for WithPos<T> {
+    fn display_node(&self) -> String {
+        format!("{:30}{:?}", self.item.display_node(), self.pos())
+    }
+
+    fn display_children(&self, f: fmttree::TreeFormat) -> String {
+        self.item.display_children(f)
+    }
+}
 
 #[derive(Debug,Clone,Copy,PartialEq,Eq)]
 pub enum Type {
@@ -55,6 +66,16 @@ impl<T> DerefMut for WithType<T> {
     }
 }
 
+impl<T: fmttree::Display> fmttree::Display for WithType<T> {
+    fn display_node(&self) -> String {
+        format!("{} :: {:?}", self.item.display_node(), self.t)
+    }
+
+    fn display_children(&self, f: fmttree::TreeFormat) -> String {
+        self.item.display_children(f)
+    }
+}
+
 pub type IndirectWithPos<T> = Box<WithPos<T>>;
 
 #[derive(Debug,Clone,Copy,PartialEq,Eq)]
@@ -72,13 +93,61 @@ pub enum Expression {
     BinaryOp(BinaryOperator, IndirectWithPos<WithType<Expression>>, IndirectWithPos<WithType<Expression>>),
 }
 
+impl fmttree::Display for Expression {
+    fn display_node(&self) -> String {
+        use self::Expression::*;
+        match self {
+            BinaryOp(op, _, _) => format!("{:?}", op),
+            _ => format!("{:?}", self)
+        }
+    }
+
+    fn display_children(&self, f: fmttree::TreeFormat) -> String {
+        use self::Expression::*;
+        match self {
+            BinaryOp(_, lhs, rhs) => lhs.display_sub_tree(f.clone()) + &rhs.display_sub_tree(f.clone()),
+            _ => String::new()
+        }
+    }
+}
+
 #[derive(Debug,Clone,PartialEq)]
 pub enum Statement {
     Print(WithPos<WithType<Expression>>)
 }
 pub type StatementList = Vec<WithPos<Statement>>;
 
+impl fmttree::Display for Statement {
+    fn display_node(&self) -> String {
+        use self::Statement::*;
+        match self {
+            Print(_) => "Print".to_string()
+        }
+    }
+
+    fn display_children(&self, f: fmttree::TreeFormat) -> String {
+        use self::Statement::*;
+        match self {
+            Print(e) => e.display_sub_tree(f)
+        }
+    }
+}
+
 #[derive(Debug,Clone,PartialEq)]
 pub struct Program {
     pub body: StatementList
+}
+
+impl fmttree::Display for Program {
+    fn display_node(&self) -> String {
+        "program".to_string()
+    }
+
+    fn display_children(&self, f: fmttree::TreeFormat) -> String {
+        let mut s = String::new();
+        for stmt in &self.body {
+            s += &format!("{}", stmt.display_sub_tree(f.clone()));
+        }
+        s
+    }
 }

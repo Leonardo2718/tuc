@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2018 Leonardo Banderali
  *
  * This software is released under the MIT License:
@@ -23,44 +23,34 @@
  *
  */
 
-use std::io::prelude::Read;
-use std::fs::File;
-use std::io::BufReader;
-
-mod utils;
-mod token;
-mod lexer;
-mod fmttree;
-mod ast;
-mod parser;
-
-extern crate argparse;
-
-struct Options {
-    source_path: String,
+#[derive(Debug,Clone)]
+pub struct TreeFormat<'a> {
+    indent: String,
+    indent_segment: &'a str,
+    point: &'a str,
 }
 
-fn main() {
-    let mut options = Options{source_path: "".to_string()};
-    {
-        use argparse as ap;
-        let mut parser = ap::ArgumentParser::new();
-        parser.set_description("Rust implementation of TUC (The U Compiler)");
-        parser.refer(&mut options.source_path)
-            .add_argument("source_path", ap::Store, "source file to be compiled").required();
-        parser.parse_args_or_exit();
+impl<'a> TreeFormat<'a> {
+    fn add_indent(&self) -> TreeFormat {
+        let mut f = self.clone();
+        f.indent += f.indent_segment;
+        f
+    }
+}
+
+pub trait Display {
+    fn display_tree(&self) -> String {
+        let f = TreeFormat{indent: "".to_string(), indent_segment: "  ", point: ""};
+        self.display_sub_tree(f)
     }
 
-    let mut source = String::new();
-    {
-        let f = File::open(options.source_path).unwrap();
-        let mut reader = BufReader::new(f);
-        reader.read_to_string(&mut source).unwrap();
+    fn display_sub_tree(&self, f: TreeFormat) -> String {
+        let mut n = format!("{}{}{}\n", f.indent, f.point, self.display_node());
+        n += &self.display_children(f.add_indent());
+        n
     }
 
-    let iter = lexer::TokenIterator::new(&source);
-    let ast = parser::parse_program(iter).unwrap();
+    fn display_node(&self) -> String;
 
-    use fmttree::Display;
-    println!("AST:\n{}", ast.display_tree());
+    fn display_children(&self, f: TreeFormat) -> String;
 }
