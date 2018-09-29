@@ -29,6 +29,7 @@ use std::str::Chars;
 use std::num;
 use std::error;
 use std::result;
+use std::clone;
 
 use utils::*;
 use token::*;
@@ -112,7 +113,7 @@ impl error::Error for Error {
     }
 }
 
-type Result = result::Result<Token, Error>;
+pub type Result = result::Result<Token, Error>;
 
 #[derive(Clone)]
 pub struct TokenIterator<'a> {
@@ -178,6 +179,14 @@ impl<'a> Iterator for TokenIterator<'a> {
         }
     }
 }
+
+/*
+A lexer can by any iterator that yeilds a lexer::Result as item.
+The 'Lexer' trait expresses this requirement and is implemented
+as a "trait alias" for the underlying iterator trait.
+*/
+pub trait Lexer: iter::Iterator<Item = Result> + clone::Clone {}
+impl<T: iter::Iterator<Item = Result> + clone::Clone> Lexer for T {}
 
 #[cfg(test)]
 mod test {

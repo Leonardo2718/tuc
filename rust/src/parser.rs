@@ -27,10 +27,13 @@ use std::fmt;
 use std::error;
 use std::result;
 use std::convert;
+use std::iter;
+use std::ops;
 
 use utils::*;
 use token;
 use lexer;
+use lexer::Lexer;
 use lexer::TokenIterator;
 use ast;
 
@@ -74,40 +77,43 @@ impl convert::From<lexer::Error> for Error {
 
 type Result<T> = result::Result<T, Error>;
 
-fn parse_expression<'a>(iter: &mut TokenIterator<'a>) -> Result<WithPos<ast::WithType<ast::Expression>>> {
+fn parse_expression<L: Lexer>(lexer: &mut L) -> Result<WithPos<ast::WithType<ast::Expression>>> {
     use utils::Const::*;
     use ast::Expression::*;
     use ast::Type;
     Ok(WithPos{item: ast::WithType{item: Literal(I32(3)), t: Type::I32}, position: Position{pos:0, line:0, col:0}})
 }
 
-fn parse_statement<'a>(iter: &mut TokenIterator<'a>) -> Result<WithPos<ast::Statement>> {
+fn parse_statement<L: Lexer>(lexer: &mut L) -> Result<WithPos<ast::Statement>>  {
     use token::TokenType::*;
     use token::Keyword::*;
     use token::Operator::*;
     use ast::Statement::*;
 
-    let token = iter.next().unwrap()?;
+    let token = lexer.next().unwrap()?;
     match token.token {
         KEYWORD(PRINT) => {
-            let expr = parse_expression(iter)?;
+            let expr = parse_expression(lexer)?;
             return Ok(WithPos{item: Print(expr), position: token.pos});
         }
         t => Err(Error{item: ParseError::UnexpectedToken(t), position: token.pos})
     }
 }
 
-fn parse_statement_list<'a>(iter: &mut TokenIterator<'a>) -> Result<ast::StatementList> {
+fn parse_statement_list<L: Lexer>(lexer: &mut L) -> Result<ast::StatementList> {
     let mut stmts: ast::StatementList = Vec::new();
-    while let Some(_) = iter.clone().peekable().peek() {
-        let s = parse_statement(iter)?;
+    while let Some(_) = lexer.clone().peekable().peek() {
+        let s = parse_statement(lexer)?;
         stmts.push(s);
     }
     Ok(stmts)
 }
 
-pub fn parse_program<'a>(mut iter: TokenIterator<'a>) -> Result<ast::Program> {
-    Ok(ast::Program{ body: parse_statement_list(&mut iter)? })
+pub fn parse_program<L: Lexer>(mut lexer: L) -> Result<ast::Program> {
+    use token::TokenType::*;
+    use token::Token;
+    let mut lexer = lexer.filter(|ref t| if let Ok(Token{token:COMMENT(_), pos:_}) = t { false } else { true });
+    Ok(ast::Program{ body: parse_statement_list(&mut lexer)? })
 }
 
 #[cfg(test)]
