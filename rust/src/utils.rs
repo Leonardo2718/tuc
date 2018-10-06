@@ -29,8 +29,6 @@ use std::ops::DerefMut;
 #[derive(Debug,Clone,Copy,PartialEq,Eq)]
 pub struct Position {
     pub pos: usize,
-    pub line: usize,
-    pub col: usize,
 }
 
 #[derive(Debug,Clone,PartialEq)]

@@ -49,7 +49,7 @@ struct CharPosIter<'a> {
 
 impl<'a> CharPosIter<'a> {
     pub fn new<'b>(src: &'b str) -> CharPosIter<'b> {
-        CharPosIter{current: '\0', pos: Position{pos: 0, line: 1, col: 0}, iter: src.chars()}
+        CharPosIter{current: '\0', pos: Position{pos: 0}, iter: src.chars()}
     }
 }
 
@@ -60,10 +60,6 @@ impl<'a> iter::Iterator for CharPosIter<'a> {
         match self.iter.next() {
             Some(c) => {
                 self.pos.pos += 1;
-                match self.current {
-                    '\n' => { self.pos.line += 1; self.pos.col = 1; }
-                    _ => { self.pos.col += 1; }
-                };
                 self.current = c;
                 Some(CharPos{c: self.current, pos: self.pos})
             }
@@ -123,7 +119,7 @@ pub struct TokenIterator<'a> {
 
 impl<'a> TokenIterator<'a> {
     pub fn new<'b>(src: &'b str) -> TokenIterator<'b> {
-        TokenIterator{iter: CharPosIter::new(src), token_pos: Position{pos: 0, line: 1, col: 0}}
+        TokenIterator{iter: CharPosIter::new(src), token_pos: Position{pos: 0}}
     }
 
     fn match_next(&mut self, c: &CharPos) -> Result {
@@ -194,47 +190,47 @@ mod test {
     use self::TokenType::*;
 
     macro_rules! assert_next_is {
-        ($iter:expr, $token:expr, $pos:expr, $line:expr, $col:expr) => {
+        ($iter:expr, $token:expr, $pos:expr) => {
             let t = $iter.next();
             assert!(t.is_some());
             let t = t.unwrap();
             assert!(t.is_ok(), "Expected to be Ok(): t = {:?}", t);
             let t = t.unwrap();
             assert_eq!($token, t.token, "Wrong token type");
-            assert_eq!(Position{pos: $pos, line: $line, col: $col}, t.pos, "Wrong token position");
+            assert_eq!(Position{pos: $pos}, t.pos, "Wrong token position");
         };
     }
 
     #[test]
     fn scan_ident_1() {
         let mut iter = TokenIterator::new("foo");
-        assert_next_is!(iter, IDENT("foo".to_string()), 1, 1, 1);
+        assert_next_is!(iter, IDENT("foo".to_string()), 1);
     }
 
     #[test]
     fn scan_keyword_1() {
         use self::Keyword::*;
         let mut iter = TokenIterator::new("print");
-        assert_next_is!(iter, KEYWORD(PRINT), 1, 1, 1);
+        assert_next_is!(iter, KEYWORD(PRINT), 1);
     }
 
     #[test]
     fn scan_keyword_2() {
         use self::Keyword::*;
         let mut iter = TokenIterator::new("let");
-        assert_next_is!(iter, KEYWORD(LET), 1, 1, 1);
+        assert_next_is!(iter, KEYWORD(LET), 1);
     }
 
     #[test]
     fn scan_const_1() {
         let mut iter = TokenIterator::new("123");
-        assert_next_is!(iter, CONST(Const::I32(123)), 1, 1, 1);
+        assert_next_is!(iter, CONST(Const::I32(123)), 1);
     }
 
     #[test]
     fn scan_comment_1() {
         let mut iter = TokenIterator::new("# some text");
-        assert_next_is!(iter, COMMENT(" some text".to_string()), 1, 1, 1);
+        assert_next_is!(iter, COMMENT(" some text".to_string()), 1);
     }
 
     #[test]
@@ -242,19 +238,19 @@ mod test {
         use self::Operator::*;
         use self::Keyword::*;
         let mut iter = TokenIterator::new(" 1 / a + b * 3 ; # comment \n print ( x ) ;");
-        assert_next_is!(iter, CONST(Const::I32(1)), 2, 1, 2);
-        assert_next_is!(iter, OPERATOR(DIV), 4, 1, 4);
-        assert_next_is!(iter, IDENT("a".to_string()), 6, 1, 6);
-        assert_next_is!(iter, OPERATOR(ADD), 8, 1, 8);
-        assert_next_is!(iter, IDENT("b".to_string()), 10, 1, 10);
-        assert_next_is!(iter, OPERATOR(MUL), 12, 1, 12);
-        assert_next_is!(iter, CONST(Const::I32(3)), 14, 1, 14);
-        assert_next_is!(iter, SEMICOLON, 16, 1, 16);
-        assert_next_is!(iter, COMMENT(" comment ".to_string()), 18, 1, 18);
-        assert_next_is!(iter, KEYWORD(PRINT), 30, 2, 2);
-        assert_next_is!(iter, LPAREN, 36, 2, 8);
-        assert_next_is!(iter, IDENT("x".to_string()), 38, 2, 10);
-        assert_next_is!(iter, RPAREN, 40, 2, 12);
-        assert_next_is!(iter, SEMICOLON, 42, 2, 14);
+        assert_next_is!(iter, CONST(Const::I32(1)), 2);
+        assert_next_is!(iter, OPERATOR(DIV), 4);
+        assert_next_is!(iter, IDENT("a".to_string()), 6);
+        assert_next_is!(iter, OPERATOR(ADD), 8);
+        assert_next_is!(iter, IDENT("b".to_string()), 10);
+        assert_next_is!(iter, OPERATOR(MUL), 12);
+        assert_next_is!(iter, CONST(Const::I32(3)), 14);
+        assert_next_is!(iter, SEMICOLON, 16);
+        assert_next_is!(iter, COMMENT(" comment ".to_string()), 18);
+        assert_next_is!(iter, KEYWORD(PRINT), 30);
+        assert_next_is!(iter, LPAREN, 36);
+        assert_next_is!(iter, IDENT("x".to_string()), 38);
+        assert_next_is!(iter, RPAREN, 40);
+        assert_next_is!(iter, SEMICOLON, 42);
     }
 }

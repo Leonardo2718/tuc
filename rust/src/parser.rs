@@ -81,7 +81,7 @@ fn parse_expression<L: Lexer>(lexer: &mut L) -> Result<WithPos<ast::WithType<ast
     use utils::Const::*;
     use ast::Expression::*;
     use ast::Type;
-    Ok(WithPos{item: ast::WithType{item: Literal(I32(3)), t: Type::I32}, position: Position{pos:0, line:0, col:0}})
+    Ok(WithPos{item: ast::WithType{item: Literal(I32(3)), t: Type::I32}, position: Position{pos:0}})
 }
 
 fn parse_statement<L: Lexer>(lexer: &mut L) -> Result<WithPos<ast::Statement>>  {
