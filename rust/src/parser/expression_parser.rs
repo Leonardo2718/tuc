@@ -37,6 +37,7 @@ use lexer::Lexer;
 use lexer::TokenIterator;
 use ast;
 
+
 #[derive(Debug,Clone,Copy,PartialEq,Eq)]
 enum Associativity {
     Left,
@@ -60,38 +61,38 @@ impl token::Operator {
 }
 
 #[derive(Debug,Clone,PartialEq)]
-pub enum ExpressionError {
+pub enum ParserError {
     NonOpTokenInOpStack(token::TokenType),
     NonOpOrLParenTokenInOpStack(token::TokenType),
     MissingLHS(token::Operator),
     MissingRHS(token::Operator),
-    ExpectingMoreExpressionTokens,
+    ExpectingExpressionToken,
     LexerError(lexer::Error),
 }
 
-pub type ExpressionParserError = WithPos<ExpressionError>;
+pub type Error = WithPos<ParserError>;
 
-impl fmt::Display for ExpressionError {
+impl fmt::Display for ParserError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{:?}", self)
     }
 }
 
-impl error::Error for ExpressionError {
+impl error::Error for ParserError {
     fn description(&self) -> &str {
-        use self::ExpressionError::*;
+        use self::ParserError::*;
         match *self {
             NonOpTokenInOpStack(_) => "Unexpected non-operator token in expression parser operator stack",
             NonOpOrLParenTokenInOpStack(_) => "Unexpected non-operator and non-left-parenthesis token in expression parser operator stack",
             MissingLHS(_) => "Operator is missing left-hand-side",
             MissingRHS(_) => "Operator is missing right-hand-side",
-            ExpectingMoreExpressionTokens => "Expecting more expression tokens to complete expression",
+            ExpectingExpressionToken => "Expecting expression token to complete expression",
             LexerError(_) => "Error occurred during lexing.",
         }
     }
 
     fn cause(&self) -> Option<&error::Error> {
-        use self::ExpressionError::*;
+        use self::ParserError::*;
         match *self {
             LexerError(ref e) => Some(e),
             _ => None
@@ -99,13 +100,13 @@ impl error::Error for ExpressionError {
     }
 }
 
-impl convert::From<lexer::Error> for ExpressionParserError {
-    fn from(error: lexer::Error) -> ExpressionParserError {
-        ExpressionParserError{item: ExpressionError::LexerError(error.clone()), position: error.position}
+impl convert::From<lexer::Error> for Error {
+    fn from(error: lexer::Error) -> Error {
+        Error{item: ParserError::LexerError(error.clone()), position: error.position}
     }
 }
 
-pub type ExpressionResult<T> = result::Result<T, Error>;
+pub type Result<T> = result::Result<T, Error>;
 
 /*
 Dijkstra's shunting-yard algorithm:
@@ -136,7 +137,7 @@ if there are no more tokens to read:
         pop the operator from the operator stack onto the output queue.
 exit.
 */
-fn parse_expression<L: Lexer>(lexer: &mut L) -> Result<WithPos<ast::WithType<ast::Expression>>> {
+pub fn parse_expression<L: Lexer>(lexer: &mut L) -> Result<WithPos<ast::WithType<ast::Expression>>> {
     use utils::Const::*;
     use token::TokenType::*;
     use ast::Expression::*;
@@ -166,8 +167,8 @@ fn parse_expression<L: Lexer>(lexer: &mut L) -> Result<WithPos<ast::WithType<ast
 
     macro_rules! pop_op {
         ($optoken:expr,$t:expr) => {
-            let rhs = expr_stack.pop().ok_or(WithPos{item:ParseError::UnexpectedToken($t.token.clone()), position:$t.pos})?;
-            let lhs = expr_stack.pop().ok_or(WithPos{item:ParseError::UnexpectedToken($t.token.clone()), position:$t.pos})?;
+            let rhs = expr_stack.pop().ok_or(WithPos{item:ParserError::MissingRHS($optoken), position:$t.pos})?;
+            let lhs = expr_stack.pop().ok_or(WithPos{item:ParserError::MissingLHS($optoken), position:$t.pos})?;
             push_expr!($t, Type::Unknown, BinaryOp, optoken2opast!($optoken), Box::new(lhs), Box::new(rhs));
         };
     }
@@ -199,7 +200,7 @@ fn parse_expression<L: Lexer>(lexer: &mut L) -> Result<WithPos<ast::WithType<ast
                 while let Some(t) = op_stack.pop() {
                     if let OPERATOR(p) = t.token { pop_op!(p,t); }
                     else if LPAREN == t.token { inexpr = true; break; }
-                    else { return Err(WithPos{item:ParseError::UnexpectedToken(t.clone().token),position:t.pos}); }
+                    else { return Err(WithPos{item:ParserError::NonOpOrLParenTokenInOpStack(t.clone().token),position:t.pos}); }
                 }
 
                 if !inexpr && expr_stack.len() == 1 { return Ok(expr_stack.pop().unwrap()); }
@@ -213,111 +214,13 @@ fn parse_expression<L: Lexer>(lexer: &mut L) -> Result<WithPos<ast::WithType<ast
 
     while let Some(t) = op_stack.pop() {
         if let OPERATOR(p) = t.token { pop_op!(p,t); }
-        else { return Err(WithPos{item:ParseError::UnexpectedToken(t.clone().token),position:t.pos}); }
+        else { return Err(WithPos{item:ParserError::NonOpTokenInOpStack(t.clone().token),position:t.pos}); }
     }
 
     if expr_stack.len() == 1 {
         Ok(expr_stack.pop().unwrap())
     }
     else {
-        Err(WithPos{item:ParseError::ExpectingMoreTokens, position: Position{pos:0}})
+        Err(WithPos{item:ParserError::ExpectingExpressionToken, position: Position{pos:0}})
     }
-}
-
-macro_rules! expect_token {
-    ($pos:expr, $lexer:expr, $token:tt) => {
-        if let Some(next) = $lexer.next() {
-            match next?.token {
-                token::TokenType::$token => Ok(()),
-                t => Err(WithPos{item: ParseError::UnexpectedToken(t), position: $pos})
-            }
-        }
-        else {
-            Err(WithPos{item: ParseError::ExpectingMoreTokens, position: $pos})
-        }
-    };
-}
-
-fn parse_statement<L: Lexer>(lexer: &mut L) -> Result<WithPos<ast::Statement>>  {
-    use token::TokenType::*;
-    use token::Keyword::*;
-    use token::Operator::*;
-    use ast::Statement::*;
-
-    let token = lexer.next().unwrap()?;
-    match token.token {
-        KEYWORD(PRINT) => {
-            expect_token!(token.pos, lexer, LPAREN)?;
-            let expr = parse_expression(lexer)?;
-            expect_token!(expr.pos(), lexer, RPAREN)?;
-            return Ok(WithPos{item: Print(expr), position: token.pos});
-        }
-        t => Err(Error{item: ParseError::UnexpectedToken(t), position: token.pos})
-    }
-}
-
-fn parse_statement_list<L: Lexer>(lexer: &mut L) -> Result<ast::StatementList> {
-    let mut stmts: ast::StatementList = Vec::new();
-    while let Some(_) = lexer.clone().peekable().peek() {
-        let s = parse_statement(lexer)?;
-        stmts.push(s);
-    }
-    Ok(stmts)
-}
-
-#[derive(Debug,Clone,PartialEq)]
-pub enum ParseError {
-    UnexpectedToken(token::TokenType),
-    ExpectingMoreTokens,
-    ExpressionParserError(ExpressionError),
-    LexerError(lexer::Error),
-}
-
-impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
-
-impl error::Error for ParseError {
-    fn description(&self) -> &str {
-        use self::ParseError::*;
-        match *self {
-            UnexpectedToken(_) => "Encountered unexpected token while parsing.",
-            ExpectingMoreTokens => "Expected to find more tokens but got nothing",
-            ExpressionParserError(_) => "Error occurred in expression parser",
-            LexerError(_) => "Error occurred during lexing.",
-        }
-    }
-
-    fn cause(&self) -> Option<&error::Error> {
-        use self::ParseError::*;
-        match *self {
-            ExpressionParserError(ref e) => Some(e),
-            LexerError(ref e) => Some(e),
-            _ => None
-        }
-    }
-}
-
-pub type Error = WithPos<ParseError>;
-
-impl convert::From<lexer::Error> for Error {
-    fn from(error: lexer::Error) -> Error {
-        Error{item: ParseError::LexerError(error.clone()), position: error.position}
-    }
-}
-
-pub type Result<T> = result::Result<T, Error>;
-
-pub fn parse_program<L: Lexer>(lexer: L) -> Result<ast::Program> {
-    use token::TokenType::*;
-    use token::Token;
-    let mut lexer = lexer.filter(|ref t| if let Ok(Token{token:COMMENT(_), pos:_}) = t { false } else { true });
-    Ok(ast::Program{ body: parse_statement_list(&mut lexer)? })
-}
-
-#[cfg(test)]
-mod test {
-    use super::*;
 }
