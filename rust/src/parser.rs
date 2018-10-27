@@ -176,19 +176,11 @@ fn parse_expression<L: Lexer>(lexer: &mut L) -> Result<WithPos<ast::WithType<ast
             };},
             OPERATOR(o) => {
                 lexer.next();
-                while let Some(t) = op_stack.pop() {
-                    if let OPERATOR(p) = t.token {
-                        if p.precedence() > o.precedence() { pop_op!(o,next); }
-                        else if p.precedence() == o.precedence() && p.associativity() == Associativity::Left { pop_op!(o,next); }
-                        else { break; }
-                    }
-                    else if LPAREN == t.token {
-                        op_stack.push(t);
-                        break;
-                    }
-                    else {
-                        return Err(WithPos{item:ParseError::UnexpectedToken(t.clone().token),position:t.pos})
-                    }
+                while let Some(OPERATOR(p)) = op_stack.iter().rev().map(|t| t.token.clone()).next() {
+                    op_stack.pop();
+                    if p.precedence() > o.precedence() { pop_op!(o,next); }
+                    else if p.precedence() == o.precedence() && p.associativity() == Associativity::Left { pop_op!(o,next); }
+                    else { break; }
                 }
                 op_stack.push(next);
             },
