@@ -37,48 +37,6 @@ use lexer::Lexer;
 use lexer::TokenIterator;
 use ast;
 
-#[derive(Debug,Clone,PartialEq)]
-pub enum ParseError {
-    UnexpectedToken(token::TokenType),
-    ExpectingMoreTokens,
-    LexerError(lexer::Error)
-}
-
-type Error = WithPos<ParseError>;
-
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
-
-impl error::Error for Error {
-    fn description(&self) -> &str {
-        use self::ParseError::*;
-        match **self {
-            UnexpectedToken(_) => "Encountered unexpected token while parsing.",
-            ExpectingMoreTokens => "Expected to find more tokens but got nothing",
-            LexerError(_) => "Error occurred during lexing.",
-        }
-    }
-
-    fn cause(&self) -> Option<&error::Error> {
-        use self::ParseError::*;
-        match **self {
-            LexerError(ref e) => Some(e),
-            _ => None
-        }
-    }
-}
-
-impl convert::From<lexer::Error> for Error {
-    fn from(error: lexer::Error) -> Error {
-        Error{item: ParseError::LexerError(error.clone()), position: error.position}
-    }
-}
-
-type Result<T> = result::Result<T, Error>;
-
 #[derive(Debug,Clone,Copy,PartialEq,Eq)]
 enum Associativity {
     Left,
@@ -100,6 +58,54 @@ impl token::Operator {
         Associativity::Left
     }
 }
+
+#[derive(Debug,Clone,PartialEq)]
+pub enum ExpressionError {
+    NonOpTokenInOpStack(token::TokenType),
+    NonOpOrLParenTokenInOpStack(token::TokenType),
+    MissingLHS(token::Operator),
+    MissingRHS(token::Operator),
+    ExpectingMoreExpressionTokens,
+    LexerError(lexer::Error),
+}
+
+pub type ExpressionParserError = WithPos<ExpressionError>;
+
+impl fmt::Display for ExpressionError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+impl error::Error for ExpressionError {
+    fn description(&self) -> &str {
+        use self::ExpressionError::*;
+        match *self {
+            NonOpTokenInOpStack(_) => "Unexpected non-operator token in expression parser operator stack",
+            NonOpOrLParenTokenInOpStack(_) => "Unexpected non-operator and non-left-parenthesis token in expression parser operator stack",
+            MissingLHS(_) => "Operator is missing left-hand-side",
+            MissingRHS(_) => "Operator is missing right-hand-side",
+            ExpectingMoreExpressionTokens => "Expecting more expression tokens to complete expression",
+            LexerError(_) => "Error occurred during lexing.",
+        }
+    }
+
+    fn cause(&self) -> Option<&error::Error> {
+        use self::ExpressionError::*;
+        match *self {
+            LexerError(ref e) => Some(e),
+            _ => None
+        }
+    }
+}
+
+impl convert::From<lexer::Error> for ExpressionParserError {
+    fn from(error: lexer::Error) -> ExpressionParserError {
+        ExpressionParserError{item: ExpressionError::LexerError(error.clone()), position: error.position}
+    }
+}
+
+pub type ExpressionResult<T> = result::Result<T, Error>;
 
 /*
 Dijkstra's shunting-yard algorithm:
@@ -258,6 +264,51 @@ fn parse_statement_list<L: Lexer>(lexer: &mut L) -> Result<ast::StatementList> {
     }
     Ok(stmts)
 }
+
+#[derive(Debug,Clone,PartialEq)]
+pub enum ParseError {
+    UnexpectedToken(token::TokenType),
+    ExpectingMoreTokens,
+    ExpressionParserError(ExpressionError),
+    LexerError(lexer::Error),
+}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+impl error::Error for ParseError {
+    fn description(&self) -> &str {
+        use self::ParseError::*;
+        match *self {
+            UnexpectedToken(_) => "Encountered unexpected token while parsing.",
+            ExpectingMoreTokens => "Expected to find more tokens but got nothing",
+            ExpressionParserError(_) => "Error occurred in expression parser",
+            LexerError(_) => "Error occurred during lexing.",
+        }
+    }
+
+    fn cause(&self) -> Option<&error::Error> {
+        use self::ParseError::*;
+        match *self {
+            ExpressionParserError(ref e) => Some(e),
+            LexerError(ref e) => Some(e),
+            _ => None
+        }
+    }
+}
+
+pub type Error = WithPos<ParseError>;
+
+impl convert::From<lexer::Error> for Error {
+    fn from(error: lexer::Error) -> Error {
+        Error{item: ParseError::LexerError(error.clone()), position: error.position}
+    }
+}
+
+pub type Result<T> = result::Result<T, Error>;
 
 pub fn parse_program<L: Lexer>(lexer: L) -> Result<ast::Program> {
     use token::TokenType::*;
