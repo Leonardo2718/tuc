@@ -30,10 +30,8 @@ use std::convert;
 use std::iter;
 use std::ops;
 
-mod expression_parser;
-mod statement_parser;
-
-use self::statement_parser::parse_statement_list;
+use super::expression_parser;
+use super::expression_parser::parse_expression;
 
 use utils::*;
 use token;
@@ -46,7 +44,7 @@ use ast;
 pub enum ParseError {
     UnexpectedToken(token::TokenType),
     ExpectingMoreTokens,
-    StatementParserError(statement_parser::ParseError),
+    ExpressionParserError(expression_parser::ParserError),
     LexerError(lexer::Error),
 }
 
@@ -62,7 +60,7 @@ impl error::Error for ParseError {
         match *self {
             UnexpectedToken(_) => "Encountered unexpected token while parsing.",
             ExpectingMoreTokens => "Expected to find more tokens but got nothing",
-            StatementParserError(_) => "Error occurred in statement parser",
+            ExpressionParserError(_) => "Error occurred in expression parser",
             LexerError(_) => "Error occurred during lexing.",
         }
     }
@@ -70,7 +68,7 @@ impl error::Error for ParseError {
     fn cause(&self) -> Option<&error::Error> {
         use self::ParseError::*;
         match *self {
-            StatementParserError(ref e) => Some(e),
+            ExpressionParserError(ref e) => Some(e),
             LexerError(ref e) => Some(e),
             _ => None
         }
@@ -85,22 +83,51 @@ impl convert::From<lexer::Error> for Error {
     }
 }
 
-impl convert::From<statement_parser::Error> for Error {
-    fn from(error: statement_parser::Error) -> Error {
-        Error{item: ParseError::StatementParserError(error.item), position: error.position}
+impl convert::From<expression_parser::Error> for Error {
+    fn from(error: expression_parser::Error) -> Error {
+        Error{item: ParseError::ExpressionParserError(error.item), position: error.position}
     }
-}
+} 
 
 pub type Result<T> = result::Result<T, Error>;
 
-pub fn parse_program<L: Lexer>(lexer: L) -> Result<ast::Program> {
-    use token::TokenType::*;
-    use token::Token;
-    let mut lexer = lexer.filter(|ref t| if let Ok(Token{token:COMMENT(_), pos:_}) = t { false } else { true });
-    Ok(ast::Program{ body: parse_statement_list(&mut lexer)? })
+macro_rules! expect_token {
+    ($pos:expr, $lexer:expr, $token:tt) => {
+        if let Some(next) = $lexer.next() {
+            match next?.token {
+                token::TokenType::$token => Ok(()),
+                t => Err(WithPos{item: ParseError::UnexpectedToken(t), position: $pos})
+            }
+        }
+        else {
+            Err(WithPos{item: ParseError::ExpectingMoreTokens, position: $pos})
+        }
+    };
 }
 
-#[cfg(test)]
-mod test {
-    use super::*;
+pub fn parse_statement<L: Lexer>(lexer: &mut L) -> Result<WithPos<ast::Statement>>  {
+    use token::TokenType::*;
+    use token::Keyword::*;
+    use token::Operator::*;
+    use ast::Statement::*;
+
+    let token = lexer.next().unwrap()?;
+    match token.token {
+        KEYWORD(PRINT) => {
+            expect_token!(token.pos, lexer, LPAREN)?;
+            let expr = parse_expression(lexer)?;
+            expect_token!(expr.pos(), lexer, RPAREN)?;
+            return Ok(WithPos{item: Print(expr), position: token.pos});
+        }
+        t => Err(Error{item: ParseError::UnexpectedToken(t), position: token.pos})
+    }
+}
+
+pub fn parse_statement_list<L: Lexer>(lexer: &mut L) -> Result<ast::StatementList> {
+    let mut stmts: ast::StatementList = Vec::new();
+    while let Some(_) = lexer.clone().peekable().peek() {
+        let s = parse_statement(lexer)?;
+        stmts.push(s);
+    }
+    Ok(stmts)
 }
