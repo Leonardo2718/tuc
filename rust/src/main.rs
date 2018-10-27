@@ -23,6 +23,7 @@
  *
  */
 
+use std::error;
 use std::io::prelude::Read;
 use std::fs::File;
 use std::io::BufReader;
@@ -38,6 +39,24 @@ extern crate argparse;
 
 struct Options {
     source_path: String,
+}
+
+macro_rules! handle_errors {
+    ($expr:expr) => {
+        match $expr {
+            Ok(v) => v,
+            Err(e) => {
+                println!("Compilation error at {:?}:", e.pos());
+                let mut err: &error::Error = &e.item.clone();
+                loop {
+                    println!("  error: {}", err.description());
+                    if let Some(cause) = err.cause() { err = cause; }
+                    else { println!("    {:?}", e); break; }
+                }
+                return;
+            }
+        }
+    };
 }
 
 fn main() {
@@ -59,7 +78,7 @@ fn main() {
     }
 
     let iter = lexer::TokenIterator::new(&source);
-    let ast = parser::parse_program(iter).unwrap();
+    let ast = handle_errors!(parser::parse_program(iter));
 
     use fmttree::Display;
     println!("AST:\n{}", ast.display_tree());
