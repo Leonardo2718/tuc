@@ -40,6 +40,16 @@ impl<T: fmttree::Display> fmttree::Display for WithPos<T> {
     }
 }
 
+impl fmttree::Display for String {
+    fn display_node(&self) -> String{
+        self.clone()
+    }
+
+    fn display_children(&self, f: fmttree::TreeFormat) -> String {
+        "".to_string()
+    }
+}
+
 #[derive(Debug,Clone,Copy,PartialEq,Eq)]
 pub enum Type {
     I32,
