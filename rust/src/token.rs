@@ -64,6 +64,7 @@ pub enum TokenType {
     CONST(Const),
     KEYWORD(Keyword),
     OPERATOR(Operator),
+    ASSIGN,
     LPAREN,
     RPAREN,
     SEMICOLON,

@@ -123,7 +123,8 @@ impl fmttree::Display for Expression {
 
 #[derive(Debug,Clone,PartialEq)]
 pub enum Statement {
-    Print(WithPos<WithType<Expression>>)
+    Print(WithPos<WithType<Expression>>),
+    Let(WithPos<String>, WithPos<WithType<Expression>>),
 }
 pub type StatementList = Vec<WithPos<Statement>>;
 
@@ -131,14 +132,16 @@ impl fmttree::Display for Statement {
     fn display_node(&self) -> String {
         use self::Statement::*;
         match self {
-            Print(_) => "Print".to_string()
+            Print(_) => "Print".to_string(),
+            Let(_,_) => "Let".to_string(),
         }
     }
 
     fn display_children(&self, f: fmttree::TreeFormat) -> String {
         use self::Statement::*;
         match self {
-            Print(e) => e.display_sub_tree(f)
+            Print(e) => e.display_sub_tree(f),
+            Let(i,e) => i.display_sub_tree(f.clone()) + &e.display_sub_tree(f),
         }
     }
 }

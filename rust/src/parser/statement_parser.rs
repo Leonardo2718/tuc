@@ -87,16 +87,17 @@ impl convert::From<expression_parser::Error> for Error {
     fn from(error: expression_parser::Error) -> Error {
         Error{item: ParseError::ExpressionParserError(error.item), position: error.position}
     }
-} 
+}
 
 pub type Result<T> = result::Result<T, Error>;
 
 macro_rules! expect_token {
-    ($pos:expr, $lexer:expr, $token:tt) => {
+    ($pos:expr, $lexer:expr, $($p:pat => $e:expr),+ ) => {
         if let Some(next) = $lexer.next() {
-            match next?.token {
-                token::TokenType::$token => Ok(()),
-                t => Err(WithPos{item: ParseError::UnexpectedToken(t), position: $pos})
+            let next = next?;
+            match next.token {
+                $( $p => Ok(($e, next.pos)) ),+,
+                t => Err(WithPos{item: ParseError::UnexpectedToken(t), position: next.pos})
             }
         }
         else {
@@ -114,10 +115,16 @@ pub fn parse_statement<L: Lexer>(lexer: &mut L) -> Result<WithPos<ast::Statement
     let token = lexer.next().unwrap()?;
     match token.token {
         KEYWORD(PRINT) => {
-            expect_token!(token.pos, lexer, LPAREN)?;
+            expect_token!(token.pos, lexer, LPAREN => ())?;
             let expr = parse_expression(lexer)?;
-            expect_token!(expr.pos(), lexer, RPAREN)?;
+            expect_token!(expr.pos(), lexer, RPAREN => ())?;
             return Ok(WithPos{item: Print(expr), position: token.pos});
+        },
+        KEYWORD(LET) => {
+            let (i, p) = expect_token!(token.pos, lexer, IDENT(i) => i)?;
+            expect_token!(token.pos, lexer, ASSIGN => ())?;
+            let expr = parse_expression(lexer)?;
+            Ok(WithPos{item: Let(WithPos{item:i,position:p}, expr), position: token.pos})
         }
         t => Err(Error{item: ParseError::UnexpectedToken(t), position: token.pos})
     }
