@@ -133,7 +133,14 @@ pub fn parse_statement<L: Lexer>(lexer: &mut L) -> Result<WithPos<ast::Statement
 pub fn parse_statement_list<L: Lexer>(lexer: &mut L) -> Result<ast::StatementList> {
     let mut stmts: ast::StatementList = Vec::new();
     while let Some(_) = lexer.clone().peekable().peek() {
+        use token::*;
         let s = parse_statement(lexer)?;
+
+        // if the next token is a semicolon, skip it
+        while let Some(Ok(Token{token:TokenType::SEMICOLON, pos:_})) = lexer.clone().peekable().peek() {
+            lexer.next();
+        }
+
         stmts.push(s);
     }
     Ok(stmts)
