@@ -139,6 +139,7 @@ exit.
 */
 pub fn parse_expression<L: Lexer>(lexer: &mut L) -> Result<WithPos<ast::WithType<ast::Expression>>> {
     use utils::Const::*;
+    use token::Token;
     use token::TokenType::*;
     use ast::Expression::*;
     use ast::Type;
@@ -183,11 +184,11 @@ pub fn parse_expression<L: Lexer>(lexer: &mut L) -> Result<WithPos<ast::WithType
             };},
             OPERATOR(o) => {
                 lexer.next();
-                while let Some(OPERATOR(p)) = op_stack.iter().rev().map(|t| t.token.clone()).next() {
+                while let Some(Token{token: OPERATOR(p), pos}) = op_stack.last().map(|t| t.clone()) {
                     op_stack.pop();
-                    if p.precedence() > o.precedence() { pop_op!(o,next); }
-                    else if p.precedence() == o.precedence() && p.associativity() == Associativity::Left { pop_op!(o,next); }
-                    else { break; }
+                    if p.precedence() > o.precedence() { pop_op!(p,next); }
+                    else if p.precedence() == o.precedence() && p.associativity() == Associativity::Left { pop_op!(p,next); }
+                    else { op_stack.push(Token{token: OPERATOR(p), pos}); break; }
                 }
                 op_stack.push(next);
             },
