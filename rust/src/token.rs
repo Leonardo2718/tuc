@@ -57,7 +57,8 @@ define_keywords!(
     "let" => LET,
     "if" => IF,
     "elseif" => ELSEIF,
-    "else" => ELSE
+    "else" => ELSE,
+    "while" => WHILE
 );
 
 #[derive(Debug,Clone,PartialEq)]

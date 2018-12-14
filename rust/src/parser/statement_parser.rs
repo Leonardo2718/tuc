@@ -137,6 +137,7 @@ pub fn parse_statement<L: Lexer>(lexer: &mut L) -> Result<WithPos<ast::Statement
     use ast::IfStatement;
     use ast::ElseIfStatement;
     use ast::ElseStatement;
+    use ast::WhileLoop;
 
     let token = lexer.next().unwrap()?;
     match token.token {
@@ -175,6 +176,12 @@ pub fn parse_statement<L: Lexer>(lexer: &mut L) -> Result<WithPos<ast::Statement
 
             let ifstmt = IfStatement{expr, body, elseifs, elseBlock};
             Ok(WithPos{item: If(ifstmt), position: token.pos})
+        }
+        KEYWORD(WHILE) => {
+            let expr = parse_expression(lexer)?;
+            let body = parse_statement_block(lexer, expr.pos())?;
+            let whileloop = WhileLoop{expr, body};
+            Ok(WithPos{item: While(whileloop), position: token.pos})
         }
         t => Err(Error{item: ParseError::UnexpectedToken(t), position: token.pos})
     }

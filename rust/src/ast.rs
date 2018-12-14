@@ -188,8 +188,27 @@ impl fmttree::Display for ElseStatement {
         "Else".to_string()
     }
 
-    fn display_children(&self, f:fmttree::TreeFormat) -> String {
+    fn display_children(&self, f: fmttree::TreeFormat) -> String {
         self.body.display_sub_tree(f.clone())
+    }
+}
+
+#[derive(Debug,Clone,PartialEq)]
+pub struct WhileLoop {
+    pub expr: WithPos<WithType<Expression>>,
+    pub body: WithPos<Block>,
+}
+
+impl fmttree::Display for WhileLoop {
+    fn display_node(&self) -> String {
+        "While".to_string()
+    }
+
+    fn display_children(&self, f: fmttree::TreeFormat) -> String {
+        let mut s = String::new();
+        s += &self.expr.display_sub_tree(f.clone());
+        s += &self.body.display_sub_tree(f.clone());
+        return s;
     }
 }
 
@@ -198,6 +217,7 @@ pub enum Statement {
     Print(WithPos<WithType<Expression>>),
     Let(WithPos<String>, WithPos<WithType<Expression>>),
     If(IfStatement),
+    While(WhileLoop),
 }
 pub type StatementList = Vec<WithPos<Statement>>;
 
@@ -208,6 +228,7 @@ impl fmttree::Display for Statement {
             Print(_) => "Print".to_string(),
             Let(_,_) => "Let".to_string(),
             If(s) => s.display_node(),
+            While(s) => s.display_node(),
         }
     }
 
@@ -216,7 +237,8 @@ impl fmttree::Display for Statement {
         match self {
             Print(e) => e.display_sub_tree(f),
             Let(i,e) => i.display_sub_tree(f.clone()) + &e.display_sub_tree(f),
-            If(s) => s.display_children(f.clone())
+            If(s) => s.display_children(f.clone()),
+            While(s) => s.display_children(f.clone()),
         }
     }
 }
