@@ -122,9 +122,82 @@ impl fmttree::Display for Expression {
 }
 
 #[derive(Debug,Clone,PartialEq)]
+pub struct Block(pub StatementList);
+
+impl fmttree::Display for Block {
+    fn display_node(&self) -> String {
+        "Block".to_string()
+    }
+
+    fn display_children(&self, f: fmttree::TreeFormat) -> String {
+        self.0.iter().map(|s| s.display_sub_tree(f.clone())).fold(String::new(), |acc, x| acc + &x)
+    }
+}
+
+#[derive(Debug,Clone,PartialEq)]
+pub struct IfStatement {
+    pub expr: WithPos<WithType<Expression>>,
+    pub body: WithPos<Block>,
+    pub elseifs: Vec<WithPos<ElseIfStatement>>,
+    pub elseBlock: Option<WithPos<ElseStatement>>,
+}
+
+impl fmttree::Display for IfStatement {
+    fn display_node(&self) -> String {
+        "If".to_string()
+    }
+
+    fn display_children(&self, f:fmttree::TreeFormat) -> String {
+        let mut s = String::new();
+        s += &self.expr.display_sub_tree(f.clone());
+        s += &self.body.display_sub_tree(f.clone());
+        s = self.elseifs.iter().map(|s| s.display_sub_tree(f.clone())).fold(s, |acc, x| acc + &x);
+        if let Some(ref b) = self.elseBlock {
+            s += &b.display_sub_tree(f.clone());
+        }
+        return s;
+    }
+}
+
+#[derive(Debug,Clone,PartialEq)]
+pub struct ElseIfStatement {
+    pub expr: WithPos<WithType<Expression>>,
+    pub body: WithPos<Block>,
+}
+
+impl fmttree::Display for ElseIfStatement {
+    fn display_node(&self) -> String {
+        "ElseIf".to_string()
+    }
+
+    fn display_children(&self, f:fmttree::TreeFormat) -> String {
+        let mut s = String::new();
+        s += &self.expr.display_sub_tree(f.clone());
+        s += &self.body.display_sub_tree(f.clone());
+        return s;
+    }
+}
+
+#[derive(Debug,Clone,PartialEq)]
+pub struct ElseStatement {
+    pub body: WithPos<Block>,
+}
+
+impl fmttree::Display for ElseStatement {
+    fn display_node(&self) -> String {
+        "Else".to_string()
+    }
+
+    fn display_children(&self, f:fmttree::TreeFormat) -> String {
+        self.body.display_sub_tree(f.clone())
+    }
+}
+
+#[derive(Debug,Clone,PartialEq)]
 pub enum Statement {
     Print(WithPos<WithType<Expression>>),
     Let(WithPos<String>, WithPos<WithType<Expression>>),
+    If(IfStatement),
 }
 pub type StatementList = Vec<WithPos<Statement>>;
 
@@ -134,6 +207,7 @@ impl fmttree::Display for Statement {
         match self {
             Print(_) => "Print".to_string(),
             Let(_,_) => "Let".to_string(),
+            If(s) => s.display_node(),
         }
     }
 
@@ -142,6 +216,7 @@ impl fmttree::Display for Statement {
         match self {
             Print(e) => e.display_sub_tree(f),
             Let(i,e) => i.display_sub_tree(f.clone()) + &e.display_sub_tree(f),
+            If(s) => s.display_children(f.clone())
         }
     }
 }

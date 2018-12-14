@@ -42,7 +42,7 @@ macro_rules! define_keywords {
         pub enum Keyword {
             $($t),+
         }
-        
+
         pub fn as_keyword(k: &str) -> Option<Keyword> {
             let keywords: HashMap<&str, Keyword> = [
                 $(($e, Keyword::$t)),+
@@ -54,7 +54,10 @@ macro_rules! define_keywords {
 
 define_keywords!(
     "print" => PRINT,
-    "let" => LET
+    "let" => LET,
+    "if" => IF,
+    "elseif" => ELSEIF,
+    "else" => ELSE
 );
 
 #[derive(Debug,Clone,PartialEq)]
@@ -67,6 +70,8 @@ pub enum TokenType {
     ASSIGN,
     LPAREN,
     RPAREN,
+    LBRACE,
+    RBRACE,
     SEMICOLON,
 }
 

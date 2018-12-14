@@ -116,7 +116,7 @@ while there are tokens to be read:
     if the token is a number, then:
         push it to the output queue.
     if the token is a function then:
-        push it onto the operator stack 
+        push it onto the operator stack
     if the token is an operator, then:
         while ((there is a function at the top of the operator stack)
                or (there is an operator at the top of the operator stack with greater precedence)

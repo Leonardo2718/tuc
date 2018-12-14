@@ -139,6 +139,8 @@ impl<'a> TokenIterator<'a> {
             ('=', p) => { self.iter.next(); emit!(ASSIGN, p) }
             ('(', p) => { self.iter.next(); emit!(LPAREN, p) }
             (')', p) => { self.iter.next(); emit!(RPAREN, p) }
+            ('{', p) => { self.iter.next(); emit!(LBRACE, p) }
+            ('}', p) => { self.iter.next(); emit!(RBRACE, p) }
             (';', p) => { self.iter.next(); emit!(SEMICOLON, p) }
             ('#', p) => {
                 self.iter.next();
