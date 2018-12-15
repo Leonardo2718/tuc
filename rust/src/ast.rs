@@ -218,6 +218,7 @@ pub enum Statement {
     Let(WithPos<String>, WithPos<WithType<Expression>>),
     If(IfStatement),
     While(WhileLoop),
+    Assignment(WithPos<WithType<String>>, WithPos<WithType<Expression>>),
 }
 pub type StatementList = Vec<WithPos<Statement>>;
 
@@ -229,6 +230,7 @@ impl fmttree::Display for Statement {
             Let(_,_) => "Let".to_string(),
             If(s) => s.display_node(),
             While(s) => s.display_node(),
+            Assignment(_,_) => "Assignment".to_string(),
         }
     }
 
@@ -239,6 +241,7 @@ impl fmttree::Display for Statement {
             Let(i,e) => i.display_sub_tree(f.clone()) + &e.display_sub_tree(f),
             If(s) => s.display_children(f.clone()),
             While(s) => s.display_children(f.clone()),
+            Assignment(i, e) => i.display_sub_tree(f.clone()) + &e.display_sub_tree(f),
         }
     }
 }

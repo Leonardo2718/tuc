@@ -183,6 +183,12 @@ pub fn parse_statement<L: Lexer>(lexer: &mut L) -> Result<WithPos<ast::Statement
             let whileloop = WhileLoop{expr, body};
             Ok(WithPos{item: While(whileloop), position: token.pos})
         }
+        IDENT(ident) => {
+            let (_, p) = expect_token!(token.pos, lexer, ASSIGN => ())?;
+            let expr = parse_expression(lexer)?;
+            let ident = WithPos{item: ast::WithType{item: ident, t: ast::Type::Unknown}, position: token.pos};
+            Ok(WithPos{item: Assignment(ident, expr), position: p})
+        }
         t => Err(Error{item: ParseError::UnexpectedToken(t), position: token.pos})
     }
 }
