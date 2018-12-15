@@ -184,8 +184,16 @@ A lexer can by any iterator that yeilds a lexer::Result as item.
 The 'Lexer' trait expresses this requirement and is implemented
 as a "trait alias" for the underlying iterator trait.
 */
-pub trait Lexer: iter::Iterator<Item = Result> + clone::Clone {}
-impl<T: iter::Iterator<Item = Result> + clone::Clone> Lexer for T {}
+pub trait Lexer: iter::Iterator<Item = Result> + clone::Clone {
+    fn peek(&mut self) -> Option<Self::Item>;
+}
+impl<T: iter::Iterator<Item = Result> + clone::Clone> Lexer for T {
+    fn peek(&mut self) -> Option<Self::Item> {
+        // need to clone self to prevent iterator from advancing when peeked
+        // need to clone contained token t to ensure it can outlive function call
+        self.clone().peekable().peek().map(|t| t.clone())
+    }
+}
 
 #[cfg(test)]
 mod test {

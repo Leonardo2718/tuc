@@ -174,8 +174,8 @@ pub fn parse_expression<L: Lexer>(lexer: &mut L) -> Result<WithPos<ast::WithType
         };
     }
 
-    while let Some(next) = lexer.clone().peekable().peek() {
-        let next = next.clone()?;
+    while let Some(next) = lexer.peek() {
+        let next = next?;
 
         match next.token {
             IDENT(s) => { lexer.next(); push_expr!(next, Type::Unknown, Identifier, s); },

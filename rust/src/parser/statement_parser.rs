@@ -117,9 +117,9 @@ fn parse_statement_block<L: Lexer>(lexer: &mut L, pos: Position) -> Result<WithP
     let mut stmts: ast::StatementList = Vec::new();
     let mut lastPos = lbracepos;
     loop {
-        match lexer.clone().peekable().peek() {
-            Some(Ok(Token{token: SEMICOLON, pos:p})) => { lastPos = *p; lexer.next(); continue },
-            Some(Ok(Token{token: RBRACE, pos:p})) => { lastPos = *p; lexer.next(); break },
+        match lexer.peek() {
+            Some(Ok(Token{token: SEMICOLON, pos:p})) => { lastPos = p; lexer.next(); continue },
+            Some(Ok(Token{token: RBRACE, pos:p})) => { lastPos = p; lexer.next(); break },
             None => return Err(Error{item: ParseError::ExpectingMoreTokens, position: lastPos}),
             _ => stmts.push(parse_statement(lexer)?)
         }
@@ -158,18 +158,18 @@ pub fn parse_statement<L: Lexer>(lexer: &mut L) -> Result<WithPos<ast::Statement
             let body = parse_statement_block(lexer, expr.pos())?;
 
             let mut elseifs = Vec::new();
-            while let Some(Ok(Token{token: KEYWORD(ELSEIF), pos:p})) = lexer.clone().peekable().peek() {
+            while let Some(Ok(Token{token: KEYWORD(ELSEIF), pos:p})) = lexer.peek() {
                 lexer.next();
                 let expr = parse_expression(lexer)?;
                 let body = parse_statement_block(lexer, expr.pos())?;
-                elseifs.push(WithPos{item: ElseIfStatement{expr, body}, position: *p})
+                elseifs.push(WithPos{item: ElseIfStatement{expr, body}, position: p})
             }
 
-            let elseBlock = match lexer.clone().peekable().peek() {
+            let elseBlock = match lexer.peek() {
                 Some(Ok(Token{token: KEYWORD(ELSE), pos:p})) => {
                     lexer.next();
-                    let body = parse_statement_block(lexer, *p)?;
-                    Some(WithPos{item: ElseStatement{body}, position: *p})
+                    let body = parse_statement_block(lexer, p)?;
+                    Some(WithPos{item: ElseStatement{body}, position: p})
                 }
                 _ => None
             };
@@ -200,7 +200,7 @@ pub fn parse_statement_list<L: Lexer>(lexer: &mut L) -> Result<ast::StatementLis
         let s = parse_statement(lexer)?;
 
         // if the next token is a semicolon, skip it
-        while let Some(Ok(Token{token: TokenType::SEMICOLON, pos:_})) = lexer.clone().peekable().peek() {
+        while let Some(Ok(Token{token: TokenType::SEMICOLON, pos:_})) = lexer.peek() {
             lexer.next();
         }
 
