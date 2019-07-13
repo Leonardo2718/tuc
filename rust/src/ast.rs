@@ -62,6 +62,22 @@ pub struct WithType<T> {
     pub t: Type
 }
 
+pub trait Passthrough<T>: Deref + DerefMut {
+    fn bare(x: T) -> Self;
+}
+
+impl<T> Passthrough<T> for WithType<T> {
+    fn bare(x: T) -> WithType<T> { WithType{item: x, t: Type::Unknown} }
+}
+
+impl<T> Passthrough<T> for WithPos<T> {
+    fn bare(x: T) -> WithPos<T> { WithPos{item: x, position: Position{pos:0}} }
+}
+
+impl<T> Passthrough<T> for WithPos<WithType<T>> {
+    fn bare(x: T) -> WithPos<WithType<T>> { WithPos{item: WithType{item: x, t: Type::Unknown} , position: Position{pos:0}} }
+}
+
 impl<T> Deref for WithType<T> {
     type Target = T;
 
@@ -86,8 +102,6 @@ impl<T: fmttree::Display> fmttree::Display for WithType<T> {
     }
 }
 
-pub type IndirectWithPos<T> = Box<WithPos<T>>;
-
 #[derive(Debug,Clone,Copy,PartialEq,Eq)]
 pub enum BinaryOperator {
     Add,
@@ -97,15 +111,15 @@ pub enum BinaryOperator {
 }
 
 #[derive(Debug,Clone,PartialEq)]
-pub enum Expression {
+pub enum BareExpression {
     Identifier(String),
     Literal(Const),
-    BinaryOp(BinaryOperator, IndirectWithPos<WithType<Expression>>, IndirectWithPos<WithType<Expression>>),
+    BinaryOp(BinaryOperator, Box<Expression>, Box<Expression>),
 }
 
-impl fmttree::Display for Expression {
+impl fmttree::Display for BareExpression {
     fn display_node(&self) -> String {
-        use self::Expression::*;
+        use self::BareExpression::*;
         match self {
             BinaryOp(op, _, _) => format!("{:?}", op),
             _ => format!("{:?}", self)
@@ -113,7 +127,7 @@ impl fmttree::Display for Expression {
     }
 
     fn display_children(&self, f: fmttree::TreeFormat) -> String {
-        use self::Expression::*;
+        use self::BareExpression::*;
         match self {
             BinaryOp(_, lhs, rhs) => lhs.display_sub_tree(f.clone()) + &rhs.display_sub_tree(f.clone()),
             _ => String::new()
@@ -121,10 +135,12 @@ impl fmttree::Display for Expression {
     }
 }
 
-#[derive(Debug,Clone,PartialEq)]
-pub struct Block(pub StatementList);
+pub type Expression = WithPos<WithType<BareExpression>>;
 
-impl fmttree::Display for Block {
+#[derive(Debug,Clone,PartialEq)]
+pub struct BareBlock(pub StatementList);
+
+impl fmttree::Display for BareBlock {
     fn display_node(&self) -> String {
         "Block".to_string()
     }
@@ -134,12 +150,14 @@ impl fmttree::Display for Block {
     }
 }
 
+pub type Block = WithPos<BareBlock>;
+
 #[derive(Debug,Clone,PartialEq)]
 pub struct IfStatement {
-    pub expr: WithPos<WithType<Expression>>,
-    pub body: WithPos<Block>,
-    pub elseifs: Vec<WithPos<ElseIfStatement>>,
-    pub elseBlock: Option<WithPos<ElseStatement>>,
+    pub expr: Expression,
+    pub body: Block,
+    pub elseifs: Vec<ElseIfStatement>,
+    pub elseBlock: Option<ElseStatement>,
 }
 
 impl fmttree::Display for IfStatement {
@@ -160,12 +178,12 @@ impl fmttree::Display for IfStatement {
 }
 
 #[derive(Debug,Clone,PartialEq)]
-pub struct ElseIfStatement {
-    pub expr: WithPos<WithType<Expression>>,
-    pub body: WithPos<Block>,
+pub struct BareElseIfStatement {
+    pub expr: Expression,
+    pub body: Block,
 }
 
-impl fmttree::Display for ElseIfStatement {
+impl fmttree::Display for BareElseIfStatement {
     fn display_node(&self) -> String {
         "ElseIf".to_string()
     }
@@ -178,12 +196,14 @@ impl fmttree::Display for ElseIfStatement {
     }
 }
 
+type ElseIfStatement = WithPos<BareElseIfStatement>;
+
 #[derive(Debug,Clone,PartialEq)]
-pub struct ElseStatement {
-    pub body: WithPos<Block>,
+pub struct BareElseStatement {
+    pub body: Block,
 }
 
-impl fmttree::Display for ElseStatement {
+impl fmttree::Display for BareElseStatement {
     fn display_node(&self) -> String {
         "Else".to_string()
     }
@@ -193,10 +213,12 @@ impl fmttree::Display for ElseStatement {
     }
 }
 
+type ElseStatement = WithPos<BareElseStatement>;
+
 #[derive(Debug,Clone,PartialEq)]
 pub struct WhileLoop {
-    pub expr: WithPos<WithType<Expression>>,
-    pub body: WithPos<Block>,
+    pub expr: Expression,
+    pub body: Block,
 }
 
 impl fmttree::Display for WhileLoop {
@@ -213,18 +235,20 @@ impl fmttree::Display for WhileLoop {
 }
 
 #[derive(Debug,Clone,PartialEq)]
-pub enum Statement {
-    Print(WithPos<WithType<Expression>>),
-    Let(WithPos<String>, WithPos<WithType<Expression>>),
+pub enum BareStatement {
+    Print(Expression),
+    Let(WithPos<String>, Expression),
     If(IfStatement),
     While(WhileLoop),
-    Assignment(WithPos<WithType<String>>, WithPos<WithType<Expression>>),
+    Assignment(WithPos<WithType<String>>, Expression),
 }
-pub type StatementList = Vec<WithPos<Statement>>;
 
-impl fmttree::Display for Statement {
+pub type Statement = WithPos<BareStatement>;
+pub type StatementList = Vec<Statement>;
+
+impl fmttree::Display for BareStatement {
     fn display_node(&self) -> String {
-        use self::Statement::*;
+        use self::BareStatement::*;
         match self {
             Print(_) => "Print".to_string(),
             Let(_,_) => "Let".to_string(),
@@ -235,7 +259,7 @@ impl fmttree::Display for Statement {
     }
 
     fn display_children(&self, f: fmttree::TreeFormat) -> String {
-        use self::Statement::*;
+        use self::BareStatement::*;
         match self {
             Print(e) => e.display_sub_tree(f),
             Let(i,e) => i.display_sub_tree(f.clone()) + &e.display_sub_tree(f),

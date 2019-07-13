@@ -137,14 +137,14 @@ if there are no more tokens to read:
         pop the operator from the operator stack onto the output queue.
 exit.
 */
-pub fn parse_expression<L: Lexer>(lexer: &mut L) -> Result<WithPos<ast::WithType<ast::Expression>>> {
+pub fn parse_expression<L: Lexer>(lexer: &mut L) -> Result<ast::Expression> {
     use utils::Const::*;
     use token::Token;
     use token::TokenType::*;
-    use ast::Expression::*;
+    use ast::BareExpression::*;
     use ast::Type;
 
-    let mut expr_stack: Vec<WithPos<ast::WithType<ast::Expression>>> = Vec::new();
+    let mut expr_stack: Vec<ast::Expression> = Vec::new();
     let mut op_stack: Vec<token::Token> = Vec::new();
 
     macro_rules! push_expr {

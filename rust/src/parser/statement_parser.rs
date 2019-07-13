@@ -106,10 +106,10 @@ macro_rules! expect_token {
     };
 }
 
-fn parse_statement_block<L: Lexer>(lexer: &mut L, pos: Position) -> Result<WithPos<ast::Block>> {
+fn parse_statement_block<L: Lexer>(lexer: &mut L, pos: Position) -> Result<ast::Block> {
     use token::TokenType::*;
     use token::Token;
-    use ast::Block;
+    use ast::BareBlock;
 
     // match '{'
     let (_, lbracepos) = expect_token!(pos, lexer, LBRACE => ())?;
@@ -125,18 +125,18 @@ fn parse_statement_block<L: Lexer>(lexer: &mut L, pos: Position) -> Result<WithP
         }
     }
 
-    Ok(WithPos{item: Block(stmts), position: lbracepos})
+    Ok(WithPos{item: BareBlock(stmts), position: lbracepos})
 }
 
-pub fn parse_statement<L: Lexer>(lexer: &mut L) -> Result<WithPos<ast::Statement>>  {
+pub fn parse_statement<L: Lexer>(lexer: &mut L) -> Result<ast::Statement>  {
     use token::TokenType::*;
     use token::Token;
     use token::Keyword::*;
     use token::Operator::*;
-    use ast::Statement::*;
+    use ast::BareStatement::*;
     use ast::IfStatement;
-    use ast::ElseIfStatement;
-    use ast::ElseStatement;
+    use ast::BareElseIfStatement;
+    use ast::BareElseStatement;
     use ast::WhileLoop;
 
     let token = lexer.next().unwrap()?;
@@ -162,14 +162,14 @@ pub fn parse_statement<L: Lexer>(lexer: &mut L) -> Result<WithPos<ast::Statement
                 lexer.next();
                 let expr = parse_expression(lexer)?;
                 let body = parse_statement_block(lexer, expr.pos())?;
-                elseifs.push(WithPos{item: ElseIfStatement{expr, body}, position: p})
+                elseifs.push(WithPos{item: BareElseIfStatement{expr, body}, position: p})
             }
 
             let elseBlock = match lexer.peek() {
                 Some(Ok(Token{token: KEYWORD(ELSE), pos:p})) => {
                     lexer.next();
                     let body = parse_statement_block(lexer, p)?;
-                    Some(WithPos{item: ElseStatement{body}, position: p})
+                    Some(WithPos{item: BareElseStatement{body}, position: p})
                 }
                 _ => None
             };
