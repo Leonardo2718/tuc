@@ -62,6 +62,11 @@ pub struct WithType<T> {
     pub t: Type
 }
 
+impl<T> WithType<T> {
+    pub fn get_type(&self) -> Type { self.t }
+    pub fn unwrap_type(&self) -> &T { &self.item }
+}
+
 pub trait Passthrough<T>: Deref + DerefMut {
     fn bare(x: T) -> Self;
 }

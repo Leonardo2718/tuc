@@ -34,6 +34,8 @@ mod lexer;
 mod fmttree;
 mod ast;
 mod parser;
+mod il;
+mod genil;
 
 extern crate argparse;
 
@@ -82,4 +84,7 @@ fn main() {
 
     use fmttree::Display;
     println!("AST:\n{}", ast.display_tree());
+
+    let il = genil::gen_il(&ast);
+    println!("IL:\n{:?}", il);
 }

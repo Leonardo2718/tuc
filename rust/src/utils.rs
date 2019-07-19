@@ -41,6 +41,10 @@ impl<T> WithPos<T> {
     pub fn pos(&self) -> Position {
         self.position
     }
+
+    pub fn unwrap_pos(&self) -> &T {
+        &self.item
+    }
 }
 
 impl<T> Deref for WithPos<T> {
@@ -57,7 +61,7 @@ impl<T> DerefMut for WithPos<T> {
     }
 }
 
-#[derive(Debug,Clone,PartialEq,Eq)]
+#[derive(Debug,Clone,Copy,PartialEq,Eq)]
 pub enum Const {
-    I32(i32)
+    I32(i32),
 }
