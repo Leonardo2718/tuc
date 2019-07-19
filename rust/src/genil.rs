@@ -30,10 +30,7 @@ use il::*;
 use std::fmt;
 use std::error;
 use std::result;
-
-struct IlGenerator {
-    values: value::ValueTable
-}
+use std::collections::HashMap;
 
 #[derive(Debug,Clone,PartialEq)]
 pub enum Error {
@@ -66,8 +63,57 @@ impl error::Error for Error {
 
 pub type Result<T> = result::Result<T, Error>;
 
+
+struct SymbolTableEntry {
+    ty: ast::Type,
+    value: Option<value::Value>,
+}
+
+struct SymbolTable {
+    table: HashMap<String, SymbolTableEntry>,
+}
+
+impl SymbolTable {
+    fn new() -> SymbolTable { SymbolTable{table: HashMap::new()} }
+
+    fn define_symbol(&mut self, symbol: String, ty: ast::Type) {
+        self.table.insert(symbol, SymbolTableEntry{ty, value: None});
+    }
+
+    fn set_value(&mut self, symbol: &str, value: value::Value) -> Result<()> {
+        self.table.get_mut(symbol).ok_or(Error::BadAST)?.value = Some(value);
+        return Ok(());
+    }
+
+    fn get_value(&self, symbol: &str) -> Result<Option<value::Value>> {
+        return self.table.get(symbol).ok_or(Error::BadAST).map(|s| s.value);
+    }
+
+    fn get_type(&self, symbol: &str) -> Result<ast::Type> {
+        return self.table.get(symbol).ok_or(Error::BadAST).map(|s| s.ty);
+    }
+}
+
+struct IlGenerator {
+    values: value::ValueTable,
+    symbolTable: SymbolTable,
+}
+
 impl IlGenerator {
-    fn new() -> IlGenerator { IlGenerator{values: value::ValueTable::new()} }
+    fn new() -> IlGenerator { 
+        IlGenerator{values: value::ValueTable::new(), symbolTable: SymbolTable::new()} 
+    }
+
+    fn to_il_op(&self, op: ast::BinaryOperator) -> il::Arith2 {
+        use ast::BinaryOperator as bop;
+        use il::il::Arith2;
+        match op {
+            bop::Add => Arith2::Add,
+            bop::Sub => Arith2::Sub,
+            bop::Mul => Arith2::Mul,
+            bop::Div => Arith2::Div,
+        }
+    }
 
     fn from_expression(&mut self, expr: &ast::Expression) -> Result<(Vec<il::BasicBlock>, value::Value)> {
         use ast::BareExpression::*;
@@ -84,8 +130,10 @@ impl IlGenerator {
                 let mut bbs: Vec<il::BasicBlock> = Vec::new();
                 bbs.append(&mut lops);
                 bbs.append(&mut rops);
-                bbs.push(il::BasicBlock{argVals: Vec::new(), opcodes: vec![], terminator: il::Terminator::Fallthrough});
-                return Ok((Vec::new(), self.values.new_value()));
+                let val = self.values.new_value();
+                let ops = vec![il::OpCode::Arith2(self.to_il_op(*op), val, l, r)];
+                bbs.push(il::BasicBlock{argVals: Vec::new(), opcodes: ops, terminator: il::Terminator::Fallthrough});
+                return Ok((bbs, val));
             },
             _ => Err(Error::BadAST)
         }
@@ -94,7 +142,13 @@ impl IlGenerator {
     fn from_statment(&mut self, statement: &ast::Statement) -> Result<Vec<il::BasicBlock>> {
         use ast::BareStatement::*;
         match statement.unwrap_pos() {
-            Let(_var, expr) => self.from_expression(expr).map(|x| x.0),
+            Let(var, expr) => {
+                let ty = expr.get_type();
+                let (bbs, val) = self.from_expression(expr)?;
+                self.symbolTable.define_symbol(var.to_string(), ty);
+                self.symbolTable.set_value(var, val)?;
+                return Ok(bbs);
+                },
             Assignment(_var, expr) => self.from_expression(expr).map(|x| x.0),
             _ => Err(Error::BadAST)
         }
@@ -113,5 +167,5 @@ impl IlGenerator {
 pub fn gen_il(program: &ast::Program) -> Result<il::Body> {
     let mut il_generator = IlGenerator::new();
     let code = il_generator.from_statment_list(&program.body)?;
-    return Ok(il::Body{code: code, values: il_generator.values});
+    return Ok(il::Body{code, values: il_generator.values});
 }
