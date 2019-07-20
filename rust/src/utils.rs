@@ -25,6 +25,7 @@
 
 use std::ops::Deref;
 use std::ops::DerefMut;
+use std::fmt;
 
 #[derive(Debug,Clone,Copy,PartialEq,Eq)]
 pub struct Position {
@@ -64,4 +65,10 @@ impl<T> DerefMut for WithPos<T> {
 #[derive(Debug,Clone,Copy,PartialEq,Eq)]
 pub enum Const {
     I32(i32),
+}
+
+impl fmt::Display for Const {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
 }

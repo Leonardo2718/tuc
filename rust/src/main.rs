@@ -85,6 +85,6 @@ fn main() {
     use fmttree::Display;
     println!("AST:\n{}", ast.display_tree());
 
-    let il = genil::gen_il(&ast);
-    println!("IL:\n{:?}", il);
+    let il = genil::gen_il(&ast).unwrap();
+    println!("\n{}", il);
 }

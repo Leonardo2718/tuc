@@ -76,11 +76,6 @@ pub enum LexerError {
     ParseFloatError(num::ParseFloatError),
 }
 
-// #[derive(Debug,Clone,PartialEq)]
-// pub struct Error {
-//     pub err: LexerError,
-//     pub pos: Position,
-// }
 pub type Error = WithPos<LexerError>;
 
 impl fmt::Display for Error {
