@@ -26,14 +26,16 @@
 use utils;
 use ast;
 use il::*;
+use symtab;
 
 use std::fmt;
 use std::error;
 use std::result;
-use std::collections::HashMap;
+use std::convert;
 
 #[derive(Debug,Clone,PartialEq)]
 pub enum Error {
+    BadSymbolUse(symtab::Error),
     BadAST
 }
 
@@ -47,15 +49,15 @@ impl error::Error for Error {
     fn description(&self) -> &str {
         use self::Error::*;
         match *self {
+            BadSymbolUse(_) => "Improper use of a symbol",
             BadAST => "AST is malformed.",
         }
     }
 
     fn cause(&self) -> Option<&error::Error> {
         use self::Error::*;
-        match *self {
-            // StatementParserError(ref e) => Some(e),
-            // LexerError(ref e) => Some(e),
+        match self {
+            &BadSymbolUse(ref e) => Some(e),
             _ => None
         }
     }
@@ -63,46 +65,21 @@ impl error::Error for Error {
 
 pub type Result<T> = result::Result<T, Error>;
 
-
-struct SymbolTableEntry {
-    ty: ast::Type,
-    value: Option<value::Value>,
-}
-
-struct SymbolTable {
-    table: HashMap<String, SymbolTableEntry>,
-}
-
-impl SymbolTable {
-    fn new() -> SymbolTable { SymbolTable{table: HashMap::new()} }
-
-    fn define_symbol(&mut self, symbol: String, ty: ast::Type) {
-        self.table.insert(symbol, SymbolTableEntry{ty, value: None});
-    }
-
-    fn set_value(&mut self, symbol: &str, value: value::Value) -> Result<()> {
-        self.table.get_mut(symbol).ok_or(Error::BadAST)?.value = Some(value);
-        return Ok(());
-    }
-
-    fn get_value(&self, symbol: &str) -> Result<Option<value::Value>> {
-        return self.table.get(symbol).ok_or(Error::BadAST).map(|s| s.value);
-    }
-
-    fn get_type(&self, symbol: &str) -> Result<ast::Type> {
-        return self.table.get(symbol).ok_or(Error::BadAST).map(|s| s.ty);
+impl convert::From<symtab::Error> for Error {
+    fn from(error: symtab::Error) -> Error {
+        Error::BadSymbolUse(error)
     }
 }
 
 struct IlGenerator {
     values: value::ValueTable,
-    symbolTable: SymbolTable,
+    symbol_table: symtab::SymbolTable,
     block_counter: i32,
 }
 
 impl IlGenerator {
     fn new() -> IlGenerator { 
-        IlGenerator{values: value::ValueTable::new(), symbolTable: SymbolTable::new(), block_counter: 0} 
+        IlGenerator{values: value::ValueTable::new(), symbol_table: symtab::SymbolTable::new(), block_counter: 0} 
     }
 
     fn new_block(&mut self, argVals: Vec<value::Value>, opcodes: Vec<il::OpCode>, terminator: il::Terminator) -> il::BasicBlock {
@@ -152,8 +129,8 @@ impl IlGenerator {
             Let(var, expr) => {
                 let ty = expr.get_type();
                 let (bbs, val) = self.from_expression(expr)?;
-                self.symbolTable.define_symbol(var.to_string(), ty);
-                self.symbolTable.set_value(var, val)?;
+                self.symbol_table.define_symbol(var.to_string(), ty)?;
+                self.symbol_table.set_value(var, val)?;
                 return Ok(bbs);
                 },
             Assignment(_var, expr) => self.from_expression(expr).map(|x| x.0),

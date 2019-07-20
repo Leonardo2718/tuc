@@ -34,6 +34,7 @@ mod lexer;
 mod fmttree;
 mod ast;
 mod parser;
+mod symtab;
 mod il;
 mod genil;
 
