@@ -79,8 +79,8 @@ impl fmt::Display for OpCode {
 
 #[derive(Debug,Clone)]
 pub enum Terminator {
-    Branch(BasicBlockIndex, Compare, Value, Value, Vec<Value>),
-    Jump(BasicBlockIndex, Vec<Value>),
+    Branch(BasicBlockId, Compare, Value, Value, Vec<Value>),
+    Jump(BasicBlockId, Vec<Value>),
     Fallthrough,
     Return,
 }
@@ -89,17 +89,18 @@ impl fmt::Display for Terminator {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use self::Terminator::*;
         match self {
-            Jump(BasicBlockIndex(i), vals) => write!(f, "    Jump {} ({:?})", i, vals),
+            Jump(BasicBlockId(i), vals) => write!(f, "    Jump {} ({:?})", i, vals),
             _ => write!(f, "    {:?}", self)
         }
     }
 }
 
 #[derive(Debug,Clone,Copy,PartialEq,Eq)]
-pub struct BasicBlockIndex(i32);
+pub struct BasicBlockId(pub i32);
 
 #[derive(Debug,Clone)]
 pub struct BasicBlock {
+    pub id: BasicBlockId,
     pub argVals: Vec<Value>,
     pub opcodes: Vec<OpCode>,
     pub terminator: Terminator,
@@ -111,7 +112,7 @@ impl fmt::Display for BasicBlock {
         for opcode in &self.opcodes {
             opcodes.push_str(&format!("{}\n", opcode));
         }
-        write!(f, "BasicBlock ({:?}):\n{}{}\n", self.argVals, opcodes, self.terminator)
+        write!(f, "BasicBlock {} ({:?}):\n{}{}\n", self.id.0, self.argVals, opcodes, self.terminator)
     }
 }
 

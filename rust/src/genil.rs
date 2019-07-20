@@ -97,11 +97,18 @@ impl SymbolTable {
 struct IlGenerator {
     values: value::ValueTable,
     symbolTable: SymbolTable,
+    block_counter: i32,
 }
 
 impl IlGenerator {
     fn new() -> IlGenerator { 
-        IlGenerator{values: value::ValueTable::new(), symbolTable: SymbolTable::new()} 
+        IlGenerator{values: value::ValueTable::new(), symbolTable: SymbolTable::new(), block_counter: 0} 
+    }
+
+    fn new_block(&mut self, argVals: Vec<value::Value>, opcodes: Vec<il::OpCode>, terminator: il::Terminator) -> il::BasicBlock {
+        let id = self.block_counter;
+        self.block_counter += 1;
+        return il::BasicBlock{id: il::BasicBlockId(id), argVals, opcodes, terminator};
     }
 
     fn to_il_op(&self, op: ast::BinaryOperator) -> il::Arith2 {
@@ -121,7 +128,7 @@ impl IlGenerator {
             Literal(c) => {
                 let v = self.values.new_value();
                 let op = il::OpCode::Set(v, *c);
-                let bb = il::BasicBlock{argVals: Vec::new(), opcodes: vec![op], terminator: il::Terminator::Fallthrough};
+                let bb = self.new_block(Vec::new(), vec![op], il::Terminator::Fallthrough);
                 return Ok((vec![bb], v));
             }
             BinaryOp(op, lhs, rhs) => {
@@ -132,7 +139,7 @@ impl IlGenerator {
                 bbs.append(&mut rops);
                 let val = self.values.new_value();
                 let ops = vec![il::OpCode::Arith2(self.to_il_op(*op), val, l, r)];
-                bbs.push(il::BasicBlock{argVals: Vec::new(), opcodes: ops, terminator: il::Terminator::Fallthrough});
+                bbs.push(self.new_block(Vec::new(), ops, il::Terminator::Fallthrough));
                 return Ok((bbs, val));
             },
             _ => Err(Error::BadAST)
