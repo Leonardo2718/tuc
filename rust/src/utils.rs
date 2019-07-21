@@ -72,3 +72,14 @@ impl fmt::Display for Const {
         write!(f, "{:?}", self)
     }
 }
+
+/**
+ * Helper function for printing iterable values as a comma separated list.
+ */
+pub fn format_list<T> (mut iter: T) -> String where 
+    T: Iterator,
+    <T as Iterator>::Item: fmt::Display 
+    {
+    let first =  iter.next().map(|v| v.to_string()).unwrap_or("".to_string());
+    iter.map(|v| format!(", {}", v)).fold(first, |acc, s| acc + &s)
+}

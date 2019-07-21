@@ -85,7 +85,7 @@ impl IlGenerator {
     fn new_block(&mut self, argVals: Vec<value::Value>, opcodes: Vec<il::OpCode>, terminator: il::Terminator) -> il::BasicBlock {
         let id = self.block_counter;
         self.block_counter += 1;
-        return il::BasicBlock{id: il::BasicBlockId(id), argVals, opcodes, terminator};
+        return il::BasicBlock{id: il::BasicBlockId(id), argVals, opcodes, terminator, nextVals: vec![]};
     }
 
     fn to_il_op(&self, op: ast::BinaryOperator) -> il::Arith2 {
@@ -99,25 +99,23 @@ impl IlGenerator {
         }
     }
 
-    fn from_expression(&mut self, expr: &ast::Expression) -> Result<(Vec<il::BasicBlock>, value::Value)> {
+    fn from_expression(&mut self, expr: &ast::Expression) -> Result<(Vec<il::OpCode>, value::Value)> {
         use ast::BareExpression::*;
         match expr.unwrap_pos().unwrap_type() {
             Literal(c) => {
                 let v = self.values.new_value();
                 let op = il::OpCode::Set(v, *c);
-                let bb = self.new_block(Vec::new(), vec![op], il::Terminator::Fallthrough);
-                return Ok((vec![bb], v));
+                return Ok((vec![op], v));
             }
             BinaryOp(op, lhs, rhs) => {
                 let (mut lops, l) = self.from_expression(lhs)?;
                 let (mut rops, r) = self.from_expression(rhs)?;
-                let mut bbs: Vec<il::BasicBlock> = Vec::new();
-                bbs.append(&mut lops);
-                bbs.append(&mut rops);
+                let mut ops: Vec<il::OpCode> = Vec::new();
+                ops.append(&mut lops);
+                ops.append(&mut rops);
                 let val = self.values.new_value();
-                let ops = vec![il::OpCode::Arith2(self.to_il_op(*op), val, l, r)];
-                bbs.push(self.new_block(Vec::new(), ops, il::Terminator::Fallthrough));
-                return Ok((bbs, val));
+                ops.append(&mut vec![il::OpCode::Arith2(self.to_il_op(*op), val, l, r)]);
+                return Ok((ops, val));
             },
             _ => Err(Error::BadAST)
         }
@@ -128,12 +126,16 @@ impl IlGenerator {
         match statement.unwrap_pos() {
             Let(var, expr) => {
                 let ty = expr.get_type();
-                let (bbs, val) = self.from_expression(expr)?;
+                let (ops, val) = self.from_expression(expr)?;
                 self.symbol_table.define_symbol(var.to_string(), ty)?;
                 self.symbol_table.set_value(var, val)?;
-                return Ok(bbs);
+                return Ok(vec![self.new_block(vec![], ops, il::Terminator::Fallthrough)]);
                 },
-            Assignment(_var, expr) => self.from_expression(expr).map(|x| x.0),
+            Assignment(var, expr) => {
+                let (ops, val) = self.from_expression(expr)?;
+                self.symbol_table.set_value(var, val)?;
+                return Ok(vec![self.new_block(vec![], ops, il::Terminator::Fallthrough)]);
+                },
             _ => Err(Error::BadAST)
         }
     }

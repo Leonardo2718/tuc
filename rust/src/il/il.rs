@@ -79,8 +79,8 @@ impl fmt::Display for OpCode {
 
 #[derive(Debug,Clone)]
 pub enum Terminator {
-    Branch(BasicBlockId, Compare, Value, Value, Vec<Value>),
-    Jump(BasicBlockId, Vec<Value>),
+    Branch(BasicBlockId, Compare, Value, Value),
+    Jump(BasicBlockId),
     Fallthrough,
     Return,
 }
@@ -89,7 +89,7 @@ impl fmt::Display for Terminator {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use self::Terminator::*;
         match self {
-            Jump(BasicBlockId(i), vals) => write!(f, "    Jump {} ({:?})", i, vals),
+            Jump(BasicBlockId(i)) => write!(f, "    Jump {}", i),
             _ => write!(f, "    {:?}", self)
         }
     }
@@ -104,15 +104,24 @@ pub struct BasicBlock {
     pub argVals: Vec<Value>,
     pub opcodes: Vec<OpCode>,
     pub terminator: Terminator,
+    pub nextVals: Vec<Value>,
+}
+
+fn format_list<T> (mut iter: T) -> String where 
+    T: Iterator,
+    <T as Iterator>::Item: fmt::Display 
+    {
+    let first =  iter.next().map(|v| v.to_string()).unwrap_or("".to_string());
+    iter.map(|v| format!(", {}", v)).fold(first, |acc, s| acc + &s)
 }
 
 impl fmt::Display for BasicBlock {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let mut opcodes = String::new();
-        for opcode in &self.opcodes {
-            opcodes.push_str(&format!("{}\n", opcode));
-        }
-        write!(f, "BasicBlock {} ({:?}):\n{}{}\n", self.id.0, self.argVals, opcodes, self.terminator)
+        use utils::format_list;
+        let argVals = format_list(self.argVals.iter());
+        let opcodes = self.opcodes.iter().map(|op| format!("{}\n", op)).fold(String::new(), |acc, s| acc + &s);
+        let nextVals = format_list(self.nextVals.iter());
+        write!(f, "BasicBlock {} ({}):\n{}{} ({})\n", self.id.0, argVals, opcodes, self.terminator, nextVals)
     }
 }
 
@@ -130,10 +139,7 @@ impl Body {
 
 impl fmt::Display for Body {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let mut s = String::from("IL:\n");
-        for bb in &self.code {
-            s.push_str(&format!("{}", bb));
-        }
-        write!(f, "{}Values:\n{:?}\n", s, self.values)
+        let s = self.code.iter().map(|bb| bb.to_string()).fold(String::new(), |acc, s| acc + &s);
+        write!(f, "IL:\n{}Values:\n{:?}\n", s, self.values)
     }
 }
