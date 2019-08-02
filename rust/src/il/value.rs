@@ -57,4 +57,12 @@ impl ValueTable {
         self.values.push(v);
         return v;
     }
+
+    pub fn new_values(&mut self, n: usize) -> Vec<Value> {
+        let mut ret: Vec<Value> = Vec::new();
+        for _ in 0..n {
+            ret.push(self.new_value());
+        }
+        return ret;
+    }
 }

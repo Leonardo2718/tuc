@@ -104,7 +104,7 @@ pub struct BasicBlock {
     pub argVals: Vec<Value>,
     pub opcodes: Vec<OpCode>,
     pub terminator: Terminator,
-    pub nextVals: Vec<Value>,
+    pub outVals: Vec<Value>,
 }
 
 fn format_list<T> (mut iter: T) -> String where 
@@ -120,8 +120,8 @@ impl fmt::Display for BasicBlock {
         use utils::format_list;
         let argVals = format_list(self.argVals.iter());
         let opcodes = self.opcodes.iter().map(|op| format!("{}\n", op)).fold(String::new(), |acc, s| acc + &s);
-        let nextVals = format_list(self.nextVals.iter());
-        write!(f, "BasicBlock {} ({}):\n{}{} ({})\n", self.id.0, argVals, opcodes, self.terminator, nextVals)
+        let outVals = format_list(self.outVals.iter());
+        write!(f, "BasicBlock {} ({}):\n{}{} ({})\n", self.id.0, argVals, opcodes, self.terminator, outVals)
     }
 }
 

@@ -32,6 +32,7 @@ use std::fmt;
 use std::error;
 use std::result;
 use std::convert;
+use std::mem;
 
 #[derive(Debug,Clone,PartialEq)]
 pub enum Error {
@@ -82,10 +83,10 @@ impl IlGenerator {
         IlGenerator{values: value::ValueTable::new(), symbol_table: symtab::SymbolTable::new(), block_counter: 0} 
     }
 
-    fn new_block(&mut self, argVals: Vec<value::Value>, opcodes: Vec<il::OpCode>, terminator: il::Terminator) -> il::BasicBlock {
+    fn new_block(&mut self, argVals: Vec<value::Value>, opcodes: Vec<il::OpCode>, terminator: il::Terminator, outVals: Vec<value::Value>) -> il::BasicBlock {
         let id = self.block_counter;
         self.block_counter += 1;
-        return il::BasicBlock{id: il::BasicBlockId(id), argVals, opcodes, terminator, nextVals: vec![]};
+        return il::BasicBlock{id: il::BasicBlockId(id), argVals, opcodes, terminator, outVals};
     }
 
     fn to_il_op(&self, op: ast::BinaryOperator) -> il::Arith2 {
@@ -97,6 +98,26 @@ impl IlGenerator {
             bop::Mul => Arith2::Mul,
             bop::Div => Arith2::Div,
         }
+    }
+
+    /// Assigns new values to all live symbols
+    fn revalue_live_symbols(&mut self) {
+        /*
+        When we call `symbol_table.set_live_values()`, we want to pass
+        to it a closure that will create a new value and add it to the
+        current value table. However, doing so directly requires that
+        we simultaneously mutably borrow `self.symbol_table` and
+        `self.values`, which the borrow-checker disallows as it effectively
+        results in two mutable reference to `self`. So, we instead create
+        a temporary value table and swap it with `self.value`. Then, we
+        create the new values in the temporary value table and swap it
+        back with `self.values` once complete. This way, we don't have
+        to mutably borrow `self.values` and the borrow checker is happy.
+        */
+        let mut values = value::ValueTable::new();
+        mem::swap(&mut values, &mut self.values);
+        self.symbol_table.set_live_values(|| values.new_value());
+        mem::swap(&mut values, &mut self.values);
     }
 
     fn from_expression(&mut self, expr: &ast::Expression) -> Result<(Vec<il::OpCode>, value::Value)> {
@@ -125,16 +146,20 @@ impl IlGenerator {
         use ast::BareStatement::*;
         match statement.unwrap_pos() {
             Let(var, expr) => {
+                self.revalue_live_symbols();
+                let in_values = self.symbol_table.get_live_values();
                 let ty = expr.get_type();
                 let (ops, val) = self.from_expression(expr)?;
                 self.symbol_table.define_symbol(var.to_string(), ty)?;
                 self.symbol_table.set_value(var, val)?;
-                return Ok(vec![self.new_block(vec![], ops, il::Terminator::Fallthrough)]);
+                let out_values = self.symbol_table.get_live_values();
+                return Ok(vec![self.new_block(in_values, ops, il::Terminator::Fallthrough, out_values)]);
                 },
             Assignment(var, expr) => {
+                let in_values = self.symbol_table.get_live_values();
                 let (ops, val) = self.from_expression(expr)?;
                 self.symbol_table.set_value(var, val)?;
-                return Ok(vec![self.new_block(vec![], ops, il::Terminator::Fallthrough)]);
+                return Ok(vec![self.new_block(in_values, ops, il::Terminator::Fallthrough, vec![])]);
                 },
             _ => Err(Error::BadAST)
         }

@@ -29,13 +29,14 @@ use il::*;
 use std::fmt;
 use std::error;
 use std::result;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 #[derive(Debug,Clone,PartialEq)]
 pub enum Error {
     UndefinedSymbol(String),
     NoScopeAvailable,
     DroppingLastScope,
+    NumberOfValuesDoesNotMatchLiveSymbols,
 }
 
 impl fmt::Display for Error {
@@ -51,6 +52,7 @@ impl error::Error for Error {
             UndefinedSymbol(_) => "Use of undefined symbol",
             NoScopeAvailable => "Internal error: no scope available for symbol operations",
             DroppingLastScope => "Internal error: removing last available scope",
+            NumberOfValuesDoesNotMatchLiveSymbols => "Internal error: attempted to set values for different number of live symbols"
         }
     }
 
@@ -66,14 +68,14 @@ struct SymbolTableEntry {
     value: Option<value::Value>,
 }
 
-type Scope = HashMap<String, SymbolTableEntry>;
+type Scope = BTreeMap<String, SymbolTableEntry>;
 
 pub struct SymbolTable {
     table: Vec<Scope>,
 }
 
 impl SymbolTable {
-    pub fn new() -> SymbolTable { SymbolTable{table: vec![HashMap::new()]} }
+    pub fn new() -> SymbolTable { SymbolTable{table: vec![BTreeMap::new()]} }
 
     fn top_scope(&self) -> Result<&Scope> {
         let len = self.table.len();
@@ -112,7 +114,7 @@ impl SymbolTable {
     }
 
     pub fn push_scope(&mut self) {
-        self.table.push(HashMap::new());
+        self.table.push(BTreeMap::new());
     }
 
     pub fn pop_scope(&mut self) -> Result<()> {
@@ -148,5 +150,18 @@ impl SymbolTable {
 
     pub fn get_type(&self, symbol: &str) -> Result<ast::Type> {
         return self.get_entry(symbol).ok_or(Error::UndefinedSymbol(symbol.to_string())).map(|s| s.ty);
+    }
+
+    pub fn get_live_values(&self) -> Vec<value::Value> {
+        return self.table.iter().flatten().filter_map(|(_, e)| e.value).collect::<Vec<value::Value>>();
+    }
+
+    pub fn count_live_values(&self) -> usize {
+        return self.table.iter().flatten().filter_map(|(_, e)| e.value).count();
+    }
+
+    pub fn set_live_values<F>(&mut self, mut new_value: F)
+        where F: FnMut() -> value::Value {
+        self.table.iter_mut().flatten().filter_map(|(_, e)| e.value.as_mut()).for_each(|v| *v = new_value());
     }
 }
