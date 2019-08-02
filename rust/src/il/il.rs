@@ -37,6 +37,7 @@ pub enum Constant {
 #[derive(Debug,Clone,Copy,PartialEq,Eq)]
 pub enum Arith2 {
     Add, Sub, Mul, Div,
+    LT, LE, EQ, GT, GE,
 }
 
 impl fmt::Display for Arith2 {
@@ -45,21 +46,9 @@ impl fmt::Display for Arith2 {
     }
 }
 
-#[derive(Debug,Clone,Copy,PartialEq,Eq)]
-pub enum Compare {
-    LT, LE, EQ, GT, GE,
-}
-
-impl fmt::Display for Compare {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
-
 #[derive(Debug,Clone)]
 pub enum OpCode {
     Arith2(Arith2, Value, Value, Value),
-    Compare(Compare, Value, Value, Value),
     Copy(Value, Value),
     Set(Value, utils::Const)
 }
@@ -69,7 +58,6 @@ impl fmt::Display for OpCode {
         use self::OpCode::*;
         match self {
             &Arith2(op, res, lhs, rhs) => write!(f, "    {} {} {} {}", op, res, lhs, rhs),
-            &Compare(cmp, res, lhs, rhs) => write!(f, "    {} {} {} {}", cmp, res, lhs, rhs),
             &Copy(dest, src) => write!(f, "    Copy {} {}", dest, src),
             &Set(v, c) => write!(f, "    Set {} {}", v, c),
             _ => write!(f, "    {:?}", self)
@@ -79,7 +67,7 @@ impl fmt::Display for OpCode {
 
 #[derive(Debug,Clone)]
 pub enum Terminator {
-    Branch(BasicBlockId, Compare, Value, Value),
+    Branch(BasicBlockId, Value),
     Jump(BasicBlockId),
     Fallthrough,
     Return,

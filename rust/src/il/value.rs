@@ -23,7 +23,7 @@
  *
  */
 
- use std::fmt;
+use std::fmt;
 
 #[derive(Debug,Clone,Copy,PartialEq,Eq)]
 pub enum Type {
