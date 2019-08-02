@@ -37,6 +37,7 @@ mod parser;
 mod symtab;
 mod il;
 mod genil;
+mod wasmgen;
 
 extern crate argparse;
 
@@ -88,4 +89,7 @@ fn main() {
 
     let il = genil::gen_il(&ast).unwrap();
     println!("\n{}", il);
+
+    let wat = wasmgen::generate_wat(&il).unwrap();
+    println!("WASM:\n{}", wat);
 }
