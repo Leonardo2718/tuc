@@ -35,6 +35,7 @@ mod fmttree;
 mod ast;
 mod parser;
 mod symtab;
+mod semantics;
 mod il;
 mod genil;
 mod wasmgen;
@@ -82,10 +83,14 @@ fn main() {
     }
 
     let iter = lexer::TokenIterator::new(&source);
-    let ast = handle_errors!(parser::parse_program(iter));
+    let mut ast = handle_errors!(parser::parse_program(iter));
 
     use fmttree::Display;
-    println!("AST:\n{}", ast.display_tree());
+    println!("AST after parsing:\n{}", ast.display_tree());
+
+    semantics::analyze_semantics(&mut ast);
+    let ast = ast; // make ast immutable
+    println!("AST after semantic analysis:\n{}", ast.display_tree());
 
     let il = genil::gen_il(&ast).unwrap();
     println!("\n{}", il);
