@@ -33,16 +33,18 @@ use std::result;
 
 #[derive(Debug,Clone,PartialEq)]
 pub enum Error {
-    UndefinedSymbol(String, utils::Position),
     OperandTypeMissmatch(ast::BinaryOperator, ast::Type, ast::Type, utils::Position),
+    AssignmentTypeMissmatch(String, ast::Type, ast::Type, utils::Position),
+    SymbolError(symtab::Error, utils::Position),
 }
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use self::Error::*;
         match *self {
-            UndefinedSymbol(ref s, p) => write!(f, "Use of undefined symbol '{}' at {}.", s, p.pos),
             OperandTypeMissmatch(op, lt, rt, p) => write!(f, "'{:?}' (at {}) operand type missmatch: ({:?}, {:?}).", op, p.pos, lt, rt),
+            AssignmentTypeMissmatch(ref s, st, et, p) => write!(f, "Symbol '{}' of type {:?} assigned value of incorrect type {:?} at {:?}", s, st, et, p),
+            SymbolError(_, p) => write!(f, "Incorrect use of symbol at {}.", p.pos),
         }
     }
 }
@@ -51,13 +53,18 @@ impl error::Error for Error {
     fn description(&self) -> &str {
         use self::Error::*;
         match *self {
-            UndefinedSymbol(_, _) => "Use of undefined symbol",
             OperandTypeMissmatch(_, _, _, _) => "Operand types for binary operator don't match",
+            AssignmentTypeMissmatch(_, _, _, _) => "Symbol assigned value of incorrect type",
+            SymbolError(_, _) => "Incorrect use of symbol",
         }
     }
 
     fn cause(&self) -> Option<&error::Error> {
-        None
+        use self::Error::*;
+        match *self {
+            SymbolError(ref e, _) => Some(e),
+            _ => None
+        }
     }
 }
 
@@ -72,7 +79,7 @@ impl TypeAnalyzer {
 
     fn type_of_expr(&mut self, expr: &mut ast::Expression) -> Result<ast::Type> {
         let ty = match expr.item.item {
-            ast::BareExpression::Identifier(ref s) => self.symbol_table.symbol_type(&s).map_err(|_| Error::UndefinedSymbol(s.to_string(), expr.pos()))?,
+            ast::BareExpression::Identifier(ref s) => self.symbol_table.symbol_type(&s).map_err(|e| Error::SymbolError(e, expr.pos()))?,
             ast::BareExpression::Literal(utils::Const::I32(_)) => ast::Type::I32,
             ast::BareExpression::BinaryOp(op, ref mut lhs, ref mut rhs) => {
                 let lhs_ty = self.type_of_expr(lhs)?;
@@ -86,24 +93,33 @@ impl TypeAnalyzer {
     }
 
     fn types_in_statement(&mut self, statement: &mut ast::Statement) -> Result<()> {
+        let pos = statement.pos();
         match &mut statement.item {
             &mut ast::BareStatement::Let(ref sym, ref mut expr) => {
                 let ty = self.type_of_expr(expr)?;
-                self.symbol_table.define_symbol(sym.unwrap_pos().to_string(), ty);
+                self.symbol_table.define_symbol(sym.unwrap_pos().clone(), ty).map_err(|e| Error::SymbolError(e, pos))?;
                 return Ok(());
+            },
+            &mut ast::BareStatement::Assignment(ref sym, ref mut expr) => {
+                let sym_ty = self.symbol_table.symbol_type(&sym.unwrap_pos()).map_err(|e| Error::SymbolError(e, sym.pos()))?;
+                let expr_ty = self.type_of_expr(expr)?;
+                return if sym_ty == expr_ty { Ok(()) }
+                       else { Err(Error::AssignmentTypeMissmatch(sym.unwrap_pos().unwrap_type().clone(), sym_ty, expr_ty, sym.pos())) };
             },
             s => panic!("Unhandled statement {:?}", s),
         }
     }
 
-    fn analyze_types(&mut self, ast: &mut ast::Program) {
+    fn analyze_types(&mut self, ast: &mut ast::Program) -> Result<()> {
         for statement in ast.body.iter_mut() {
-            self.types_in_statement(statement);
+            self.types_in_statement(statement)?;
         }
+        Ok(())
     }
 }
 
-pub fn analyze_semantics(ast: &mut ast::Program) {
+pub fn analyze_semantics(ast: &mut ast::Program) -> Result<()> {
     let mut analyzer = TypeAnalyzer::new();
-    analyzer.analyze_types(ast);
+    analyzer.analyze_types(ast)?;
+    Ok(())
 }

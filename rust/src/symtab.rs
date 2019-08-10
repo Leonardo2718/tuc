@@ -139,6 +139,10 @@ impl SymbolTable {
         self.top_scope().map(|t| t.contains_key(symbol))
     }
 
+    pub fn symbol_type(&self, symbol: &str) -> Result<ast::Type> {
+        Ok(self.get_entry(symbol).ok_or(Error::UndefinedSymbol(symbol.to_string()))?.ty)
+    }
+
     pub fn set_value(&mut self, symbol: &str, value: value::Value) -> Result<()> {
         self.get_mut_entry(symbol).ok_or(Error::UndefinedSymbol(symbol.to_string()))?.value = Some(value);
         return Ok(());

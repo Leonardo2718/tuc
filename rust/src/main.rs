@@ -88,7 +88,7 @@ fn main() {
     use fmttree::Display;
     println!("AST after parsing:\n{}", ast.display_tree());
 
-    semantics::analyze_semantics(&mut ast);
+    semantics::analyze_semantics(&mut ast).unwrap();
     let ast = ast; // make ast immutable
     println!("AST after semantic analysis:\n{}", ast.display_tree());
 
