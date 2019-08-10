@@ -60,7 +60,6 @@ impl fmt::Display for OpCode {
             &Arith2(op, res, lhs, rhs) => write!(f, "    {} {} {} {}", op, res, lhs, rhs),
             &Copy(dest, src) => write!(f, "    Copy {} {}", dest, src),
             &Set(v, c) => write!(f, "    Set {} {}", v, c),
-            _ => write!(f, "    {:?}", self)
         }
     }
 }
@@ -89,10 +88,10 @@ pub struct BasicBlockId(pub i32);
 #[derive(Debug,Clone)]
 pub struct BasicBlock {
     pub id: BasicBlockId,
-    pub argVals: Vec<Value>,
+    pub in_vals: Vec<Value>,
     pub opcodes: Vec<OpCode>,
     pub terminator: Terminator,
-    pub outVals: Vec<Value>,
+    pub out_vals: Vec<Value>,
 }
 
 fn format_list<T> (mut iter: T) -> String where 
@@ -106,10 +105,10 @@ fn format_list<T> (mut iter: T) -> String where
 impl fmt::Display for BasicBlock {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use utils::format_list;
-        let argVals = format_list(self.argVals.iter());
+        let in_vals = format_list(self.in_vals.iter());
         let opcodes = self.opcodes.iter().map(|op| format!("{}\n", op)).fold(String::new(), |acc, s| acc + &s);
-        let outVals = format_list(self.outVals.iter());
-        write!(f, "BasicBlock {} ({}):\n{}{} ({})\n", self.id.0, argVals, opcodes, self.terminator, outVals)
+        let out_vals = format_list(self.out_vals.iter());
+        write!(f, "BasicBlock {} ({}):\n{}{} ({})\n", self.id.0, in_vals, opcodes, self.terminator, out_vals)
     }
 }
 

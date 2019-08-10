@@ -23,13 +23,10 @@
  *
  */
 
-use std::fmt;
+use il::types::Type;
+use il::symbol::Symbol;
 
-#[derive(Debug,Clone,Copy,PartialEq,Eq)]
-pub enum Type {
-    Bool,
-    I32,
-}
+use std::fmt;
 
 #[derive(Debug,Clone,Copy,PartialEq,Eq)]
 pub struct Value {

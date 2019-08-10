@@ -27,21 +27,18 @@ use std::fmt;
 use std::error;
 use std::result;
 use std::convert;
-use std::iter;
-use std::ops;
 
 use utils::*;
 use token;
 use lexer;
 use lexer::Lexer;
-use lexer::TokenIterator;
 use ast;
 
 
 #[derive(Debug,Clone,Copy,PartialEq,Eq)]
 enum Associativity {
     Left,
-    Rigth
+    // Rigth
 }
 
 impl token::Operator {
@@ -207,7 +204,7 @@ pub fn parse_expression<L: Lexer>(lexer: &mut L) -> Result<ast::Expression> {
                 if !inexpr && expr_stack.len() == 1 { return Ok(expr_stack.pop().unwrap()); }
                 else { lexer.next(); }
             },
-            t => {
+            _ => {
                 break;
             },
         }

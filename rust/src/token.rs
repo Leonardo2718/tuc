@@ -23,7 +23,6 @@
  *
  */
 
-use std::fmt;
 use std::collections::HashMap;
 
 use utils::*;

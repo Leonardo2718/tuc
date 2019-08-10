@@ -27,8 +27,6 @@ use std::fmt;
 use std::error;
 use std::result;
 use std::convert;
-use std::iter;
-use std::ops;
 
 use super::expression_parser;
 use super::expression_parser::parse_expression;
@@ -37,7 +35,6 @@ use utils::*;
 use token;
 use lexer;
 use lexer::Lexer;
-use lexer::TokenIterator;
 use ast;
 
 #[derive(Debug,Clone,PartialEq)]
@@ -118,8 +115,16 @@ fn parse_statement_block<L: Lexer>(lexer: &mut L, pos: Position) -> Result<ast::
     let mut lastPos = lbracepos;
     loop {
         match lexer.peek() {
-            Some(Ok(Token{token: SEMICOLON, pos:p})) => { lastPos = p; lexer.next(); continue },
-            Some(Ok(Token{token: RBRACE, pos:p})) => { lastPos = p; lexer.next(); break },
+            Some(Ok(Token{token: SEMICOLON, pos:p})) => {
+                lastPos = p;
+                lexer.next();
+                continue
+            },
+            Some(Ok(Token{token: RBRACE, pos:p})) => {
+                // no need to set lastPos since it won't be used after we break out of the loop
+                lexer.next();
+                break
+            },
             None => return Err(Error{item: ParseError::ExpectingMoreTokens, position: lastPos}),
             _ => stmts.push(parse_statement(lexer)?)
         }
@@ -132,7 +137,6 @@ pub fn parse_statement<L: Lexer>(lexer: &mut L) -> Result<ast::Statement>  {
     use token::TokenType::*;
     use token::Token;
     use token::Keyword::*;
-    use token::Operator::*;
     use ast::BareStatement::*;
     use ast::IfStatement;
     use ast::BareElseIfStatement;

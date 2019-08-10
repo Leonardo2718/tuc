@@ -23,12 +23,11 @@
  *
  */
 
-use std::fmt;
-use std::ops::Deref;
-use std::ops::DerefMut;
-
 use utils::*;
 use fmttree;
+
+use std::ops::Deref;
+use std::ops::DerefMut;
 
 impl<T: fmttree::Display> fmttree::Display for WithPos<T> {
     fn display_node(&self) -> String {
@@ -45,7 +44,7 @@ impl fmttree::Display for String {
         self.clone()
     }
 
-    fn display_children(&self, f: fmttree::TreeFormat) -> String {
+    fn display_children(&self, _: fmttree::TreeFormat) -> String {
         "".to_string()
     }
 }

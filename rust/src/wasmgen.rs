@@ -43,13 +43,13 @@ impl fmt::Display for Error {
 
 impl error::Error for Error {
     fn description(&self) -> &str {
-        use self::Error::*;
+        // use self::Error::*;
         match *self {
         }
     }
 
     fn cause(&self) -> Option<&error::Error> {
-        use self::Error::*;
+        // use self::Error::*;
         match self {
             _ => None
         }
@@ -81,13 +81,14 @@ impl<'a> WatGenerator<'a> {
         self.wat.push('\n');
     }
 
-    fn from_opcodes(&mut self, opcodes: &[il::OpCode]) {
+    fn from_opcodes(&mut self, _opcodes: &[il::OpCode]) {
     }
 
     fn from_terminator(&mut self, terminator: &il::Terminator) {
+        use il::il::Terminator::*;
         match terminator {
-            Fallthrough => {},
-            Return => self.putln("return"),
+            &Fallthrough => {},
+            &Return => self.putln("return"),
             _ => panic!("Unhandled terminator {}.", terminator)
         }
     } 

@@ -27,8 +27,6 @@ use std::fmt;
 use std::error;
 use std::result;
 use std::convert;
-use std::iter;
-use std::ops;
 
 mod expression_parser;
 mod statement_parser;
@@ -39,7 +37,6 @@ use utils::*;
 use token;
 use lexer;
 use lexer::Lexer;
-use lexer::TokenIterator;
 use ast;
 
 #[derive(Debug,Clone,PartialEq)]

@@ -23,7 +23,6 @@
  *
  */
 
-use utils;
 use ast;
 use il::*;
 use symtab;
@@ -83,10 +82,10 @@ impl IlGenerator {
         IlGenerator{values: value::ValueTable::new(), symbol_table: symtab::SymbolTable::new(), block_counter: 0} 
     }
 
-    fn new_block(&mut self, argVals: Vec<value::Value>, opcodes: Vec<il::OpCode>, terminator: il::Terminator, outVals: Vec<value::Value>) -> il::BasicBlock {
+    fn new_block(&mut self, in_vals: Vec<value::Value>, opcodes: Vec<il::OpCode>, terminator: il::Terminator, out_vals: Vec<value::Value>) -> il::BasicBlock {
         let id = self.block_counter;
         self.block_counter += 1;
-        return il::BasicBlock{id: il::BasicBlockId(id), argVals, opcodes, terminator, outVals};
+        return il::BasicBlock{id: il::BasicBlockId(id), in_vals, opcodes, terminator, out_vals};
     }
 
     fn to_il_op(&self, op: ast::BinaryOperator) -> il::Arith2 {
