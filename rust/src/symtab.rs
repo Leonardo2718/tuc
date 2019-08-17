@@ -23,7 +23,7 @@
  *
  */
 
-use ast;
+use types;
 use il::*;
 
 use std::fmt;
@@ -64,7 +64,7 @@ impl error::Error for Error {
 pub type Result<T> = result::Result<T, Error>;
 
 struct SymbolTableEntry {
-    ty: ast::Type,
+    ty: types::Type,
     value: Option<value::Value>,
 }
 
@@ -126,7 +126,7 @@ impl SymbolTable {
         }
     }
 
-    pub fn define_symbol(&mut self, symbol: String, ty: ast::Type) -> Result<()> {
+    pub fn define_symbol(&mut self, symbol: String, ty: types::Type) -> Result<()> {
         self.mut_top_scope()?.insert(symbol, SymbolTableEntry{ty, value: None});
         return Ok(());
     }
@@ -139,7 +139,7 @@ impl SymbolTable {
         self.top_scope().map(|t| t.contains_key(symbol))
     }
 
-    pub fn symbol_type(&self, symbol: &str) -> Result<ast::Type> {
+    pub fn symbol_type(&self, symbol: &str) -> Result<types::Type> {
         Ok(self.get_entry(symbol).ok_or(Error::UndefinedSymbol(symbol.to_string()))?.ty)
     }
 
@@ -152,7 +152,7 @@ impl SymbolTable {
         return self.get_entry(symbol).ok_or(Error::UndefinedSymbol(symbol.to_string())).map(|s| s.value);
     }
 
-    pub fn get_type(&self, symbol: &str) -> Result<ast::Type> {
+    pub fn get_type(&self, symbol: &str) -> Result<types::Type> {
         return self.get_entry(symbol).ok_or(Error::UndefinedSymbol(symbol.to_string())).map(|s| s.ty);
     }
 

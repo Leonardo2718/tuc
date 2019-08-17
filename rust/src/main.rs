@@ -29,6 +29,7 @@ use std::fs::File;
 use std::io::BufReader;
 
 mod utils;
+mod types;
 mod token;
 mod lexer;
 mod fmttree;

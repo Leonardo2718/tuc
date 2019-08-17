@@ -24,6 +24,7 @@
  */
 
 use utils;
+use types;
 use ast;
 use symtab;
 
@@ -33,8 +34,8 @@ use std::result;
 
 #[derive(Debug,Clone,PartialEq)]
 pub enum Error {
-    OperandTypeMissmatch(ast::BinaryOperator, ast::Type, ast::Type, utils::Position),
-    AssignmentTypeMissmatch(String, ast::Type, ast::Type, utils::Position),
+    OperandTypeMissmatch(ast::BinaryOperator, types::Type, types::Type, utils::Position),
+    AssignmentTypeMissmatch(String, types::Type, types::Type, utils::Position),
     SymbolError(symtab::Error, utils::Position),
 }
 
@@ -77,10 +78,10 @@ struct TypeAnalyzer {
 impl TypeAnalyzer {
     fn new() -> TypeAnalyzer { TypeAnalyzer{symbol_table: symtab::SymbolTable::new()} }
 
-    fn type_of_expr(&mut self, expr: &mut ast::Expression) -> Result<ast::Type> {
+    fn type_of_expr(&mut self, expr: &mut ast::Expression) -> Result<types::Type> {
         let ty = match expr.item.item {
             ast::BareExpression::Identifier(ref s) => self.symbol_table.symbol_type(&s).map_err(|e| Error::SymbolError(e, expr.pos()))?,
-            ast::BareExpression::Literal(utils::Const::I32(_)) => ast::Type::I32,
+            ast::BareExpression::Literal(c) => c.get_type(),
             ast::BareExpression::BinaryOp(op, ref mut lhs, ref mut rhs) => {
                 let lhs_ty = self.type_of_expr(lhs)?;
                 let rhs_ty = self.type_of_expr(rhs)?;
@@ -88,7 +89,7 @@ impl TypeAnalyzer {
                 lhs_ty
             },
         };
-        expr.item.t = ty;
+        expr.item.t = ast::Type::from(ty);
         return Ok(ty);
     }
 
@@ -102,7 +103,7 @@ impl TypeAnalyzer {
             },
             &mut ast::BareStatement::Assignment(ref mut sym, ref mut expr) => {
                 let sym_ty = self.symbol_table.symbol_type(sym).map_err(|e| Error::SymbolError(e, sym.pos()))?;
-                sym.t = sym_ty;
+                sym.t = ast::Type::from(sym_ty);
                 let expr_ty = self.type_of_expr(expr)?;
                 if sym_ty == expr_ty { Ok(()) }
                 else { Err(Error::AssignmentTypeMissmatch(sym.unwrap_pos().unwrap_type().clone(), sym_ty, expr_ty, sym.pos())) }

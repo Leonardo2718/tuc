@@ -37,6 +37,7 @@ use std::mem;
 pub enum Error {
     BadSymbolUse(symtab::Error),
     ValuelessSymbol(String),
+    UndeducedType,
     BadAST
 }
 
@@ -52,6 +53,7 @@ impl error::Error for Error {
         match *self {
             BadSymbolUse(_) => "Improper use of a symbol",
             ValuelessSymbol(_) => "Symbol has no value associated with it",
+            UndeducedType => "Encountered an unknown type",
             BadAST => "AST is malformed.",
         }
     }
@@ -152,7 +154,7 @@ impl IlGenerator {
             Let(var, expr) => {
                 self.revalue_live_symbols();
                 let in_values = self.symbol_table.get_live_values();
-                let ty = expr.get_type();
+                let ty = expr.get_type().as_type().ok_or(Error::UndeducedType)?;
                 let (ops, val) = self.from_expression(expr)?;
                 self.symbol_table.define_symbol(var.to_string(), ty)?;
                 self.symbol_table.set_value(var, val)?;

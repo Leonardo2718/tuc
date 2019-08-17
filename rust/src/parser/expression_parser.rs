@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Leonardo Banderali
+ * Copyright (c) 2018, 2019 Leonardo Banderali
  *
  * This software is released under the MIT License:
  *
@@ -177,7 +177,7 @@ pub fn parse_expression<L: Lexer>(lexer: &mut L) -> Result<ast::Expression> {
         match next.token {
             IDENT(s) => { lexer.next(); push_expr!(next, Type::Unknown, Identifier, s); },
             CONST(c) => { lexer.next(); match c {
-                I32(_) => push_expr!(next, Type::I32, Literal, c)
+                I32(_) => push_expr!(next, ast::Type::Unknown, Literal, c)
             };},
             OPERATOR(o) => {
                 lexer.next();

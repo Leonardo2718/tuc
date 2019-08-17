@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Leonardo Banderali
+ * Copyright (c) 2018, 2019 Leonardo Banderali
  *
  * This software is released under the MIT License:
  *
@@ -24,10 +24,13 @@
  */
 
 use utils::*;
+use types;
 use fmttree;
 
 use std::ops::Deref;
 use std::ops::DerefMut;
+use std::convert;
+use std::fmt;
 
 impl<T: fmttree::Display> fmttree::Display for WithPos<T> {
     fn display_node(&self) -> String {
@@ -51,8 +54,33 @@ impl fmttree::Display for String {
 
 #[derive(Debug,Clone,Copy,PartialEq,Eq)]
 pub enum Type {
-    I32,
+    Type(types::Type),
     Unknown
+}
+
+impl Type {
+    pub fn as_type(&self) -> Option<types::Type> {
+        match self {
+            Type::Type(t) => Some(*t),
+            Unknown => None
+        }
+    }
+}
+
+impl convert::From<types::Type> for Type {
+    fn from(ty: types::Type) -> Type {
+        Type::Type(ty)
+    }
+}
+
+impl fmt::Display for Type {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use self::Type::*;
+        match self {
+            &Type(t) => t.fmt(f),
+            t => write!(f, "{:?}", t)
+        }
+    }
 }
 
 #[derive(Debug,Clone,PartialEq)]
@@ -98,7 +126,7 @@ impl<T> DerefMut for WithType<T> {
 
 impl<T: fmttree::Display> fmttree::Display for WithType<T> {
     fn display_node(&self) -> String {
-        format!("{} :: {:?}", self.item.display_node(), self.t)
+        format!("{} :: {}", self.item.display_node(), self.t)
     }
 
     fn display_children(&self, f: fmttree::TreeFormat) -> String {

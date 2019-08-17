@@ -23,6 +23,8 @@
  *
  */
 
+use types;
+
 use std::ops::Deref;
 use std::ops::DerefMut;
 use std::fmt;
@@ -65,6 +67,15 @@ impl<T> DerefMut for WithPos<T> {
 #[derive(Debug,Clone,Copy,PartialEq,Eq)]
 pub enum Const {
     I32(i32),
+}
+
+impl Const {
+    pub fn get_type(&self) -> types::Type {
+        use types::{Type::*, Arithmetic::*, Integer::*, Float::*, Bool::*};
+        match self {
+            &Const::I32(_) => Arithmetic(Integer(I32))
+        }
+    }
 }
 
 impl fmt::Display for Const {
