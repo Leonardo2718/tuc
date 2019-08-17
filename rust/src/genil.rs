@@ -36,6 +36,7 @@ use std::mem;
 #[derive(Debug,Clone,PartialEq)]
 pub enum Error {
     BadSymbolUse(symtab::Error),
+    ValuelessSymbol(String),
     BadAST
 }
 
@@ -50,6 +51,7 @@ impl error::Error for Error {
         use self::Error::*;
         match *self {
             BadSymbolUse(_) => "Improper use of a symbol",
+            ValuelessSymbol(_) => "Symbol has no value associated with it",
             BadAST => "AST is malformed.",
         }
     }
@@ -122,6 +124,10 @@ impl IlGenerator {
     fn from_expression(&mut self, expr: &ast::Expression) -> Result<(Vec<il::OpCode>, value::Value)> {
         use ast::BareExpression::*;
         match expr.unwrap_pos().unwrap_type() {
+            Identifier(s) => {
+                let value = self.symbol_table.get_value(s)?.ok_or(Error::ValuelessSymbol(s.clone()))?;
+                return Ok((vec![], value));
+            }
             Literal(c) => {
                 let v = self.values.new_value();
                 let op = il::OpCode::Set(v, *c);
@@ -136,8 +142,7 @@ impl IlGenerator {
                 let val = self.values.new_value();
                 ops.append(&mut vec![il::OpCode::Arith2(self.to_il_op(*op), val, l, r)]);
                 return Ok((ops, val));
-            },
-            _ => Err(Error::BadAST)
+            }
         }
     }
 

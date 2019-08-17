@@ -41,25 +41,17 @@ impl fmt::Display for Value {
 
 #[derive(Debug,Clone)]
 pub struct ValueTable {
-    values: Vec<Value>,
+    entries: Vec<Value>,
 }
 
 impl ValueTable {
     pub fn new() -> ValueTable {
-        ValueTable{values:Vec::new()}
+        ValueTable{entries: Vec::new()}
     }
 
     pub fn new_value(&mut self) -> Value {
-        let v = Value{id:self.values.len()};
-        self.values.push(v);
+        let v = Value{id:self.entries.len()};
+        self.entries.push(v);
         return v;
-    }
-
-    pub fn new_values(&mut self, n: usize) -> Vec<Value> {
-        let mut ret: Vec<Value> = Vec::new();
-        for _ in 0..n {
-            ret.push(self.new_value());
-        }
-        return ret;
     }
 }
