@@ -100,11 +100,12 @@ impl TypeAnalyzer {
                 self.symbol_table.define_symbol(sym.unwrap_pos().clone(), ty).map_err(|e| Error::SymbolError(e, pos))?;
                 return Ok(());
             },
-            &mut ast::BareStatement::Assignment(ref sym, ref mut expr) => {
-                let sym_ty = self.symbol_table.symbol_type(&sym.unwrap_pos()).map_err(|e| Error::SymbolError(e, sym.pos()))?;
+            &mut ast::BareStatement::Assignment(ref mut sym, ref mut expr) => {
+                let sym_ty = self.symbol_table.symbol_type(sym).map_err(|e| Error::SymbolError(e, sym.pos()))?;
+                sym.t = sym_ty;
                 let expr_ty = self.type_of_expr(expr)?;
-                return if sym_ty == expr_ty { Ok(()) }
-                       else { Err(Error::AssignmentTypeMissmatch(sym.unwrap_pos().unwrap_type().clone(), sym_ty, expr_ty, sym.pos())) };
+                if sym_ty == expr_ty { Ok(()) }
+                else { Err(Error::AssignmentTypeMissmatch(sym.unwrap_pos().unwrap_type().clone(), sym_ty, expr_ty, sym.pos())) }
             },
             s => panic!("Unhandled statement {:?}", s),
         }
