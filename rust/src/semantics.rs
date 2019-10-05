@@ -24,6 +24,7 @@
  */
 
 use utils;
+use tracing;
 use types;
 use ast;
 use symtab;
@@ -120,8 +121,12 @@ impl TypeAnalyzer {
     }
 }
 
-pub fn analyze_semantics(ast: &mut ast::Program) -> Result<()> {
+pub fn analyze_semantics(ast: &mut ast::Program, traceContext: &mut tracing::TraceContext) -> Result<()> {
+    let mut tracer = tracing::Tracer::new(tracing::TraceOption::Semantic, traceContext);
     let mut analyzer = TypeAnalyzer::new();
     analyzer.analyze_types(ast)?;
+    use fmttree::Display;
+    tracer.traceln("AST after semantic analysis:");
+    tracer.trace(&ast.display_tree());
     Ok(())
 }

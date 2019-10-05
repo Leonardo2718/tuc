@@ -23,6 +23,7 @@
  *
  */
 
+use tracing;
 use ast;
 use il::*;
 use symtab;
@@ -181,8 +182,12 @@ impl IlGenerator {
     }
 }
 
-pub fn gen_il(program: &ast::Program) -> Result<il::Body> {
+pub fn gen_il(program: &ast::Program, traceContext: &mut tracing::TraceContext) -> Result<il::Body> {
+    let mut tracer = tracing::Tracer::new(tracing::TraceOption::IlGen, traceContext);
     let mut il_generator = IlGenerator::new();
     let code = il_generator.from_statment_list(&program.body)?;
-    return Ok(il::Body{code, values: il_generator.values});
+    let il = il::Body{code, values: il_generator.values};
+    tracer.traceln("Generated IL:");
+    tracer.traceln(&il.to_string());
+    return Ok(il);
 }

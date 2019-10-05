@@ -23,6 +23,7 @@
  *
  */
 
+use tracing;
 use il::*;
 
 use std::fmt;
@@ -121,6 +122,10 @@ impl<'a> WatGenerator<'a> {
     }
 }
 
-pub fn generate_wat(il: &il::Body) -> Result<String> {
-    return WatGenerator::new(il).generate();
+pub fn generate_wat(il: &il::Body, traceContext: &mut tracing::TraceContext) -> Result<String> {
+    let mut tracer = tracing::Tracer::new(tracing::TraceOption::CodeGen, traceContext);
+    let code = WatGenerator::new(il).generate()?;
+    tracer.traceln("Generated WAT code:");
+    tracer.traceln(&code.to_string());
+    return Ok(code);
 }

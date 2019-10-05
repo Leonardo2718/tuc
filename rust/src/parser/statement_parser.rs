@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Leonardo Banderali
+ * Copyright (c) 2018, 2019 Leonardo Banderali
  *
  * This software is released under the MIT License:
  *
@@ -32,6 +32,7 @@ use super::expression_parser;
 use super::expression_parser::parse_expression;
 
 use utils::*;
+use tracing;
 use token;
 use lexer;
 use lexer::Lexer;
@@ -197,7 +198,7 @@ pub fn parse_statement<L: Lexer>(lexer: &mut L) -> Result<ast::Statement>  {
     }
 }
 
-pub fn parse_statement_list<L: Lexer>(lexer: &mut L) -> Result<ast::StatementList> {
+pub fn parse_statement_list<L: Lexer>(lexer: &mut L, tracer: &mut tracing::Tracer) -> Result<ast::StatementList> {
     let mut stmts: ast::StatementList = Vec::new();
     while let Some(_) = lexer.clone().peekable().peek() {
         use token::*;

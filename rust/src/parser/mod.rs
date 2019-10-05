@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Leonardo Banderali
+ * Copyright (c) 2018, 2019 Leonardo Banderali
  *
  * This software is released under the MIT License:
  *
@@ -34,6 +34,7 @@ mod statement_parser;
 use self::statement_parser::parse_statement_list;
 
 use utils::*;
+use tracing;
 use token;
 use lexer;
 use lexer::Lexer;
@@ -90,11 +91,16 @@ impl convert::From<statement_parser::Error> for Error {
 
 pub type Result<T> = result::Result<T, Error>;
 
-pub fn parse_program<L: Lexer>(lexer: L) -> Result<ast::Program> {
+pub fn parse_program<L: Lexer>(lexer: L, traceContext: &mut tracing::TraceContext) -> Result<ast::Program> {
     use token::TokenType::*;
     use token::Token;
     let mut lexer = lexer.filter(|ref t| if let Ok(Token{token:COMMENT(_), pos:_}) = t { false } else { true });
-    Ok(ast::Program{ body: parse_statement_list(&mut lexer)? })
+    let mut tracer = tracing::Tracer::new(tracing::TraceOption::Parsing, traceContext);
+    let ast = ast::Program{ body: parse_statement_list(&mut lexer, &mut tracer)? };
+    use fmttree::Display;
+    tracer.traceln("Generated AST:");
+    tracer.trace(&ast.display_tree());
+    Ok(ast)
 }
 
 #[cfg(test)]

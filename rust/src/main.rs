@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018 Leonardo Banderali
+ * Copyright (c) 2018, 2019 Leonardo Banderali
  *
  * This software is released under the MIT License:
  *
@@ -23,12 +23,8 @@
  *
  */
 
-use std::error;
-use std::io::prelude::Read;
-use std::fs::File;
-use std::io::BufReader;
-
 mod utils;
+mod tracing;
 mod types;
 mod token;
 mod lexer;
@@ -43,8 +39,16 @@ mod wasmgen;
 
 extern crate argparse;
 
+use std::error;
+use std::io::prelude::Read;
+use std::fs::File;
+use std::io::BufReader;
+use std::io;
+
 struct Options {
     source_path: String,
+    trace: Vec<tracing::TraceOption>
+
 }
 
 macro_rules! handle_errors {
@@ -66,15 +70,22 @@ macro_rules! handle_errors {
 }
 
 fn main() {
-    let mut options = Options{source_path: "".to_string()};
+    let mut options = Options{source_path: "".to_string(), trace:vec![]};
     {
-        use argparse as ap;
-        let mut parser = ap::ArgumentParser::new();
-        parser.set_description("Rust implementation of TUC (The U Compiler)");
-        parser.refer(&mut options.source_path)
-            .add_argument("source_path", ap::Store, "source file to be compiled").required();
-        parser.parse_args_or_exit();
+        let desc = format!("trace a step during compilation, must be one of: {:?}", tracing::TRACE_OPTIONS);
+        {
+            use argparse as ap;
+            let mut parser = ap::ArgumentParser::new();
+            parser.set_description("Rust implementation of TUC (The U Compiler)");
+            parser.refer(&mut options.trace)
+                .add_option(&["-t", "--trace"], ap::Collect, &desc);
+            parser.refer(&mut options.source_path)
+                .add_argument("source_path", ap::Store, "source file to be compiled").required();
+            parser.parse_args_or_exit();
+        }
     }
+
+    let mut traceContext = tracing::TraceContext::new(&options.trace, Box::new(std::io::stderr()));
 
     let mut source = String::new();
     {
@@ -84,18 +95,12 @@ fn main() {
     }
 
     let iter = lexer::TokenIterator::new(&source);
-    let mut ast = handle_errors!(parser::parse_program(iter));
+    let mut ast = handle_errors!(parser::parse_program(iter, &mut traceContext));
+    semantics::analyze_semantics(&mut ast, &mut traceContext).unwrap();
 
-    use fmttree::Display;
-    println!("AST after parsing:\n{}", ast.display_tree());
-
-    semantics::analyze_semantics(&mut ast).unwrap();
     let ast = ast; // make ast immutable
-    println!("AST after semantic analysis:\n{}", ast.display_tree());
 
-    let il = genil::gen_il(&ast).unwrap();
-    println!("\n{}", il);
+    let il = genil::gen_il(&ast, &mut traceContext).unwrap();
 
-    let wat = wasmgen::generate_wat(&il).unwrap();
-    println!("WASM:\n{}", wat);
+    let wat = wasmgen::generate_wat(&il, &mut traceContext).unwrap();
 }
